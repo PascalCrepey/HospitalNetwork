@@ -1,0 +1,10 @@
+Package: HospitalNetwork
+Type: Package
+Title: Building networks of hospitals through patients transfers
+Version: 0.1.0
+Author: Pascal Crépey
+Maintainer: Pascal Crépey <pascal.crepey@ehesp.fr>
+Description: This R package contains functions to help interested researchers to build hospital networks from patients transferred between hospitals.
+License: GPLv3
+Encoding: UTF-8
+LazyData: true
