@@ -33,8 +33,8 @@ matrix_from_edgelist <-
     missing = data.table("origin" = c(missing_origin, missing_target),
                          "target" = c(missing_origin, missing_target),
                          'N' = 0)
-    complete = rbindlist(list(edgelist, missing))
-    DT_trans = dcast.data.table(complete, origin ~ target,
+    complete = data.table::rbindlist(list(edgelist, missing))
+    DT_trans = data.table::dcast.data.table(complete, origin ~ target,
                                 drop = F, fill = 0, value.var = 'N')
     DT_trans[, origin := NULL]
         matrix = as.matrix(DT_trans)
@@ -44,8 +44,10 @@ matrix_from_edgelist <-
 
 
 
-#' createMatrix
-#' This function creates the adjacency matrix of the network from a patient discharge database. Can also return an edge list instead of the adjacency matrix.
+#' Create a transfer matrix from a patient database
+#' 
+#' This function creates the adjacency matrix of the network from a patient discharge database. 
+#' Can also return an edge list instead of the adjacency matrix.
 #' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
 #'         patientID (character)
@@ -71,7 +73,7 @@ edgelist_from_patient_database = function(base,
                               threshold = NULL)
 {
 
-    setkey(base, get("patientID"), num_sejour)
+    data.table::setkey(base, get("patientID"), num_sejour)
     N = base[, .N]
 
     #### GET MOVEMENTS OF PATIENTS
@@ -97,7 +99,7 @@ edgelist_from_patient_database = function(base,
     ## Create DT with each row representing a movement from "orig" to "target"
     cat("Compute frequencies...\n")
     DT_links = data.table(cbind(origin, target))
-    setkey(DT_links, origin, target)
+    data.table::setkey(DT_links, origin, target)
 
     ## Count the movements across each nodes
     cat("Compute unique links...\n")

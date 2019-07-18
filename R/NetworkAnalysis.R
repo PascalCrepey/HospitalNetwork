@@ -1,11 +1,5 @@
 # file: functions_network_analysis.R
-# author: cmasso6
-# date: Mon Apr 29 15:58:33 2019
 
-### REQUIRES ###
-library(data.table)
-library(checkmate)
-library(igraph)
 
 ### FUNCTIONS ###
 
