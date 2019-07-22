@@ -1,0 +1,73 @@
+---
+title: "HospitalNetwork-Workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{HospitalNetwork-Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+##Context
+This document illustrates the way the *HospitalNetwork* package is intended to work. It describes the necessary datasets to provide, and the way they are analysed by the functions. 
+
+##Data
+The package requires a minimal set of information in order to build a network of hospitals. This set of data is describe under the section "Required data". To proceed to further analysis, the package can use additional information in case they are available. These informations are listed under the section "Optional informations". Each row must correspond to a patient stay. Patient stays are not allowed to overlap (see diagnostics functions). To ensure consistency of the network regarding potential yearly seasonality, at least one year of data should be provided.
+
+###Required data
+
+|Item| Variable name |Description|
+|----|:-------------:|-----------|
+|Patient ID | pID | an anonymized identifier unique to each patient|
+|Hospital ID| hID | an anonymized identifier unique to each hospital|
+|Admission date| Adate | the date of admission of the patient in a hospital|
+|Discharge date| Ddate | the date of discharge of the patient from a hospital|
+
+###Optional data (in the same database)
+
+| Item          | Variable name     | Description                 |
+|---------------|:-----------------:|-----------------------------|
+|Mode of entry | entry | a variable indicating whether the patient arrived from home (0), or from a hospital (1) |
+|Mode of discharge | discharge | a variable indicating whether the patient is discharged back home (0), or to a hospital (1) |
+|Patient residential postcode | postcode | a variable indicating the postalcode of the patient residency |
+|Wards visited by the patient | ward | a single type of ward predominantly visited by the patient, coded as 1 for ICU or acute care and 0 for others |
+
+### Optional data (in a separate database)
+
+|Item| Variable name |Description|
+|----|:-------------:|-----------|
+|Hospital localization| localisation | GPS coordinates of the hospital|
+|Hospital capacity | capacity | the number of beds available in the hospital|
+|Hospital type | type | the type of hospital (ECDC level definitions)|
+
+##Workflow
+
+0. Run diagnostic tests on the data to ensure its compatibility.
+1. {Patient ID, Hospital ID, Admission date, Discharge date} -> {Patient ID, Hospital ID, OriginID, sequence} where OriginID contains either *NA*, or the Hospital ID previously visited by the patient, according to the referral window, and sequence is the stay order, unique for each patient.
+2. {Patient ID, Hospital ID, OriginID, sequence} -> *HospiNet* S3 object containing the hospital transfer matrix and the relevant measures.
+
+##The *HospiNet* object
+
+*HospiNet* is an S3 object containing the hospital matrix as well as specific informations regarding the network. We have developped a *summary* and a *print* method for this object. 
+The informations contained in an *HospiNet* objects are: 
+
+* *size*, the size of the network,
+* *window*, the size of the movement window (0 for direct transfers between hospitals),
+* *nb_movements*, the number direct or indirect (depending on the window size) transfers,
+* *hist_degrees*, *\_in*, *\_out*, are named vectors containing the number of nodes for each degree, indegree, or outdregree,
+* ...
+
+
+## Using the package
+
+```{r setup}
+library(HospitalNetwork)
+```
+
+
