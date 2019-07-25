@@ -59,7 +59,7 @@ matrix_from_edgelist <-
 #' @param noloops (boolean).
 #'     Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).
 #' @param threshold (numeric)
-#'     A threshold below which the node should be removed from the network. The threshold correspond to the sum of in AND out transfers for the node. Defaults to NULL.
+#'     A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.
 #'
 #' @return The adjency matrix or the edge list in the form of a data.table.
 #'
@@ -67,34 +67,38 @@ matrix_from_edgelist <-
 #'
 #' @examples
 edgelist_from_patient_database = function(base,
-                              patientID = "ID",
-                              hospitalID = "FINESS",
+                              patientID = "pID",#ID
+                              hospitalID = "hID",#FINESS
+                              admDate = "Adate",
+                              disDate = "Ddate",
                               noloops = TRUE,
-                              threshold = NULL)
+                              threshold = 365)
 {
-
-    data.table::setkey(base, get("patientID"), num_sejour)
+    data.table::setkeyv(base, c(patientID,admDate))
     N = base[, .N]
 
     #### GET MOVEMENTS OF PATIENTS
     ## Compare rows n and n+1
     ## First condition, rows n and n+1 must have same patientID (C1)
     ## Second condition, "mode_sortie" of row n must be "mutation" or
-    ## "transfert" (C2)
+    ## "transfert" (C2) => not included yet
     ## Third condition, "mode_entree" of row n+1 must be "mutation" or
-    ## "transfert" (C3)
-
-    C1 = base[, ID][-N] == base[, ID][-1]
-    C2 = base[, mode_sortie][-N] %in% c("mutation", "transfert")
-    C3 = base[, mode_entree][-1] %in% c("mutation", "transfert")
-
+    ## "transfert" (C3) => not included yet
+    ## Fourth condition, the time between discharge of row n and admission  
+    ## of row n+1 needs to be shorter or equal to threshold (C4)
+    
+    C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
+    #C2 = base[, mode_sortie][-N] %in% c("mutation", "transfert") 
+    #C3 = base[, mode_entree][-1] %in% c("mutation", "transfert")
+    C4 = ((base[, get(admDate)][-1]-base[, get(disDate)][-N])<(threshold*3600*24))
+    
     ## If all conditions are met, retrieve FINESS number of row n (origin)
     cat("Compute origins...\n")
-    origin = base[-N][C1 & C2 & C3, get(hospitalID)]
+    origin = base[-N][C1 & C4, get(hospitalID)]
 
     ## If all conditions are met, retrieve FINESS number of row n+1 (target)
     cat("Compute targets...\n")
-    target = base[-1][C1 & C2 & C3, get(hospitalID)]
+    target = base[-1][C1 & C4, get(hospitalID)]
 
     ## Create DT with each row representing a movement from "orig" to "target"
     cat("Compute frequencies...\n")
@@ -109,7 +113,8 @@ edgelist_from_patient_database = function(base,
 
     if (noloops) {
         cat("Removing loops...\n")
-        histogr[origin == target, N := 0] # set matrix diagonal to 0
+        # histogr[origin == target, N := 0] # set matrix diagonal to 0 # TD: This delivers an empty list I run it.
+        histogr<-subset(histogr,origin != target)
     }
 
     return(histogr)
