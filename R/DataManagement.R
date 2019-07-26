@@ -142,6 +142,85 @@ checkDates<-function(base,
 }
 
 
+
+#' Function that corrects for overlapping admissions. It checks if a discharge (n) is not later than the next (n+1) admission.
+#' If this is the case, it sets the date of discharge n to date of discharge n+1, and creates an extra record running from discharge n+1 to discharge n.
+#' If the length of stay of this record is negative, it removes it.
+#' It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found. 
+#' Returns the corrected database
+#'
+#' @param base (data.table).
+#'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+#'         pID: patientID (character)
+#'         hID: hospitalID (character)
+#'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
+#'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
+#'         
+#' @param patientID (charachter) the columns name containing the patient ID. Default is "pID"
+#' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID"
+#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
+#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
+#' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
+#' @return The corrected database as data.table.
+#' @export
+#' 
+adjust_overlapping_stays = function(base,                                          
+                             patientID = "pID",#ID
+                             hospitalID = "hID",#FINESS
+                             admDate = "Adate",
+                             disDate = "Ddate",
+                             maxIteration =25,
+                             ...) {
+  data.table::setkeyv(base, c(patientID,admDate,disDate))
+  nbefore=nrow(base)
+  cat("Removing duplicate records\n")
+  base<-unique(base)
+  print(nrow(base))
+  cat(paste0("Removed ",nbefore-nrow(base)," duplicates\n"))
+  
+  N = base[, .N]
+  
+  C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
+  C2 = ((base[, get(admDate)][-1]-base[, get(disDate)][-N])<0) 
+  probPatients=base[-1][(C1&C2),get(patientID)]
+  C1A=(base[,get(patientID)] %in% probPatients)
+  probBase=base[C1A,]
+  nonProbBase=base[!C1A,]
+  
+  iterator=0;
+  while(iterator<maxIteration&sum(C1&C2)>0){
+    cat(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping hospital stays\nSplitting database and correcting\n"))
+    
+    Nprob = probBase[, .N]
+    data.table::setkeyv(probBase, c(patientID,admDate,disDate))
+    
+    C1 = probBase[, get(patientID)][-Nprob] == probBase[, get(patientID)][-1]
+    C2 = ((probBase[, get(admDate)][-1]-probBase[, get(disDate)][-Nprob])<0) 
+    
+    a=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][(C1&C2), get(admDate)],Ddate=probBase[-1][(C1&C2), get(admDate)])
+    b=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-1][(C1&C2), get(disDate)],Ddate=probBase[-Nprob][(C1&C2), get(disDate)])
+    c=data.table(pID=probBase[-Nprob][!(C1&C2), get(patientID)],hID=probBase[-Nprob][!(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][!(C1&C2), get(admDate)],Ddate=probBase[-Nprob][!(C1&C2), get(disDate)])
+    cat("Combining and sorting\n")
+    
+    probBase=rbind(a,b,c)
+    data.table::setkeyv(probBase, c(patientID,admDate,disDate))
+    
+    C3 = ((probBase[, get(disDate)]-probBase[, get(admDate)])<0)
+    base<-probBase[!C3,]
+    
+    C1 = base[, get(patientID)][-Nprob] == base[, get(patientID)][-1]
+    C2 = ((base[, get(admDate)][-1]-base[, get(disDate)][-Nprob])<0) 
+    probPatients=base[-1][(C1&C2),get(patientID)]
+    C1A=(base[,get(patientID)] %in% probPatients)
+    
+    probBase=base[C1A,]
+    nonProbBase=rbind(nonProbBase,base[!C1A,])
+    
+    iterator<-iterator+1
+  }
+  return(nonProbBase)
+}
+
 #Data summary statistics
 # number of admissions
 # Length of stay
