@@ -12,16 +12,15 @@
 #' @return a data.table containing all patients stays
 #' @export
 #'
-
 create_fake_patientDB <- function(n_patients = 50, 
                                   n_hospital = 10, 
                                   avg_n_stays = 3, 
                                   days_since_discharge = NULL, 
                                   length_of_stay = NULL){
   #create patients IDs
-  pIDs = paste0("p", 1:n_patients)
+  pIDs = paste0("p", formatC(1:n_patients, width = nchar(n_hospital), flag = "0"))
   #create hospital IDs
-  hIDs = paste0("h", 1:n_hospital)
+  hIDs = paste0("h", formatC(1:n_hospital, width = nchar(n_hospital), flag = "0"))
   
   all_p_stays = lapply(pIDs, function(pID) {
     n_moves = max(1, rnorm(1, mean = avg_n_stays, sd = ceiling(avg_n_stays*0.3)))
