@@ -16,6 +16,8 @@ Imports:
     data.table,
     checkmate,
     igraph
+Depends: 
+  data.table
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,
