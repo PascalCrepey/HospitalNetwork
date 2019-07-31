@@ -80,7 +80,8 @@ edgelist_from_patient_database = function(base,
                               disDate = "Ddate",
                               noloops = TRUE,
                               window_threshold = 365,
-                              nmoves_threshold = NULL
+                              nmoves_threshold = NULL, 
+                              verbose = FALSE
                               )
 {
     data.table::setkeyv(base, c(patientID, admDate))
@@ -102,31 +103,32 @@ edgelist_from_patient_database = function(base,
     C4 = ((base[, get(admDate)][-1] - base[, get(disDate)][-N]) < (window_threshold*3600*24))
     
     ## If all conditions are met, retrieve hospitalID number of row n (origin)
-    cat("Compute origins...\n")
+    if (verbose) cat("Compute origins...\n")
     origin = base[-N][C1 & C4, get(hospitalID)]
 
     ## If all conditions are met, retrieve hospitalID number of row n+1 (target)
-    cat("Compute targets...\n")
+    if (verbose) cat("Compute targets...\n")
     target = base[-1][C1 & C4, get(hospitalID)]
 
     ## Create DT with each row representing a movement from "origin" to "target"
-    cat("Compute frequencies...\n")
+    if (verbose) cat("Compute frequencies...\n")
     DT_links = data.table(cbind(origin, target))
     data.table::setkey(DT_links, origin, target)
 
     ## Count the movements across each nodes
-    cat("Compute unique links...\n")
+    if (verbose) cat("Compute unique links...\n")
     single_links = unique(DT_links)
-    cat("Compute histogram of movements (edge list)\n")
+    if (verbose) cat("Compute histogram of movements (edge list)\n")
     histogr = DT_links[single_links, .N, by = .EACHI] # this is the edge list
 
     if (noloops) {
-        cat("Removing loops...\n")
+        if (verbose) cat("Removing loops...\n")
         # histogr[origin == target, N := 0] # set matrix diagonal to 0 # TD: This delivers an empty list I run it.
         histogr <- subset(histogr,origin != target)
     }
     
     if (!is.null(nmoves_threshold)) {
+      if (verbose) cat("Removing edges below nmoves_threshold...\n")
       histogr = histogr[N >= nmoves_threshold]
     }
 
@@ -159,7 +161,8 @@ hospinet_from_patient_database <- function(base,
                                            disDate = "Ddate",
                                            noloops = TRUE,
                                            window_threshold = 365,
-                                           nmoves_threshold = NULL){
+                                           nmoves_threshold = NULL, 
+                                           verbose = FALSE){
   
   edgelist = edgelist_from_patient_database(base = base,
                                             patientID = patientID,
@@ -168,7 +171,8 @@ hospinet_from_patient_database <- function(base,
                                             disDate = disDate,
                                             noloops = noloops,
                                             window_threshold = window_threshold,
-                                            nmoves_threshold = nmoves_threshold)
+                                            nmoves_threshold = nmoves_threshold, 
+                                            verbose = verbose)
     
   matrix = matrix_from_edgelist(edgelist = edgelist)
   

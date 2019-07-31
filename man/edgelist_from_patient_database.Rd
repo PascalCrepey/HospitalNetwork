@@ -6,7 +6,8 @@
 \usage{
 edgelist_from_patient_database(base, patientID = "pID",
   hospitalID = "hID", admDate = "Adate", disDate = "Ddate",
-  noloops = TRUE, window_threshold = 365, nmoves_threshold = NULL)
+  noloops = TRUE, window_threshold = 365, nmoves_threshold = NULL,
+  verbose = FALSE)
 }
 \arguments{
 \item{base}{(data.table).

@@ -6,7 +6,8 @@
 \usage{
 hospinet_from_patient_database(base, patientID = "pID",
   hospitalID = "hID", admDate = "Adate", disDate = "Ddate",
-  noloops = TRUE, window_threshold = 365, nmoves_threshold = NULL)
+  noloops = TRUE, window_threshold = 365, nmoves_threshold = NULL,
+  verbose = FALSE)
 }
 \arguments{
 \item{base}{}
@@ -34,5 +35,6 @@ Create HospiNet object from patient database
 \examples{
 mydb = create_fake_patientDB(n_patients = 100, n_hospital = 5)
 mat = hospinet_from_patient_database(base = mydb)
+mat
 
 }
