@@ -57,9 +57,10 @@ The package requires a minimal set of information in order to build a network of
 *HospiNet* is an S3 object containing the hospital matrix as well as specific informations regarding the network. We have developped a *summary* and a *print* method for this object. 
 The informations contained in an *HospiNet* objects are: 
 
-* *size*, the size of the network,
-* *window*, the size of the movement window (0 for direct transfers between hospitals),
-* *nb_movements*, the number direct or indirect (depending on the window size) transfers,
+* *n_hospitals*, the number of hospitals in the network,
+* *n_patients*, the number of patients in the network,
+* *n_movements*, the number direct or indirect (depending on the window size) transfers,
+* *window_threshold*, the size of the movement window in days (0 for direct transfers between hospitals),
 * *hist_degrees*, *\_in*, *\_out*, are named vectors containing the number of nodes for each degree, indegree, or outdregree,
 * ...
 

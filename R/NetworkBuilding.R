@@ -99,13 +99,13 @@ edgelist_from_patient_database = function(base,
     C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
     #C2 = base[, mode_sortie][-N] %in% c("mutation", "transfert") 
     #C3 = base[, mode_entree][-1] %in% c("mutation", "transfert")
-    C4 = ((base[, get(admDate)][-1]-base[, get(disDate)][-N]) < (window_threshold*3600*24))
+    C4 = ((base[, get(admDate)][-1] - base[, get(disDate)][-N]) < (window_threshold*3600*24))
     
-    ## If all conditions are met, retrieve FINESS number of row n (origin)
+    ## If all conditions are met, retrieve hospitalID number of row n (origin)
     cat("Compute origins...\n")
     origin = base[-N][C1 & C4, get(hospitalID)]
 
-    ## If all conditions are met, retrieve FINESS number of row n+1 (target)
+    ## If all conditions are met, retrieve hospitalID number of row n+1 (target)
     cat("Compute targets...\n")
     target = base[-1][C1 & C4, get(hospitalID)]
 
@@ -126,7 +126,7 @@ edgelist_from_patient_database = function(base,
         histogr <- subset(histogr,origin != target)
     }
     
-    if (!is.null(nmoves_threshold)){
+    if (!is.null(nmoves_threshold)) {
       histogr = histogr[N >= nmoves_threshold]
     }
 
@@ -150,6 +150,7 @@ edgelist_from_patient_database = function(base,
 #' @examples
 #' mydb = create_fake_patientDB(n_patients = 100, n_hospital = 5)
 #' mat = hospinet_from_patient_database(base = mydb)
+#' mat
 #' 
 hospinet_from_patient_database <- function(base,
                                            patientID = "pID",#ID
@@ -175,24 +176,4 @@ hospinet_from_patient_database <- function(base,
            window_threshold = window_threshold, 
            nmoves_threshold = nmoves_threshold, 
            noloops = noloops)
-}
-
-#' Constructor for the HospiNet object
-#'
-#' @param matrix 
-#' @param edgelist 
-#' @param window_threshold 
-#' @param nmoves_threshold 
-#' @param noloops 
-#'
-#' @return
-#' @export
-#'
-HospiNet <- function(matrix, edgelist, window_threshold, nmoves_threshold, noloops){
-  structure(matrix, class = "HospiNet", 
-            edgelist = edgelist, 
-            n_hospitals = nrow(matrix),
-            window_threshold = window_threshold, 
-            nmoves_threshold = nmoves_threshold,
-            noloops = noloops)
 }
