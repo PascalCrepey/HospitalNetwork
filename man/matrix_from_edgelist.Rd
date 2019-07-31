@@ -2,19 +2,22 @@
 % Please edit documentation in R/NetworkBuilding.R
 \name{matrix_from_edgelist}
 \alias{matrix_from_edgelist}
-\title{Function that creates an adjacency matrix from an edgelist}
+\title{Create an adjacency matrix from an edgelist}
 \usage{
-matrix_from_edgelist(edgelist, origin = "FINESS_DEF_1",
-  target = "FINESS_DEF_2", value.var = "NB_transferts",
-  format.long = F)
+matrix_from_edgelist(edgelist, origin_name = "origin",
+  target_name = "target", value.var = "N", format.long = F)
 }
 \arguments{
-\item{origin}{the name of the variable containing the origin hospital id}
+\item{edgelist}{a list of edges corresponding to hospital transfers}
 
-\item{target}{the name of the variable containing the target hospital id}
+\item{origin_name}{the name of the variable containing the origin hospital id}
+
+\item{target_name}{the name of the variable containing the target hospital id}
 
 \item{value.var}{the name of the variable containing the number of transfers}
+
+\item{format.long}{specify if the number of moves needs to be computed (TRUE) or is already present (FALSE)}
 }
 \description{
-Function that creates an adjacency matrix from an edgelist
+Create an adjacency matrix from an edgelist
 }

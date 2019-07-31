@@ -2,11 +2,11 @@
 % Please edit documentation in R/NetworkBuilding.R
 \name{edgelist_from_patient_database}
 \alias{edgelist_from_patient_database}
-\title{createMatrix
-This function creates the adjacency matrix of the network from a patient discharge database. Can also return an edge list instead of the adjacency matrix.}
+\title{Create an edge list from a patient database}
 \usage{
-edgelist_from_patient_database(base, patientID = "ID",
-  hospitalID = "FINESS", noloops = TRUE, threshold = NULL)
+edgelist_from_patient_database(base, patientID = "pID",
+  hospitalID = "hID", admDate = "Adate", disDate = "Ddate",
+  noloops = TRUE, window_threshold = 365, nmoves_threshold = NULL)
 }
 \arguments{
 \item{base}{(data.table).
@@ -20,13 +20,15 @@ A patient discharge database, in the form of a data.table. The data.table should
 \item{noloops}{(boolean).
 Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).}
 
-\item{threshold}{(numeric)
-A threshold below which the node should be removed from the network. The threshold correspond to the sum of in AND out transfers for the node. Defaults to NULL.}
+\item{window_threshold}{(numeric)
+A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.}
+
+\item{nmoves_threshold}{(numeric)
+A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.}
 }
 \value{
-The adjency matrix or the edge list in the form of a data.table.
+The edge list in the form of a data.table.
 }
 \description{
-createMatrix
-This function creates the adjacency matrix of the network from a patient discharge database. Can also return an edge list instead of the adjacency matrix.
+This function creates the list of edges of the network from a patient discharge database.
 }

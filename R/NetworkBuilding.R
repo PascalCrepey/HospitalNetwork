@@ -1,27 +1,27 @@
 
-#' Function that creates an adjacency matrix from an edgelist
+#' Create an adjacency matrix from an edgelist
 #'
-#' @param edgelist
-#' @param origin the name of the variable containing the origin hospital id
-#' @param target the name of the variable containing the target hospital id
+#' @param edgelist a list of edges corresponding to hospital transfers
+#' @param origin_name the name of the variable containing the origin hospital id
+#' @param target_name the name of the variable containing the target hospital id
 #' @param value.var the name of the variable containing the number of transfers
-#' @param format.long
+#' @param format.long specify if the number of moves needs to be computed (TRUE) or is already present (FALSE)
 #' @export
+#' 
 matrix_from_edgelist <-
     function(edgelist,
-             origin = "FINESS_DEF_1",
-             target = "FINESS_DEF_2",
-             value.var = "NB_transferts",
-             format.long = F)
-{
+             origin_name = "origin",
+             target_name = "target",
+             value.var = "N",
+             format.long = F){
     if (format.long) {
-        edgelist = edgelist[, .N, by = c(origin, target)] # group identical couples
+        edgelist = edgelist[, .N, by = c(origin_name, target_name)] # group identical couples
     }
     if (!format.long) {
         colnames(edgelist)[colnames(edgelist) == value.var] = "N"
     }
-    colnames(edgelist)[colnames(edgelist) == origin] = "origin"
-    colnames(edgelist)[colnames(edgelist) == target] = "target"
+    colnames(edgelist)[colnames(edgelist) == origin_name] = "origin"
+    colnames(edgelist)[colnames(edgelist) == target_name] = "target"
 
     ## Some hospitalID are origins but not target, and vice-versa.
     ## They must be added in the respective columns to have a NxN matrix
@@ -30,10 +30,17 @@ matrix_from_edgelist <-
     to = unique(edgelist[, target])
     missing_origin = setdiff(to, from)
     missing_target = setdiff(from, to)
-    missing = data.table("origin" = c(missing_origin, missing_target),
-                         "target" = c(missing_origin, missing_target),
-                         'N' = 0)
-    complete = data.table::rbindlist(list(edgelist, missing))
+
+    if(length(missing_origin) + length(missing_target) > 0){
+      missing = data.table("origin" = c(missing_origin, missing_target),
+                           "target" = c(missing_origin, missing_target),
+                           'N' = 0)
+      complete = data.table::rbindlist(list(edgelist, missing))
+    }else{
+      #if nothing is missing
+      complete = edgelist
+    }
+    
     DT_trans = data.table::dcast.data.table(complete, origin ~ target,
                                 drop = F, fill = 0, value.var = 'N')
     DT_trans[, origin := NULL]
@@ -43,11 +50,10 @@ matrix_from_edgelist <-
 }
 
 
-
-#' Create a transfer matrix from a patient database
+#' Create an edge list from a patient database
 #' 
-#' This function creates the adjacency matrix of the network from a patient discharge database. 
-#' Can also return an edge list instead of the adjacency matrix.
+#' This function creates the list of edges of the network from a patient discharge database. 
+#' 
 #' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
 #'         patientID (character)
@@ -58,23 +64,26 @@ matrix_from_edgelist <-
 #'
 #' @param noloops (boolean).
 #'     Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).
-#' @param threshold (numeric)
+#' @param window_threshold (numeric)
 #'     A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.
-#'
-#' @return The adjency matrix or the edge list in the form of a data.table.
+#' @param nmoves_threshold (numeric)
+#'     A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.
+#'     
+#' @return The edge list in the form of a data.table.
 #'
 #' @export
-#'
-#' @examples
+#' 
 edgelist_from_patient_database = function(base,
                               patientID = "pID",#ID
                               hospitalID = "hID",#FINESS
                               admDate = "Adate",
                               disDate = "Ddate",
                               noloops = TRUE,
-                              threshold = 365)
+                              window_threshold = 365,
+                              nmoves_threshold = NULL
+                              )
 {
-    data.table::setkeyv(base, c(patientID,admDate))
+    data.table::setkeyv(base, c(patientID, admDate))
     N = base[, .N]
 
     #### GET MOVEMENTS OF PATIENTS
@@ -85,12 +94,12 @@ edgelist_from_patient_database = function(base,
     ## Third condition, "mode_entree" of row n+1 must be "mutation" or
     ## "transfert" (C3) => not included yet
     ## Fourth condition, the time between discharge of row n and admission  
-    ## of row n+1 needs to be shorter or equal to threshold (C4)
-    
+    ## of row n+1 needs to be shorter or equal to window_threshold (C4)
+
     C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
     #C2 = base[, mode_sortie][-N] %in% c("mutation", "transfert") 
     #C3 = base[, mode_entree][-1] %in% c("mutation", "transfert")
-    C4 = ((base[, get(admDate)][-1]-base[, get(disDate)][-N])<(threshold*3600*24))
+    C4 = ((base[, get(admDate)][-1]-base[, get(disDate)][-N]) < (window_threshold*3600*24))
     
     ## If all conditions are met, retrieve FINESS number of row n (origin)
     cat("Compute origins...\n")
@@ -100,7 +109,7 @@ edgelist_from_patient_database = function(base,
     cat("Compute targets...\n")
     target = base[-1][C1 & C4, get(hospitalID)]
 
-    ## Create DT with each row representing a movement from "orig" to "target"
+    ## Create DT with each row representing a movement from "origin" to "target"
     cat("Compute frequencies...\n")
     DT_links = data.table(cbind(origin, target))
     data.table::setkey(DT_links, origin, target)
@@ -114,12 +123,76 @@ edgelist_from_patient_database = function(base,
     if (noloops) {
         cat("Removing loops...\n")
         # histogr[origin == target, N := 0] # set matrix diagonal to 0 # TD: This delivers an empty list I run it.
-        histogr<-subset(histogr,origin != target)
+        histogr <- subset(histogr,origin != target)
+    }
+    
+    if (!is.null(nmoves_threshold)){
+      histogr = histogr[N >= nmoves_threshold]
     }
 
     return(histogr)
 }
 
 
+#' Create HospiNet object from patient database
+#'
+#' @param base 
+#' @param patientID 
+#' @param hospitalID 
+#' @param admDate 
+#' @param disDate 
+#' @param noloops 
+#' @param window_threshold 
+#' @param nmoves_threshold 
+#'
+#' @return a HospiNet object
+#' @export
+#' @examples
+#' mydb = create_fake_patientDB(n_patients = 100, n_hospital = 5)
+#' mat = hospinet_from_patient_database(base = mydb)
+#' 
+hospinet_from_patient_database <- function(base,
+                                           patientID = "pID",#ID
+                                           hospitalID = "hID",#FINESS
+                                           admDate = "Adate",
+                                           disDate = "Ddate",
+                                           noloops = TRUE,
+                                           window_threshold = 365,
+                                           nmoves_threshold = NULL){
+  
+  edgelist = edgelist_from_patient_database(base = base,
+                                            patientID = patientID,
+                                            hospitalID = hospitalID,
+                                            admDate = admDate,
+                                            disDate = disDate,
+                                            noloops = noloops,
+                                            window_threshold = window_threshold,
+                                            nmoves_threshold = nmoves_threshold)
+    
+  matrix = matrix_from_edgelist(edgelist = edgelist)
+  
+  HospiNet(matrix, edgelist, 
+           window_threshold = window_threshold, 
+           nmoves_threshold = nmoves_threshold, 
+           noloops = noloops)
+}
 
-
+#' Constructor for the HospiNet object
+#'
+#' @param matrix 
+#' @param edgelist 
+#' @param window_threshold 
+#' @param nmoves_threshold 
+#' @param noloops 
+#'
+#' @return
+#' @export
+#'
+HospiNet <- function(matrix, edgelist, window_threshold, nmoves_threshold, noloops){
+  structure(matrix, class = "HospiNet", 
+            edgelist = edgelist, 
+            n_hospitals = nrow(matrix),
+            window_threshold = window_threshold, 
+            nmoves_threshold = nmoves_threshold,
+            noloops = noloops)
+}
