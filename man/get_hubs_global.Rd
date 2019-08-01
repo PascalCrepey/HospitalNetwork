@@ -8,7 +8,12 @@ get_hubs_global(graph, ...)
 }
 \arguments{
 \item{graph}{An igraph graph}
+
+\item{...}{other arguments to be passed to igraph function hub_score()}
 }
 \description{
 Function computing hub scores for each node. If bycluster = TRUE, hub scores are computed by cluster
+}
+\seealso{
+\code{\link[igraph]{hub_score}}
 }

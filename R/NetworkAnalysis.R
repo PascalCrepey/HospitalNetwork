@@ -3,10 +3,21 @@
 
 ### FUNCTIONS ###
 
-#' Function computing different network analysis metrics
-#' @param network The network to analyse. Must be a square adjacency matrix (n*n).
-#' @param metrics A list of the metrics to compute
-#' @param options A named list of options to be passed to the igraph functions
+#' Compute network metrics
+#' 
+#' Function computing different network analysis metrics.
+#' 
+#' @param network the network to analyse. Must be a square adjacency matrix (n*n).
+#' @param mode either "directed" or "undirected" network measures
+#' @param weighted TRUE if the network is weighted
+#' @param transfers TRUE if metrics specific to patient transfers must be computed
+#' @param metrics list of the metrics to compute
+#' @param clusters choose between cluster algorithm: cluster_fast_greedy or cluster_infomap
+#' @param hubs choose between getting hubs from "all_clusters" or "global"
+#' @param options named list of options to be passed to the igraph functions
+#' 
+#' @import igraph
+#' @import checkmate
 #' 
 getMetrics <-
     function(network,
@@ -25,18 +36,22 @@ getMetrics <-
                  betweenness = list(),
                  cluster_fast_greedy = list(undirected = "collapse"),
                  cluster_infomap = list(undirected = "collapse")
-             )
+                 )
              )
 {
     ## ARGUMENTS CHECK
     coll = makeAssertCollection()
     ## Check network argument
-    if (!class(network) %in% c("igraph", "matrix")) {
-        stop("Please provide the network in the form of either a square adjacency matrix or an igraph graph.")
+    if (!class(network) %in% c("igraph", "matrix", "HospiNet")) {
+        stop("Please provide the network in the form of either a square adjacency matrix, an igraph graph, or an HospiNet object.")
     }
     if (class(network) == "matrix") {
         assertMatrix(network, mode = "numeric", add = coll) # matrix must contain numerics
         assertMatrix(network, nrows = ncol(network), add = coll) # matrix must be square
+    }
+    if (class(network) == "HospiNet") {
+      assertMatrix(network$matrix, mode = "numeric", add = coll) # matrix must contain numerics
+      assertMatrix(network$matrix, nrows = ncol(network$matrix), add = coll) # matrix must be square
     }
     ## Check metrics argument
     assertCharacter(metrics, unique = T)
@@ -50,20 +65,23 @@ getMetrics <-
         graph = graph_from_adjacency_matrix(network,
                                             mode = mode,
                                             weighted = weighted)
-    }
-    else graph = network
+    } else if (class(network) == "HospiNet"){
+      graph = graph_from_adjacency_matrix(network$matrix,
+                                          mode = mode,
+                                          weighted = weighted)
+    } else graph = network
 
     ## MAIN
     DT_list = list()
     ## transfers
     if (transfers) {
         patients_sent = as.data.table(rowSums(network), keep.rownames = T)
-        patients_recieved = as.data.table(colSums(network), keep.rownames = T)
+        patients_received = as.data.table(colSums(network), keep.rownames = T)
         colnames(patients_sent) = c("node", "patients_sent")
-        colnames(patients_recieved) = c("node", "patients_recieved")
+        colnames(patients_received) = c("node", "patients_received")
         setkey(patients_sent, node)
-        setkey(patients_recieved, node)
-        DT_list$transfers = merge(patients_recieved, patients_sent)
+        setkey(patients_received, node)
+        DT_list$transfers = merge(patients_received, patients_sent)
     }
     ## metrics   
     DT_list[metrics] = lapply(metrics, function(metric) {
@@ -111,6 +129,13 @@ getMetrics <-
 }
 
 
+#' Compute the degree of each nodes in the network
+#'
+#' @param graph an igraph object
+#' @param modes the type of degree: "in", "out", "total"
+#'
+#' @return a data.table of nodes degree
+#'
 get_degree <-
     function(graph, modes = c("in", "out", "total"))
 {
@@ -141,6 +166,17 @@ get_degree <-
 }
 
 
+#' Compute closeness
+#' 
+#' Compute one or several closeness measure for hospital networks.
+#'
+#' @param graph an igraph object
+#' @param modes option passed on to igraph::closeness : "out", "in", "all", "total"
+#'
+#' @return a data.table containing the closeness measure
+#' 
+#' @seealso \code{\link[igraph]{closeness}}
+
 get_closeness <-
     function(graph, modes = "total")
 {
@@ -170,6 +206,12 @@ get_closeness <-
     return(DT_merged)
 }
 
+#' Compute the betweeness centrality
+#'
+#' @param graph an igraph object
+#'
+#' @return a data.table containing the centrality measure
+
 get_betweenness <-
     function(graph)
 {
@@ -185,6 +227,15 @@ get_betweenness <-
     return(DT)
 }
 
+#' Compute the clusters
+#'
+#' @param graph an igraph object
+#' @param algo the type of algorithm
+#' @param undirected either "mutual" or "arbitrary"
+#' @param ... other arguments to be passed on to the algorithm
+#'
+#' @return a data.table
+#' 
 get_clusters <-
     function(graph,
              algo,
@@ -218,7 +269,11 @@ get_clusters <-
 
 
 #' Function computing hub scores for each node. If bycluster = TRUE, hub scores are computed by cluster
+#'
 #' @param graph An igraph graph
+#' @param ... other arguments to be passed to igraph function hub_score()
+#' 
+#' @seealso \code{\link[igraph]{hub_score}}
 #' 
 get_hubs_global <-
     function(graph, ...)
@@ -231,9 +286,12 @@ get_hubs_global <-
 }
 
 #' Function computing hub scores of nodes by group
+#' 
 #' @param graphs A list of igraph graphs, one for each group within which the hub scores will be computed
 #' @param name [character (1)] The name of grouping variable (used only for naming the column of the DT)
 #' @param ... Optional arguments to be passed to igraph function 'hub_score()'
+#' 
+#' @seealso \code{\link[igraph]{hub_score}}
 #' 
 get_hubs_bycluster <-
     function(graphs, name, ...)
@@ -255,6 +313,7 @@ get_hubs_bycluster <-
 
 
 #' Function returning matrices of transfers within each by clusters
+#' 
 #' @param mat The adjacency matrix of the network
 #' @param DT A data table with at least a column 'node' and a factor column identifying the node's cluster
 #' @param clusters A unique character vector of the name of the column identifying the nodes' clusters
@@ -276,9 +335,7 @@ get_matrix_bycluster <-
     return(mat_byclust)        
 }
 
-
-
-getAuthorities <-
-    function()
-{
-}
+# getAuthorities <-
+#     function()
+# {
+# }

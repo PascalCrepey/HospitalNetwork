@@ -7,15 +7,18 @@
 HospiNet(matrix, edgelist, window_threshold, nmoves_threshold, noloops)
 }
 \arguments{
-\item{matrix}{}
+\item{matrix}{(matrix) A square matrix of hospitals containing the number of movements between hospitals}
 
-\item{edgelist}{}
+\item{edgelist}{(data.table) the list of edges (origin, target) and their associated number of movements (N)}
 
-\item{window_threshold}{}
+\item{window_threshold}{the window threshold used to compute the network}
 
-\item{nmoves_threshold}{}
+\item{nmoves_threshold}{the nmoves threshold used to compute the network}
 
-\item{noloops}{}
+\item{noloops}{TRUE if loops have been removed}
+}
+\value{
+The constructor returns a HospiNet S3 object.
 }
 \description{
 Constructor for the HospiNet object

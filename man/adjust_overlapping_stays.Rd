@@ -28,6 +28,8 @@ A patient discharge database, in the form of a data.table. The data.table should
 \item{disDate}{(charachter) the columns name containing the discharge date. Default is "Ddate"}
 
 \item{maxIteration}{(integer) the maximum number of times the function will try and remove overlapping admissions}
+
+\item{...}{other parameters passed on to internal functions}
 }
 \value{
 The corrected database as data.table.

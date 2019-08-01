@@ -8,6 +8,8 @@
 #' @param format.long specify if the number of moves needs to be computed (TRUE) or is already present (FALSE)
 #' @export
 #' 
+#' @import data.table
+#' 
 matrix_from_edgelist <-
     function(edgelist,
              origin_name = "origin",
@@ -56,26 +58,33 @@ matrix_from_edgelist <-
 #' 
 #' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-#'         patientID (character)
-#'         stayOrder (character) OR dateBeginStay (date) AND dateEndStay (date)
-#'         hospitalID (character)
-#'         mode_entree (character, one of "mutation", "transfert" or "domicile")
-#'         mode_sortie (character, one of "mutation", "transfert", "domicile" or "deces")
-#'
+#'     
+#'        * patientID (character)
+#'        * hospitalID (character)
+#'        * admDate (date)
+#'        * disDate (date)
+#'        
+#' @param patientID (character)
+#' @param hospitalID (character)
+#' @param admDate (character)
+#' @param disDate (character)
+#'      Change the default names of the base columns.
+#'      
 #' @param noloops (boolean).
 #'     Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).
 #' @param window_threshold (numeric)
 #'     A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.
 #' @param nmoves_threshold (numeric)
 #'     A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.
-#'     
+#' @param verbose TRUE to print computation steps
+#' 
 #' @return The edge list in the form of a data.table.
 #'
 #' @export
 #' 
 edgelist_from_patient_database = function(base,
-                              patientID = "pID",#ID
-                              hospitalID = "hID",#FINESS
+                              patientID = "pID",
+                              hospitalID = "hID",
                               admDate = "Adate",
                               disDate = "Ddate",
                               noloops = TRUE,
@@ -137,17 +146,31 @@ edgelist_from_patient_database = function(base,
 
 
 #' Create HospiNet object from patient database
+#' 
+#' This function creates a HospiNet object from the database containing patients stays.
 #'
-#' @param base 
-#' @param patientID 
-#' @param hospitalID 
-#' @param admDate 
-#' @param disDate 
-#' @param noloops 
-#' @param window_threshold 
-#' @param nmoves_threshold 
-#'
-#' @return a HospiNet object
+#' @param base (data.table).
+#'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+#'     \itemize{
+#'        \item patientID (character)
+#'        \item hospitalID (character)
+#'        \item admDate (date)
+#'        \item disDate (date)
+#'        }
+#' @param patientID,hospitalID,admDate,disDate (character)
+#'      Change the default names of the base columns.
+#'      
+#' @param noloops (boolean).
+#'     Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).
+#' @param window_threshold (numeric)
+#'     A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.
+#' @param nmoves_threshold (numeric)
+#'     A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.
+#' @param verbose TRUE to print computation steps
+#'     
+#' @seealso \code{\link{HospiNet}}
+#' 
+#' @return The function returns a HospiNet object.
 #' @export
 #' @examples
 #' mydb = create_fake_patientDB(n_patients = 100, n_hospital = 5)
@@ -155,8 +178,8 @@ edgelist_from_patient_database = function(base,
 #' mat
 #' 
 hospinet_from_patient_database <- function(base,
-                                           patientID = "pID",#ID
-                                           hospitalID = "hID",#FINESS
+                                           patientID = "pID",
+                                           hospitalID = "hID",
                                            admDate = "Adate",
                                            disDate = "Ddate",
                                            noloops = TRUE,

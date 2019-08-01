@@ -13,14 +13,15 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Imports: 
-    data.table,
     checkmate,
-    igraph
+    igraph,
+    lubridate
 Depends: 
   data.table
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,
+    qpdf,
     rmarkdown,
     testthat (>= 2.1.0)
 VignetteBuilder: knitr

@@ -2,7 +2,7 @@
 % Please edit documentation in R/NetworkAnalysis.R
 \name{getMetrics}
 \alias{getMetrics}
-\title{Function computing different network analysis metrics}
+\title{Compute network metrics}
 \usage{
 getMetrics(network, mode = "directed", weighted = TRUE,
   transfers = TRUE, metrics = c("degree", "closeness", "betweenness"),
@@ -13,12 +13,22 @@ getMetrics(network, mode = "directed", weighted = TRUE,
   cluster_infomap = list(undirected = "collapse")))
 }
 \arguments{
-\item{network}{The network to analyse. Must be a square adjacency matrix (n*n).}
+\item{network}{the network to analyse. Must be a square adjacency matrix (n*n).}
 
-\item{metrics}{A list of the metrics to compute}
+\item{mode}{either "directed" or "undirected" network measures}
 
-\item{options}{A named list of options to be passed to the igraph functions}
+\item{weighted}{TRUE if the network is weighted}
+
+\item{transfers}{TRUE if metrics specific to patient transfers must be computed}
+
+\item{metrics}{list of the metrics to compute}
+
+\item{clusters}{choose between cluster algorithm: cluster_fast_greedy or cluster_infomap}
+
+\item{hubs}{choose between getting hubs from "all_clusters" or "global"}
+
+\item{options}{named list of options to be passed to the igraph functions}
 }
 \description{
-Function computing different network analysis metrics
+Function computing different network analysis metrics.
 }

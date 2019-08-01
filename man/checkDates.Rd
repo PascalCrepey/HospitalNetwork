@@ -36,6 +36,8 @@ A patient discharge database, in the form of a data.table. The data.table should
 \item{disDate}{(charachter) the columns name containing the discharge date. Default is "Ddate"}
 
 \item{admDate}{(charachter) the columns name containing the admission date. Default is "Adate"}
+
+\item{...}{other parameters passed on to internal functions}
 }
 \value{
 The corrected database as data.table.

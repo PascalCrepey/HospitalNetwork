@@ -25,9 +25,12 @@
 #' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID"
 #' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
 #' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
+#' @param ... other parameters passed on to internal functions
 #' 
 #' @return The corrected database as data.table.
 #' @export
+#' 
+#' @importFrom lubridate is.POSIXct parse_date_time
 #' 
 checkDates<-function(base,
                      convertDates=FALSE,
@@ -161,6 +164,8 @@ checkDates<-function(base,
 #' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
 #' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
+#' @param ... other parameters passed on to internal functions
+#' 
 #' @return The corrected database as data.table.
 #' @export
 #' 

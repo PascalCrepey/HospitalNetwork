@@ -1,13 +1,13 @@
 
 #' Constructor for the HospiNet object
 #'
-#' @param matrix 
-#' @param edgelist 
-#' @param window_threshold 
-#' @param nmoves_threshold 
-#' @param noloops 
+#' @param matrix (matrix) A square matrix of hospitals containing the number of movements between hospitals
+#' @param edgelist (data.table) the list of edges (origin, target) and their associated number of movements (N)
+#' @param window_threshold the window threshold used to compute the network
+#' @param nmoves_threshold the nmoves threshold used to compute the network
+#' @param noloops TRUE if loops have been removed
 #'
-#' @return
+#' @return The constructor returns a HospiNet S3 object.
 #' @export
 #'
 HospiNet <- function(matrix, edgelist, window_threshold, nmoves_threshold, noloops){

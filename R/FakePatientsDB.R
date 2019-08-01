@@ -11,6 +11,8 @@
 #'
 #' @return a data.table containing all patients stays
 #' @export
+#' 
+#' @importFrom stats rnorm
 #'
 create_fake_patientDB <- function(n_patients = 50, 
                                   n_hospital = 10, 

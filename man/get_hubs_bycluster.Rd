@@ -16,3 +16,6 @@ get_hubs_bycluster(graphs, name, ...)
 \description{
 Function computing hub scores of nodes by group
 }
+\seealso{
+\code{\link[igraph]{hub_score}}
+}
