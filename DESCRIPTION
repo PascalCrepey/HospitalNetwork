@@ -15,7 +15,8 @@ LazyData: true
 Imports: 
     checkmate,
     igraph,
-    lubridate
+    lubridate,
+    R6
 Depends: 
   data.table
 RoxygenNote: 6.1.1

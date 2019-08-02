@@ -2,7 +2,7 @@
 % Please edit documentation in R/DataManagement.R
 \name{checkDates}
 \alias{checkDates}
-\title{Function that checks the dates in the data base and excludes incorrect records, returns the corrected database}
+\title{Check and fix the dates in patient database}
 \usage{
 checkDates(base, convertDates = FALSE, dateFormat = "",
   bestGuess = FALSE, overnight = FALSE, deleteErrors = "",

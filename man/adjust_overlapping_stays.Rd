@@ -2,11 +2,7 @@
 % Please edit documentation in R/DataManagement.R
 \name{adjust_overlapping_stays}
 \alias{adjust_overlapping_stays}
-\title{Function that corrects for overlapping admissions. It checks if a discharge (n) is not later than the next (n+1) admission.
-If this is the case, it sets the date of discharge n to date of discharge n+1, and creates an extra record running from discharge n+1 to discharge n.
-If the length of stay of this record is negative, it removes it.
-It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found. 
-Returns the corrected database}
+\title{Check and fix overlapping admissions.}
 \usage{
 adjust_overlapping_stays(base, patientID = "pID", hospitalID = "hID",
   admDate = "Adate", disDate = "Ddate", maxIteration = 25, ...)
@@ -35,9 +31,9 @@ A patient discharge database, in the form of a data.table. The data.table should
 The corrected database as data.table.
 }
 \description{
-Function that corrects for overlapping admissions. It checks if a discharge (n) is not later than the next (n+1) admission.
+This function checks if a discharge (n) is not later than the next (n+1) admission.
 If this is the case, it sets the date of discharge n to date of discharge n+1, and creates an extra record running from discharge n+1 to discharge n.
 If the length of stay of this record is negative, it removes it.
 It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found. 
-Returns the corrected database
+Returns the corrected database.
 }

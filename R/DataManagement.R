@@ -4,6 +4,8 @@
 #  Date formatting
 #  Discharge after admission
 
+#' Check and fix the dates in patient database
+#' 
 #' Function that checks the dates in the data base and excludes incorrect records, returns the corrected database
 #'
 #' @param base (data.table).
@@ -146,11 +148,13 @@ checkDates<-function(base,
 
 
 
-#' Function that corrects for overlapping admissions. It checks if a discharge (n) is not later than the next (n+1) admission.
+#' Check and fix overlapping admissions. 
+#' 
+#' This function checks if a discharge (n) is not later than the next (n+1) admission.
 #' If this is the case, it sets the date of discharge n to date of discharge n+1, and creates an extra record running from discharge n+1 to discharge n.
 #' If the length of stay of this record is negative, it removes it.
 #' It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found. 
-#' Returns the corrected database
+#' Returns the corrected database.
 #'
 #' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
@@ -226,9 +230,6 @@ adjust_overlapping_stays = function(base,
   return(nonProbBase)
 }
 
-#Data summary statistics
-# number of admissions
-# Length of stay
-# Number of hospitals
+
       
       

@@ -7,7 +7,7 @@
 #' 
 #' Function computing different network analysis metrics.
 #' 
-#' @param network the network to analyse. Must be a square adjacency matrix (n*n).
+#' @param network the network to analyse. Must be an igraph, HospiNet or a square adjacency matrix (n*n).
 #' @param mode either "directed" or "undirected" network measures
 #' @param weighted TRUE if the network is weighted
 #' @param transfers TRUE if metrics specific to patient transfers must be computed
@@ -19,7 +19,7 @@
 #' @import igraph
 #' @import checkmate
 #' 
-getMetrics <-
+get_metrics <-
     function(network,
              mode = "directed",
              weighted = TRUE,
