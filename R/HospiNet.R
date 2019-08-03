@@ -1,27 +1,15 @@
 
 #' Constructor for the HospiNet object
 #'
-#' @param matrix (matrix) A square matrix of hospitals containing the number of movements between hospitals
 #' @param edgelist (data.table) the list of edges (origin, target) and their associated number of movements (N)
 #' @param window_threshold the window threshold used to compute the network
 #' @param nmoves_threshold the nmoves threshold used to compute the network
 #' @param noloops TRUE if loops have been removed
 #'
 #' @return The constructor returns a HospiNet S3 object.
-#' @export
-#'
-# HospiNet <- function(matrix, edgelist, window_threshold, nmoves_threshold, noloops){
-#   structure(list(matrix = matrix, 
-#             edgelist = edgelist, 
-#             n_hospitals = nrow(matrix),
-#             n_movements = sum(matrix),
-#             window_threshold = window_threshold, 
-#             nmoves_threshold = nmoves_threshold,
-#             noloops = noloops),
-#             class = "HospiNet" )
-# }
-
-
+#' @import ggplot2
+#' 
+#' 
 HospiNet <- R6::R6Class("HospiNet",
   private = list(
     .matrix = NULL,
@@ -30,7 +18,8 @@ HospiNet <- R6::R6Class("HospiNet",
     .n_movements = NULL,
     .window_threshold = NULL,
     .nmoves_threshold = NULL,
-    .noloops = NULL
+    .noloops = NULL,
+    .igraph = NULL
   ),
   public = list(
     initialize = function(edgelist, 
@@ -50,6 +39,46 @@ HospiNet <- R6::R6Class("HospiNet",
         print(self$matrix)
       }else{
         cat("Matrix too big to be printed on screen.")
+      }
+    },
+    plot = function(type = "matrix"){
+      if (type == "matrix") {
+        ggplot(self$edgelist, aes(x = target, y = origin)) + 
+          geom_raster(aes(fill=N)) + 
+          scale_fill_gradient(low="grey90", high="red") +
+          scale_x_discrete(name = "Origin") + 
+          scale_y_discrete(name = "Target") +
+          labs(x="Origin", y = "Target", title = "Matrix") +
+          theme_bw() + theme(axis.text.x=element_text(size = 8, angle = 90, vjust = 0.3),
+                             axis.text.y=element_text(size = 8),
+                             plot.title=element_text(size = 12))
+      } else if (type == "clustered_matrix") {
+        #get the clustering
+        cl <- cluster_fast_greedy(self$igraph)
+        dt_cl <- data.table(cl$names,cl$membership)
+        
+        if (max(cl$membership) <= 1) stop("No cluster identified.")
+        #put it in a copy of the edgelist
+        el = copy(hn$edgelist)
+        el[dt_cl, origin_c := V2, on = c("origin" = "V1")]
+        el[dt_cl, target_c := V2, on = c("target" = "V1")]
+        el[, col := ifelse(origin_c == target_c, origin_c, 0)]
+        el[, col := factor(col)]
+        
+        #reorder the axis to make the cluster appear
+        el$origin = factor(el$origin, levels = unique(el[order(origin_c), origin])) 
+        el$target = factor(el$target, levels = unique(el[order(target_c), target])) 
+
+        #plot it
+        ggplot(el, aes(x = target, y = origin)) + 
+          geom_raster(aes(fill = col)) + 
+          scale_fill_manual(name = NULL, values = c("grey", rainbow(max(el$origin_c)))) +
+          scale_x_discrete(name = "Origin") + 
+          scale_y_discrete(name = "Target") +
+          labs(x = "Origin", y = "Target", title = "Clustered matrix") +
+          theme_bw() + theme(axis.text.x = element_text(size = 8, angle = 90, vjust = 0.3),
+                             axis.text.y = element_text(size = 8),
+                             plot.title = element_text(size = 12))
       }
     }
   ),
@@ -71,6 +100,20 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.edgelist
       } else {
         stop("`$edgelist` is read only", call. = FALSE)
+      }
+    },
+    igraph = function(value) {
+      if (missing(value)) {
+        if (is.null(private$.igraph)){
+          private$.igraph = igraph::graph_from_adjacency_matrix(self$matrix, 
+                                                                weighted = TRUE, 
+                                                                mode = "undirected")
+          private$.igraph
+        } else {
+          private$.igraph
+        }
+      }else {
+        stop("`$igraph` is read only", call. = FALSE)
       }
     },
     n_hospitals = function(value) {

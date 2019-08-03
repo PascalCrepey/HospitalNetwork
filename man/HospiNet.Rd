@@ -9,8 +9,6 @@
 HospiNet
 }
 \arguments{
-\item{matrix}{(matrix) A square matrix of hospitals containing the number of movements between hospitals}
-
 \item{edgelist}{(data.table) the list of edges (origin, target) and their associated number of movements (N)}
 
 \item{window_threshold}{the window threshold used to compute the network}

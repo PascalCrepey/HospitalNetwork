@@ -16,7 +16,8 @@ Imports:
     checkmate,
     igraph,
     lubridate,
-    R6
+    R6,
+    ggplot2
 Depends: 
   data.table
 RoxygenNote: 6.1.1
