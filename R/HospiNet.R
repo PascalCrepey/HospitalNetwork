@@ -59,7 +59,7 @@ HospiNet <- R6::R6Class("HospiNet",
         
         if (max(cl$membership) <= 1) stop("No cluster identified.")
         #put it in a copy of the edgelist
-        el = copy(hn$edgelist)
+        el = copy(self$edgelist)
         el[dt_cl, origin_c := V2, on = c("origin" = "V1")]
         el[dt_cl, target_c := V2, on = c("target" = "V1")]
         el[, col := ifelse(origin_c == target_c, origin_c, 0)]
@@ -163,10 +163,3 @@ HospiNet <- R6::R6Class("HospiNet",
   )
 )
 
-# print.HospiNet <- function(hn) {
-#   #browser()
-#   cat(paste0(hn$n_hospitals, " hospitals and ", hn$n_movements, " movements.\n"))
-#   cat(paste0("Movement window is ", hn$window_threshold, " days. \n"))
-#   
-#   knitr::knit_print(hn$matrix)
-# }
