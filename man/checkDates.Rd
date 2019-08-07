@@ -5,9 +5,7 @@
 \title{Check and fix the dates in patient database}
 \usage{
 checkDates(base, convertDates = FALSE, dateFormat = "",
-  bestGuess = FALSE, overnight = FALSE, deleteErrors = "",
-  patientID = "pID", hospitalID = "hID", disDate = "Ddate",
-  admDate = "Adate", ...)
+  bestGuess = FALSE, overnight = FALSE, deleteErrors = "", ...)
 }
 \arguments{
 \item{base}{(data.table).
@@ -28,14 +26,6 @@ A patient discharge database, in the form of a data.table. The data.table should
 \item{deleteErrors}{character indicating the way incorrect records should be deleted: 
 "record" deletes just the incorrect record
 "patient" deletes all records of each patient with one or more incorrect records.}
-
-\item{patientID}{(charachter) the columns name containing the patient ID. Default is "pID"}
-
-\item{hospitalID}{(charachter) the columns name containing the hospital ID. Default is "hID"}
-
-\item{disDate}{(charachter) the columns name containing the discharge date. Default is "Ddate"}
-
-\item{admDate}{(charachter) the columns name containing the admission date. Default is "Adate"}
 
 \item{...}{other parameters passed on to internal functions}
 }

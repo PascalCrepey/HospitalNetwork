@@ -1,8 +1,154 @@
 # Data management and quality control functions
 
 # Quality control functions
+#  General database format
 #  Date formatting
 #  Discharge after admission
+
+#' General check function
+#'
+#' Function that performs various checks to ensure the database is correctly formatted, and adjusts overlapping patient records
+#'
+#' @param base (data.table).
+#'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+#'         pID: patientID (character)
+#'         hID: hospitalID (character)
+#'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
+#'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
+#' @param deleteMissing (character) How to handle records that contain a missing value in at least one of the four mandatory variables:
+#' "no" (default): do not delete. Stops the function with an error message.
+#' "record": deletes just the incorrect record.
+#' "patient": deletes all records of each patient with one or more incorrect records.
+#' @param deleteErrors (character) How incorrect records should be deleted: 
+#'                     "record" deletes just the incorrect record
+#'                     "patient" deletes all records of each patient with one or more incorrect records.
+#' @param convertDates boolean indicating if dates need to be converted to POSIXct if they are not
+#' @param dateFormat character giving the input format of the date character string
+#' @param bestGuess boolean indicating if the function needs to estimate the best date format, based on the best results from 1000 random records.
+#' @param overnight boolean indicating if only patient who stayed overnight should be included. TRUE will delete any record with admission and discharge on the same day
+#' @param patientID (charachter) the columns name containing the patient ID. Default is "pID"
+#' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID"
+#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
+#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
+#' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
+#' @param ... other parameters passed on to internal functions
+#' 
+#' @return The adjusted database as a data.table
+#' @export
+#' 
+checkBase <- function(base,
+                      deleteMissing = "no",
+                      convertDates = FALSE,
+                      dateFormat = "",
+                      bestGuess = FALSE,
+                      overnight = FALSE,
+                      deleteErrors = "",
+                      patientID = "pID",
+                      hospitalID = "hID",
+                      disDate = "Ddate",
+                      admDate = "Adate",
+                      ...)
+{
+    new_base = checkFormat(base,
+                           deleteMissing = deleteMissing)
+    
+    new_base = checkDates(base = new_base,
+                          convertDates = convertDates,
+                          dateFormat = dateFormat,
+                          bestGuess = bestGuess,
+                          overnight = overnight,
+                          deleteErrors = deleteErrors,
+                          ...)
+    
+    new_base = adjust_overlapping_stays(base = new_base,
+                                        patientID = "pID",#ID
+                                        hospitalID = "hID",#FINESS
+                                        admDate = "Adate",
+                                        disDate = "Ddate",
+                                        maxIteration = 25,
+                                        ...)
+    return(new_base)
+}
+
+#' Check database format
+#'
+#' Function that performs various generic checks to ensure that the database has the correct format
+#'
+#' @param base (data.table)
+#'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+#'         pID: patientID (character)
+#'         hID: hospitalID (character)
+#'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
+#'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
+#' @param deleteMissing (character) How to handle records that contain a missing value in at least one of the four mandatory variables:
+#' "no" (default): do not delete. Stops the function with an error message.
+#' "record": deletes just the incorrect record.
+#' "patient": deletes all records of each patient with one or more incorrect records.
+#' 
+#' @return Returns either an error message, or the database (modified if need be).
+#' @export
+#' 
+checkFormat <- function(base,
+                        deleteMissing = "no")
+{
+    if (!"data.frame" %in% class(base)) {
+        stop("The database must be either a data.frame or a data.table object")
+    } else if (!"data.table" %in% class(base)) {
+        setDT(base)
+        message("Converting database to a data.table object")
+    }
+    
+    # Check missing columns
+    cols = c("pID", "hID", "Adate", "Ddate")
+    missingCols = setdiff(cols, colnames(base))
+    if (length(missingCols)) {
+        stop(paste0("The following column(s) is/are missing: ",
+                    paste0(missingCols, collapse = ", "),
+                    ". Please check that your database contains at least the columns mentionned in the documentation, and that they are in the right format. Names are case sensitive."))
+    }
+
+    # Check format of "pID" and "hID" columns
+    cls = sapply(c("pID", "hID"), function(x) typeof(base[[x]]))
+    wrong = names(cls[cls != "character"])
+    if (length(wrong)) {
+        stop(paste0("The following column(s) is/are not of type 'character': ",
+                    paste0(wrong, collapse = ", "),
+                    "."))
+    }
+
+    # Check for missing values    
+    # For columns in 'cols', check if a value is 'NA' or only blank spaces
+    missing = base[, lapply(.SD, function(x) trimws(x) == "" | is.na(x)),
+                   .SDcols = cols]
+    # If at least one missing value in the database:
+    if (any(as.matrix(missing))) {
+        if (deleteMissing == "no") {
+            msng = lapply(missing, any)
+            names_msng = names(msng[msng == TRUE])
+            stop(paste0("The following column(s) contain(s) missing values: ",
+                        paste0(names_msng, collapse = ", "),
+                        ". Please deal with those missing values or set option 'deleteMissing' to 'record' or 'patient'."))
+        } else if (deleteMissing == "record") {
+            to_remove = which(rowSums(missing) > 0)
+            new_base = base[!to_remove, ]
+            message(paste0("Deleting records that contains a missing value for at least one of the four mandatory variables... Deleted ",
+                           length(to_remove),
+                           " records"))
+        } else if (deleteMissing == "patient") {
+            to_remove = which(rowSums(missing) > 0)
+            ids = base[to_remove, unique(pID)]
+            new_base = base[!pID %in% ids,]
+            message(paste0("Removing patients that have at least one record with a missing value in at least one of the four mandatory variables... Deleted ",
+                    nrow(base) - nrow(new_base),
+                    " records")) 
+        }
+    } else {
+        new_base = base
+    }
+    
+    return(new_base)
+} 
+                      
 
 #' Check and fix the dates in patient database
 #' 
@@ -14,8 +160,6 @@
 #'         hID: hospitalID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
-#'         
-#'
 #' @param convertDates boolean indicating if dates need to be converted to POSIXct if they are not
 #' @param dateFormat character giving the input format of the date character string
 #' @param bestGuess boolean indicating if the function needs to estimate the best date format, based on the best results from 1000 random records.
@@ -23,10 +167,6 @@
 #' @param deleteErrors character indicating the way incorrect records should be deleted: 
 #'                     "record" deletes just the incorrect record
 #'                     "patient" deletes all records of each patient with one or more incorrect records.
-#' @param patientID (charachter) the columns name containing the patient ID. Default is "pID"
-#' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID"
-#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
-#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
 #' @param ... other parameters passed on to internal functions
 #' 
 #' @return The corrected database as data.table.
@@ -34,34 +174,15 @@
 #' 
 #' @importFrom lubridate is.POSIXct parse_date_time
 #' 
-checkDates<-function(base,
-                     convertDates=FALSE,
-                     dateFormat="",
-                     bestGuess=FALSE,
-                     overnight=FALSE,
-                     deleteErrors="",
-                     patientID="pID",
-                     hospitalID="hID",
-                     disDate="Ddate",
-                     admDate="Adate",
-                     ...){
+checkDates <- function(base,
+                       convertDates=FALSE,
+                       dateFormat="",
+                       bestGuess=FALSE,
+                       overnight=FALSE,
+                       deleteErrors="",
+                       ...)
+{
 
-  #Check if the columns for discharge and admission date are present
-  disMissing<-FALSE
-  admMissing<-FALSE
-  if(!(admDate %in% colnames(base))) admMissing<-TRUE
-  if(!(disDate %in% colnames(base))) disMissing<-TRUE
-  if(disMissing&admMissing) stop(paste0("Both admission and discharge date variables are missing, expecting columns called ",admDate," and ",disDate,".\nPlease supply column names in options admDate=\"...\" and disDate=\"...\". "))
-  if(disMissing) stop(paste0("Discharge date variable is missing, expecting column called ",disDate,".\nPlease supply column name in option disDate=\"...\". "))
-  if(admMissing) stop(paste0("Admission date variable is missing, expecting column called ",admDate,".\nPlease supply column name in option admDate=\"...\". "))
-  if(!(patientID %in% colnames(base))) stop(paste0("patient ID variable is missing, expecting column called ",admDate,".\nPlease supply column name in option patientID=\"...\". "))
-  if(!(hospitalID %in% colnames(base))) stop(paste0("Hospital ID variable is missing, expecting column called ",admDate,".\nPlease supply column name in option hospitalID=\"...\". "))
-  
-  colnames(base)[colnames(base)==patientID] <- "pID"
-  colnames(base)[colnames(base)==hospitalID] <- "hID"
-  colnames(base)[colnames(base)==admDate] <- "Adate"
-  colnames(base)[colnames(base)==disDate] <- "Ddate"
-  
   #Check if discharge and admission dates are formatted as POSIXct dates
   needsConverting<-((!is.POSIXct(base$Ddate))|(!is.POSIXct(base$Adate)))
   
@@ -100,23 +221,6 @@ checkDates<-function(base,
     print("Converting dates to POSIXct format. This may take a while...")
     base$Ddate<-parse_date_time(base$Ddate,disFormat)
     base$Adate<-parse_date_time(base$Adate,admFormat)
-  }
-  
-  # Check if there are records with NA in admission or discharge field, and delete them as given in function options
-  withNA<-subset(base,is.na(Adate)|is.na(Ddate))
-  if(nrow(withNA)>0){
-    print(paste0("Found ",nrow(withNA)," records with NA in admission and/or discharge date")) 
-    if(deleteErrors=="record"){
-      nrBefore<-nrow(base)
-      base<-subset(base,!(is.na(Adate)|is.na(Ddate)))
-      print(paste0("- Deleted ",nrBefore-nrow(base)," incorrect records"))
-    }
-    if(deleteErrors=="patient"){
-      nrBefore<-nrow(base)
-      base<-subset(base,!(pID %in% withNA$pID))
-      print(paste0("- Deleted patients with incorrect records, deleted ",nrBefore-nrow(base)," records"))
-    }
-    if(deleteErrors==""){stop(paste0("Found ",nrow(withNA)," records with discharge before admission.\n Use deleteErrors==\"record\" to delete the incorrect records, or deleteErrors==\"patient\" to delete all patients with incorrect records." ))}
   }
   
   # Check if there are records with discharge before admission in admission or discharge field, and delete them as given in function options  
