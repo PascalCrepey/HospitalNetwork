@@ -1,15 +1,50 @@
 
-#' Constructor for the HospiNet object
+#' Class providing the HospiNet object with its methods
 #'
-#' @param edgelist (data.table) the list of edges (origin, target) and their associated number of movements (N)
-#' @param window_threshold the window threshold used to compute the network
-#' @param nmoves_threshold the nmoves threshold used to compute the network
-#' @param noloops TRUE if loops have been removed
-#'
-#' @return The constructor returns a HospiNet S3 object.
+#' @docType class
+#' @importFrom R6 R6Class
 #' @import ggplot2
+#' @export
+#' @keywords data
+#' @return Object of \code{\link{R6Class}} with methods for accessing hospital networks.
+#' @format \code{\link{R6Class}} object.
+#' @examples
+#' mydbsmall = create_fake_patientDB(n_patients = 1000, n_hospital = 10)
+#'   
+#' hn = hospinet_from_patient_database(base = mydbsmall)
 #' 
+#' hn
 #' 
+#' plot(hn)
+#' plot(hn, type = "clustered_matrix")
+#' 
+#' @field edgelist (data.table) the list of edges (origin, target) and their associated number of movements (N) (read-only)
+#' @field matrix (matrix) the transfer matrix (active binding, read-only)
+#' @field igraph (igraph) the igraph object corresponding to the network (active binding, read-only)
+#' @field n_hospitals the number of hospitals in the network (read-only)
+#' @field n_movements the total number of patient movements in the network (read-only)
+#' @field window_threshold the window threshold used to compute the network (read-only)
+#' @field nmoves_threshold the nmoves threshold used to compute the network (read-only)
+#' @field noloops TRUE if loops have been removed (read-only)
+#' 
+#' @section Methods:
+#' \describe{
+#'   \item{\code{new(edgelist, 
+#' window_threshold,
+#' nmoves_threshold,
+#' noloops)}}{This method is used to create an object of this class with \code{edgelist} as the necessary information to create the network.
+#' The other arguments \code{window_threshold}, \code{nmoves_threshold}, and \code{noloops} are specific to the \code{edgelist} and need to be provided.
+#' For ease of use, it is preferable to use the function \code{\link{hospinet_from_patient_database}}}
+#'   \item{\code{print()}}{This method prints basic information about the object.}
+#'   \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default. 
+#'   The argument \code{type} can take the following values: 
+#'   \describe{
+#'   \item{matrix}{print the network matrix,}
+#'   \item{clustered_matrix}{identify and print cluster(s) in the matrix using the infomap algorithm (from igraph).}
+#'   }
+#'   }
+#' }
+
 HospiNet <- R6::R6Class("HospiNet",
   private = list(
     .matrix = NULL,

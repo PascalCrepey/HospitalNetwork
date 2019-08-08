@@ -43,6 +43,7 @@ checkBase <- function(base,
                       hospitalID = "hID",
                       disDate = "Ddate",
                       admDate = "Adate",
+                      maxIteration = 25,
                       ...)
 {
     new_base = checkFormat(base,
@@ -59,7 +60,7 @@ checkBase <- function(base,
                                         hospitalID = "hID",#FINESS
                                         admDate = "Adate",
                                         disDate = "Ddate",
-                                        maxIteration = 25,
+                                        maxIteration = maxIteration,
                                         ...)
     return(new_base)
 }

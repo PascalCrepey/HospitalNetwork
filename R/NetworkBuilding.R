@@ -196,8 +196,6 @@ hospinet_from_patient_database <- function(base,
                                             window_threshold = window_threshold,
                                             nmoves_threshold = nmoves_threshold, 
                                             verbose = verbose)
-    
-  matrix = matrix_from_edgelist(edgelist = edgelist)
   
   # HospiNet(matrix, edgelist, 
   #          window_threshold = window_threshold, 

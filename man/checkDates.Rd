@@ -4,8 +4,8 @@
 \alias{checkDates}
 \title{Check and fix the dates in patient database}
 \usage{
-checkDates(base, convertDates = FALSE, dateFormat = "",
-  bestGuess = FALSE, overnight = FALSE, deleteErrors = "", ...)
+checkDates(base, convertDates = FALSE, dateFormat = NULL,
+  deleteErrors = NULL, ...)
 }
 \arguments{
 \item{base}{(data.table).
@@ -18,10 +18,6 @@ A patient discharge database, in the form of a data.table. The data.table should
 \item{convertDates}{boolean indicating if dates need to be converted to POSIXct if they are not}
 
 \item{dateFormat}{character giving the input format of the date character string}
-
-\item{bestGuess}{boolean indicating if the function needs to estimate the best date format, based on the best results from 1000 random records.}
-
-\item{overnight}{boolean indicating if only patient who stayed overnight should be included. TRUE will delete any record with admission and discharge on the same day}
 
 \item{deleteErrors}{character indicating the way incorrect records should be deleted: 
 "record" deletes just the incorrect record

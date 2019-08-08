@@ -4,10 +4,10 @@
 \alias{checkBase}
 \title{General check function}
 \usage{
-checkBase(base, deleteMissing = "no", convertDates = FALSE,
-  dateFormat = "", bestGuess = FALSE, overnight = FALSE,
-  deleteErrors = "", patientID = "pID", hospitalID = "hID",
-  disDate = "Ddate", admDate = "Adate", ...)
+checkBase(base, deleteMissing = NULL, convertDates = FALSE,
+  dateFormat = NULL, deleteErrors = NULL, patientID = "pID",
+  hospitalID = "hID", disDate = "Ddate", admDate = "Adate",
+  maxIteration = 25, ...)
 }
 \arguments{
 \item{base}{(data.table).
@@ -18,13 +18,29 @@ A patient discharge database, in the form of a data.table. The data.table should
     Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 
 \item{deleteMissing}{(character) How to handle records that contain a missing value in at least one of the four mandatory variables:
-"no" (default): do not delete. Stops the function with an error message.
+NULL (default): do not delete. Stops the function with an error message.
 "record": deletes just the incorrect record.
 "patient": deletes all records of each patient with one or more incorrect records.}
+
+\item{convertDates}{boolean indicating if dates need to be converted to POSIXct if they are not}
+
+\item{dateFormat}{character giving the input format of the date character string}
 
 \item{deleteErrors}{(character) How incorrect records should be deleted: 
 "record" deletes just the incorrect record
 "patient" deletes all records of each patient with one or more incorrect records.}
+
+\item{patientID}{(charachter) the columns name containing the patient ID. Default is "pID"}
+
+\item{hospitalID}{(charachter) the columns name containing the hospital ID. Default is "hID"}
+
+\item{disDate}{(charachter) the columns name containing the discharge date. Default is "Ddate"}
+
+\item{admDate}{(charachter) the columns name containing the admission date. Default is "Adate"}
+
+\item{maxIteration}{(integer) the maximum number of times the function will try and remove overlapping admissions}
+
+\item{...}{other parameters passed on to internal functions}
 }
 \value{
 The adjusted database as a data.table

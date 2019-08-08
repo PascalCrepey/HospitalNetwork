@@ -4,7 +4,7 @@
 \alias{checkFormat}
 \title{Check database format}
 \usage{
-checkFormat(base, deleteMissing = "no")
+checkFormat(base, deleteMissing = NULL)
 }
 \arguments{
 \item{base}{(data.table)
@@ -15,7 +15,7 @@ A patient discharge database, in the form of a data.table. The data.table should
     Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 
 \item{deleteMissing}{(character) How to handle records that contain a missing value in at least one of the four mandatory variables:
-"no" (default): do not delete. Stops the function with an error message.
+NULL (default): do not delete. Stops the function with an error message.
 "record": deletes just the incorrect record.
 "patient": deletes all records of each patient with one or more incorrect records.}
 }
