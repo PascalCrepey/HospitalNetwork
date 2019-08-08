@@ -16,7 +16,7 @@
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
 #' @param deleteMissing (character) How to handle records that contain a missing value in at least one of the four mandatory variables:
-#' "no" (default): do not delete. Stops the function with an error message.
+#' NULL (default): do not delete. Stops the function with an error message.
 #' "record": deletes just the incorrect record.
 #' "patient": deletes all records of each patient with one or more incorrect records.
 #' @param deleteErrors (character) How incorrect records should be deleted: 
@@ -24,8 +24,6 @@
 #'                     "patient" deletes all records of each patient with one or more incorrect records.
 #' @param convertDates boolean indicating if dates need to be converted to POSIXct if they are not
 #' @param dateFormat character giving the input format of the date character string
-#' @param bestGuess boolean indicating if the function needs to estimate the best date format, based on the best results from 1000 random records.
-#' @param overnight boolean indicating if only patient who stayed overnight should be included. TRUE will delete any record with admission and discharge on the same day
 #' @param patientID (charachter) the columns name containing the patient ID. Default is "pID"
 #' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID"
 #' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
@@ -37,12 +35,10 @@
 #' @export
 #' 
 checkBase <- function(base,
-                      deleteMissing = "no",
+                      deleteMissing = NULL,
                       convertDates = FALSE,
-                      dateFormat = "",
-                      bestGuess = FALSE,
-                      overnight = FALSE,
-                      deleteErrors = "",
+                      dateFormat = NULL,
+                      deleteErrors = NULL,
                       patientID = "pID",
                       hospitalID = "hID",
                       disDate = "Ddate",
@@ -55,8 +51,6 @@ checkBase <- function(base,
     new_base = checkDates(base = new_base,
                           convertDates = convertDates,
                           dateFormat = dateFormat,
-                          bestGuess = bestGuess,
-                          overnight = overnight,
                           deleteErrors = deleteErrors,
                           ...)
     
@@ -81,15 +75,14 @@ checkBase <- function(base,
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
 #' @param deleteMissing (character) How to handle records that contain a missing value in at least one of the four mandatory variables:
-#' "no" (default): do not delete. Stops the function with an error message.
+#' NULL (default): do not delete. Stops the function with an error message.
 #' "record": deletes just the incorrect record.
 #' "patient": deletes all records of each patient with one or more incorrect records.
 #' 
 #' @return Returns either an error message, or the database (modified if need be).
-#' @export
 #' 
 checkFormat <- function(base,
-                        deleteMissing = "no")
+                        deleteMissing = NULL)
 {
     if (!"data.frame" %in% class(base)) {
         stop("The database must be either a data.frame or a data.table object")
@@ -122,7 +115,7 @@ checkFormat <- function(base,
                    .SDcols = cols]
     # If at least one missing value in the database:
     if (any(as.matrix(missing))) {
-        if (deleteMissing == "no") {
+        if (is.null(deleteMissing)) {
             msng = lapply(missing, any)
             names_msng = names(msng[msng == TRUE])
             stop(paste0("The following column(s) contain(s) missing values: ",
@@ -131,14 +124,14 @@ checkFormat <- function(base,
         } else if (deleteMissing == "record") {
             to_remove = which(rowSums(missing) > 0)
             new_base = base[!to_remove, ]
-            message(paste0("Deleting records that contains a missing value for at least one of the four mandatory variables... Deleted ",
+            message(paste0("Deleting records that contains a missing value for at least one of the four mandatory variables... \nDeleted ",
                            length(to_remove),
                            " records"))
         } else if (deleteMissing == "patient") {
             to_remove = which(rowSums(missing) > 0)
             ids = base[to_remove, unique(pID)]
             new_base = base[!pID %in% ids,]
-            message(paste0("Removing patients that have at least one record with a missing value in at least one of the four mandatory variables... Deleted ",
+            message(paste0("Removing patients that have at least one record with a missing value in at least one of the four mandatory variables... \nDeleted ",
                     nrow(base) - nrow(new_base),
                     " records")) 
         }
@@ -162,94 +155,83 @@ checkFormat <- function(base,
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
 #' @param convertDates boolean indicating if dates need to be converted to POSIXct if they are not
 #' @param dateFormat character giving the input format of the date character string
-#' @param bestGuess boolean indicating if the function needs to estimate the best date format, based on the best results from 1000 random records.
-#' @param overnight boolean indicating if only patient who stayed overnight should be included. TRUE will delete any record with admission and discharge on the same day
 #' @param deleteErrors character indicating the way incorrect records should be deleted: 
 #'                     "record" deletes just the incorrect record
 #'                     "patient" deletes all records of each patient with one or more incorrect records.
 #' @param ... other parameters passed on to internal functions
 #' 
 #' @return The corrected database as data.table.
-#' @export
 #' 
-#' @importFrom lubridate is.POSIXct parse_date_time
+#' @importFrom lubridate is.Date ymd ydm myd mdy dmy dym
 #' 
 checkDates <- function(base,
-                       convertDates=FALSE,
-                       dateFormat="",
-                       bestGuess=FALSE,
-                       overnight=FALSE,
-                       deleteErrors="",
+                       convertDates = FALSE,
+                       dateFormat   = NULL,
+                       deleteErrors = NULL,
                        ...)
 {
+    # Use functions from package 'lubridate'
+    cols = c("Adate", "Ddate")
+    notDate = base[, lapply(.SD, is.Date) == FALSE, .SDcols = cols]
+    needsConverting = names(which(notDate))
 
-  #Check if discharge and admission dates are formatted as POSIXct dates
-  needsConverting<-((!is.POSIXct(base$Ddate))|(!is.POSIXct(base$Adate)))
-  
-  if(needsConverting&!convertDates) stop("admission and/or discharge date not in POSIXct format\n Use convertDates=TRUE option to convert dates")
-  
-  # start the conversion of admission and discharge dates if needed and allowed (per function options)
-  if(needsConverting&convertDates){
-    # if no date format is given, and guessing is allowed, take a 1000 records and test the permutations of "ymd" as format
-    if(bestGuess&dateFormat==""){
-      print("Guessing date format based on 1000 (or all, if less) random records")
-      if(nrow(base)<=1000){
-        sampleData<-base
-      }else{
-        sampleData<-base[sample(nrow(base),1000),]
-      }
-      testFormats<-c("ymd","ydm","dmy","dym","mdy","myd")
-      #Guess the format for the admissions dates
-      guesses<-as.data.frame(lapply(testFormats,function(x){suppressWarnings(parse_date_time(sampleData[,Adate],x))}),col.names=testFormats)
-      naCount<-apply(guesses, 2, function(x){sum(is.na(x))})
-      admFormat<-testFormats[order(naCount)[1]]
-      
-      #Guess the format for the discharge dates
-      guesses<-as.data.frame(lapply(testFormats,function(x){suppressWarnings(parse_date_time(sampleData[,Ddate],x))}),col.names=testFormats)
-      naCount<-apply(guesses, 2, function(x){sum(is.na(x))})
-      disFormat<-testFormats[order(naCount)[1]]
-      
-      if(admFormat!=disFormat) warning("Guessed format for admission and discharge date not the same.")
-    } else {
-      # if not guessing, the format should have been given
-      admFormat<-dateFormat
-      disFormat<-dateFormat
+    if (length(needsConverting) & !convertDates) {
+        stop(paste0("Dates in ",
+                    paste0(needsConverting, collapse = ", "),
+                    " are not in Date format.\nSet argument 'convertDates' to TRUE to convert dates to Date format. Argument 'dateFormat' must be provided as well."))
+    }
+
+    if (length(needsConverting) & convertDates) {
+        message(paste0("Converting ",
+                       paste0(needsConverting, collapse = ", "),
+                       " to Date format"))
+        # Converting Dates using lubridate function corresponding to the format provided in 'dateFormat'
+        base[, `:=`(Adate_new = do.call(dateFormat, list(Adate)),
+                    Ddate_new = do.call(dateFormat, list(Ddate)))]
+        # If some have failed to parse, throw a message and return the lines that have failed
+        failed = base[is.na(Adate_new) | is.na(Ddate_new), , which = T]
+        if (length(failed)) {
+            message("Parsing of dates failed for the following records:")
+            print(base[failed, .(pID, hID, Adate, Ddate)])
+            stop()
+        }
+        if (!length(failed)) {
+            base[, c("Adate", "Ddate") := NULL]
+            setnames(base, old = c("Adate_new", "Ddate_new"), new = cols)
+        }
     }
     
-    # start the actual converting, if the format is given.
-    if(admFormat==""||disFormat=="") {stop("No date format giving for date conversion.\nPlease provide date format using option (e.g.) dateFormat=\"dmy\", \nor use option bestGuess=TRUE to guess best date format.")}
-    print("Converting dates to POSIXct format. This may take a while...")
-    base$Ddate<-parse_date_time(base$Ddate,disFormat)
-    base$Adate<-parse_date_time(base$Adate,admFormat)
-  }
-  
-  # Check if there are records with discharge before admission in admission or discharge field, and delete them as given in function options  
-  wrongOrder<-subset(base,Ddate<Adate)
-  if(nrow(wrongOrder)>0){
-    print(paste0("Found ",nrow(wrongOrder)," records with discharge before admission"))  
-    if(deleteErrors=="record"){
-      nrBefore<-nrow(base)
-      base<-subset(base,Ddate>=Adate)
-      print(paste0("- Deleted ",nrBefore-nrow(base)," incorrect records"))
+    # Check if there are records with discharge before admission in admission or discharge field, and delete them as given in function options  
+    wrongOrder = base[Adate > Ddate, , which = T]
+    if (length(wrongOrder)) {
+        message(paste0("Found ",
+                       length(wrongOrder),
+                       " records with admission date posterior to discharge date."))
+        print(base[wrongOrder,])
+        if (is.null(deleteErrors)) {
+            stop("Please, correct the records or set argument 'deleteErrors'.")                
+        } else if (deleteErrors == "record") {
+            base = base[!wrongOrder, ]
+            message(paste0("Deleted ", length(wrongOrder), " incorrect records"))
+        } else if(deleteErrors == "patient") {
+            n = nrow(base)
+            ids = base[wrongOrder, unique(pID)]
+            base = base[!(pID %in% ids), ]
+            message(paste0("Deleted patients with incorrect records, deleted ",
+                           n - nrow(base),
+                           " records"))
+        }
     }
-    if(deleteErrors=="patient"){
-      nrBefore<-nrow(base)
-      base<-subset(base,!(pID %in% wrongOrder$pID))
-      print(paste0("- Deleted patients with incorrect records, deleted ",nrBefore-nrow(base)," records"))
-    }
-    if(deleteErrors==""){stop(paste0("Found ",nrow(wrongOrder)," records with discharge before admission.\n Use deleteErrors==\"record\" to delete the incorrect records, or deleteErrors==\"patient\" to delete all patients with incorrect records." ))}
-  }
-  
-  # Delete single day cases if only overnight patients are defined
-  if(overnight){
-    nrBefore<-nrow(base)
-    base<-subset(base,Adate<Ddate)
-    print(paste0("Deleted ",nrBefore-nrow(base)," patient stay records who did not stay overnight"))
-  }
-  
-  return(base)
+       
+    ## # Delete single day cases if only overnight patients are defined
+    ## if(overnight){
+    ##     nrBefore<-nrow(base)
+    ##     base<-subset(base,Adate<Ddate)
+    ##     print(paste0("Deleted ",nrBefore-nrow(base)," patient stay records who did not stay overnight"))
+    ## }
+    
+    return(base)
 }
-
 
 
 #' Check and fix overlapping admissions. 
@@ -275,7 +257,6 @@ checkDates <- function(base,
 #' @param ... other parameters passed on to internal functions
 #' 
 #' @return The corrected database as data.table.
-#' @export
 #' 
 adjust_overlapping_stays = function(base,                                          
                              patientID = "pID",#ID
