@@ -32,6 +32,10 @@ Class providing the HospiNet object with its methods
 \item{\code{nmoves_threshold}}{the nmoves threshold used to compute the network (read-only)}
 
 \item{\code{noloops}}{TRUE if loops have been removed (read-only)}
+
+\item{\code{degrees}}{number of connections for each hospitals (total, in, and out)}
+
+\item{\code{hist_degrees}}{histogram data of the number of connections per hospital}
 }}
 
 \section{Methods}{

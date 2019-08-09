@@ -3,6 +3,7 @@
 export(HospiNet)
 export(checkBase)
 export(create_fake_patientDB)
+export(create_fake_patientDB_clustered)
 export(create_patient_stay)
 export(edgelist_from_patient_database)
 export(hospinet_from_patient_database)

@@ -69,6 +69,21 @@ The informations contained in an *HospiNet* objects are:
 
 ```{r setup}
 library(HospitalNetwork)
+
+mydbmed = create_fake_patientDB(n_patients = 100, n_hospital = 10)
+hn = hospinet_from_patient_database(base = mydbmed, noloops = FALSE)
+hn
+plot(hn)
+plot(hn, type = "degree")
+plot(hn , type = "clustered_matrix")
+
+
+mydb = create_fake_patientDB_clustered(n_patients = 10000, n_hospital = 500, n_clusters = 5)
+hn = hospinet_from_patient_database(base = mydb, noloops = FALSE)
+hn
+plot(hn)
+plot(hn, type = "degree")
+plot(hn , type = "clustered_matrix")
 ```
 
 

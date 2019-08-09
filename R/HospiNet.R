@@ -26,6 +26,8 @@
 #' @field window_threshold the window threshold used to compute the network (read-only)
 #' @field nmoves_threshold the nmoves threshold used to compute the network (read-only)
 #' @field noloops TRUE if loops have been removed (read-only)
+#' @field degrees number of connections for each hospitals (total, in, and out)
+#' @field hist_degrees histogram data of the number of connections per hospital 
 #' 
 #' @section Methods:
 #' \describe{
@@ -54,7 +56,67 @@ HospiNet <- R6::R6Class("HospiNet",
     .window_threshold = NULL,
     .nmoves_threshold = NULL,
     .noloops = NULL,
-    .igraph = NULL
+    .igraph = NULL,
+    .degrees = NULL,
+    .hist_degrees = NULL,
+    plot_hist_degree = function(){
+      hd_long = melt(self$hist_degrees, id.vars = "degree")
+      p = ggplot(hd_long[!is.na(value)], aes(x = degree, y = value, fill = variable)) + 
+        geom_col(position = "dodge") +
+        scale_fill_discrete(name = NULL) +
+        scale_x_continuous(name = "Degree", limits = c(min(self$degrees[,-1]) - 1, NA)) +
+        scale_y_continuous(name = "Number of hospitals") +
+        theme_bw() +
+        theme(legend.position = "bottom")
+      p
+    }, 
+    plot_matrix = function(){
+      n_h = self$n_hospitals
+      ggplot(self$edgelist, aes(x = target, y = origin)) + 
+        geom_raster(aes(fill = N)) + 
+        scale_fill_gradient(low = "grey90", high = "red") +
+        scale_x_discrete(name = "Target", 
+                         #take the breaks from origin to get the same order
+                         breaks = self$edgelist[, unique(origin)][seq(1,n_h, length.out = 10)] ) + 
+        scale_y_discrete(name = "Origin", 
+                         breaks = self$edgelist[, unique(origin)][seq(1,n_h, length.out = 10)]) +
+        labs(x = "Origin", y = "Target", title = "Matrix") +
+        theme_bw() + theme(axis.text.x = element_text(size = 8, angle = 90, vjust = 0.3),
+                           axis.text.y = element_text(size = 8),
+                           plot.title = element_text(size = 12), 
+                           panel.grid = element_blank())
+    }, 
+    plot_clustered_matrix = function(){
+      #get the clustering
+      cl <- cluster_infomap(self$igraph, modularity = FALSE)
+      
+      dt_cl <- data.table(cl$names,cl$membership)
+      #put it in a copy of the edgelist
+      el = copy(self$edgelist)
+      el[dt_cl, origin_c := V2, on = c("origin" = "V1")]
+      el[dt_cl, target_c := V2, on = c("target" = "V1")]
+      el[, col := ifelse(origin_c == target_c, origin_c, 0)]
+      el[, col := factor(col)]
+      
+      #reorder the axis to make the cluster appear
+      el$origin = factor(el$origin, levels = unique(el[order(origin_c), origin])) 
+      el$target = factor(el$target, levels = unique(el[order(target_c), target])) 
+      
+      n_h = self$n_hospitals
+      #plot it
+      ggplot(el, aes(x = target, y = origin)) + 
+        geom_raster(aes(fill = col)) + 
+        scale_fill_manual(name = NULL, values = c("grey", rainbow(max(el$origin_c)))) +
+        scale_x_discrete(name = "Origin",
+                         breaks = levels(el$origin)[seq(1,n_h, length.out = 10)]) + 
+        scale_y_discrete(name = "Target", 
+                         breaks = levels(el$target)[seq(1,n_h, length.out = 10)]) +
+        labs(x = "Origin", y = "Target", title = "Clustered matrix") +
+        theme_bw() + theme(axis.text.x = element_text(size = 8, angle = 90, vjust = 0.3),
+                           axis.text.y = element_text(size = 8),
+                           plot.title = element_text(size = 12), 
+                           panel.grid = element_blank())
+    }
   ),
   public = list(
     initialize = function(edgelist, 
@@ -77,44 +139,9 @@ HospiNet <- R6::R6Class("HospiNet",
       }
     },
     plot = function(type = "matrix"){
-      if (type == "matrix") {
-        ggplot(self$edgelist, aes(x = target, y = origin)) + 
-          geom_raster(aes(fill=N)) + 
-          scale_fill_gradient(low="grey90", high="red") +
-          scale_x_discrete(name = "Origin") + 
-          scale_y_discrete(name = "Target") +
-          labs(x="Origin", y = "Target", title = "Matrix") +
-          theme_bw() + theme(axis.text.x=element_text(size = 8, angle = 90, vjust = 0.3),
-                             axis.text.y=element_text(size = 8),
-                             plot.title=element_text(size = 12))
-      } else if (type == "clustered_matrix") {
-        #get the clustering
-        cl <- cluster_fast_greedy(self$igraph)
-        dt_cl <- data.table(cl$names,cl$membership)
-        
-        if (max(cl$membership) <= 1) stop("No cluster identified.")
-        #put it in a copy of the edgelist
-        el = copy(self$edgelist)
-        el[dt_cl, origin_c := V2, on = c("origin" = "V1")]
-        el[dt_cl, target_c := V2, on = c("target" = "V1")]
-        el[, col := ifelse(origin_c == target_c, origin_c, 0)]
-        el[, col := factor(col)]
-        
-        #reorder the axis to make the cluster appear
-        el$origin = factor(el$origin, levels = unique(el[order(origin_c), origin])) 
-        el$target = factor(el$target, levels = unique(el[order(target_c), target])) 
-
-        #plot it
-        ggplot(el, aes(x = target, y = origin)) + 
-          geom_raster(aes(fill = col)) + 
-          scale_fill_manual(name = NULL, values = c("grey", rainbow(max(el$origin_c)))) +
-          scale_x_discrete(name = "Origin") + 
-          scale_y_discrete(name = "Target") +
-          labs(x = "Origin", y = "Target", title = "Clustered matrix") +
-          theme_bw() + theme(axis.text.x = element_text(size = 8, angle = 90, vjust = 0.3),
-                             axis.text.y = element_text(size = 8),
-                             plot.title = element_text(size = 12))
-      }
+      if (type == "degree") private$plot_hist_degree()
+      else if (type == "matrix") private$plot_matrix()
+      else if (type == "clustered_matrix") private$plot_clustered_matrix()
     }
   ),
   active = list(
@@ -142,7 +169,7 @@ HospiNet <- R6::R6Class("HospiNet",
         if (is.null(private$.igraph)){
           private$.igraph = igraph::graph_from_adjacency_matrix(self$matrix, 
                                                                 weighted = TRUE, 
-                                                                mode = "undirected")
+                                                                mode = "directed")
           private$.igraph
         } else {
           private$.igraph
@@ -164,7 +191,7 @@ HospiNet <- R6::R6Class("HospiNet",
     },
     n_movements = function(value) {
       if (missing(value)) {
-        if (is.null(private$.n_movements)){
+        if (is.null(private$.n_movements)) {
           private$.n_movements = sum(self$matrix)
         }else{
           private$.n_movements
@@ -193,6 +220,30 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.noloops
       } else {
         stop("`$noloops` is read only", call. = FALSE)
+      }
+    },
+    degrees = function(value) {
+      if (missing(value)) {
+        private$.degrees = get_degree(self$igraph, modes = c("total", "in", "out"))
+        private$.degrees
+      } else {
+        stop("`$noloops` is read only", call. = FALSE)
+      }
+    },
+    hist_degrees = function(value) {
+      if (missing(value)) {
+        d_t = self$degrees[,.N, by = degree_total]
+        d_i = self$degrees[,.N, by = degree_in]
+        d_o = self$degrees[,.N, by = degree_out]
+        max_deg = max(self$degrees[,-1])
+        private$.hist_degrees = data.table(degree = 1:max_deg)
+        private$.hist_degrees = merge(private$.hist_degrees, d_t, by.x = "degree", by.y = "degree_total", all.x = TRUE)
+        private$.hist_degrees = merge(private$.hist_degrees, d_i, by.x = "degree", by.y = "degree_in", all.x = TRUE)
+        private$.hist_degrees = merge(private$.hist_degrees, d_o, by.x = "degree", by.y = "degree_out", all.x = TRUE)
+        setnames(private$.hist_degrees, 2:4, c("total_degree", "in_degree", "out_degree"))
+        private$.hist_degrees
+      } else {
+        stop("`$hist_degrees` is read only", call. = FALSE)
       }
     }
   )

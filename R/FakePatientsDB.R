@@ -4,7 +4,7 @@
 #' Create a fake patient database
 #'
 #' @param n_patients the number of different patients in the database
-#' @param n_hospital the number of hospital present in the database
+#' @param n_hospitals the number of hospital present in the database
 #' @param avg_n_stays the average number of stays per patient
 #' @param days_since_discharge the number of days between a discharge date and an admission date (default: max(0, rnorm(1, mean = 30, sd = 10)))
 #' @param length_of_stay the length of stay (default: max(1, rnorm(1, mean = 5, sd = 3) )
@@ -15,14 +15,18 @@
 #' @importFrom stats rnorm
 #'
 create_fake_patientDB <- function(n_patients = 50, 
-                                  n_hospital = 10, 
+                                  n_hospitals = 10, 
                                   avg_n_stays = 3, 
                                   days_since_discharge = NULL, 
-                                  length_of_stay = NULL){
+                                  length_of_stay = NULL, 
+                                  start_id_patients = 1, 
+                                  start_id_hospitals = 1){
   #create patients IDs
-  pIDs = paste0("p", formatC(1:n_patients, width = nchar(n_hospital), flag = "0"))
+  pIDs = paste0("p", formatC((1 + start_id_patients - 1):(start_id_patients + n_patients - 1), 
+                             width = nchar(n_patients), flag = "0"))
   #create hospital IDs
-  hIDs = paste0("h", formatC(1:n_hospital, width = nchar(n_hospital), flag = "0"))
+  hIDs = paste0("h", formatC((1 + start_id_hospitals - 1):(start_id_hospitals + n_hospitals - 1), 
+                             width = nchar(n_hospitals), flag = "0"))
   
   all_p_stays = lapply(pIDs, function(pID) {
     n_moves = max(1, rnorm(1, mean = avg_n_stays, sd = ceiling(avg_n_stays*0.3)))
@@ -48,6 +52,63 @@ create_fake_patientDB <- function(n_patients = 50,
   all_p_stays = rbindlist(all_p_stays)
 }
 
+#' Create a fake patient database with clustering
+#'
+#' @param n_patients the number of different patients in the database
+#' @param n_hospitals the number of hospital present in the database
+#' @param avg_n_stays the average number of stays per patient
+#' @param days_since_discharge the number of days between a discharge date and an admission date (default: max(0, rnorm(1, mean = 30, sd = 10)))
+#' @param length_of_stay the length of stay (default: max(1, rnorm(1, mean = 5, sd = 3) )
+#' @param n_clusters the number of cluster in the network
+#'
+#' @return a data.table containing all patients stays
+#' @export
+#' 
+create_fake_patientDB_clustered <- function(n_patients = 50, 
+                                  n_hospitals = 10, 
+                                  avg_n_stays = 3, 
+                                  days_since_discharge = NULL, 
+                                  length_of_stay = NULL,
+                                  n_clusters = 3){
+  #create sub patientDB
+  n_patients_cl = round(n_patients / n_clusters,0)
+  n_hospitals_cl = round(n_hospitals / n_clusters,0)
+  p_stays = lapply(1:n_clusters, function(i){
+    create_fake_patientDB(n_patients = n_patients_cl,
+                          n_hospitals = n_hospitals_cl,
+                          avg_n_stays = avg_n_stays,
+                          days_since_discharge = days_since_discharge,
+                          length_of_stay = length_of_stay, 
+                          start_id_patients = (i - 1) * n_patients_cl + 1,
+                          start_id_hospitals = (i - 1) * n_hospitals_cl + 1)
+  })
+  
+  #get the last stays of 20% of patients in each subnetwork 
+  connecting_patients = lapply(1:n_clusters, function(i){
+    stays = p_stays[[i]]
+    n_p = length(unique(stays$pID))
+    last_stays = stays[,.SD[.N,] , by = pID][sample(1:n_p, ceiling(n_p * 0.3))]
+    last_stays[, cluster_id := i]
+    
+  })
+  connecting_patients = rbindlist(connecting_patients)
+
+  #and add connections to other networks
+  connecting_stays = lapply(1:connecting_patients[,.N], function(i){
+    curr_clust = connecting_patients[i , cluster_id]
+    connecting_h = sample(connecting_patients[cluster_id != curr_clust , hID], 1)
+    create_patient_stay(pID = connecting_patients[i , pID], 
+                        hID = connecting_h, 
+                        last_discharge_date = connecting_patients[i , Ddate],
+                        days_since_discharge = days_since_discharge,
+                        length_of_stay = length_of_stay)
+  })
+  connecting_stays = rbindlist(connecting_stays)
+  p_stays[[n_clusters + 1]] = connecting_stays
+  
+  #merge all stays
+  all_p_stays = rbindlist(p_stays)
+}
 #' Create a fake patient stay
 #'
 #'create_patient_stay is an internal function used by create_fake_patientDB.
