@@ -104,13 +104,13 @@ HospiNet <- R6::R6Class("HospiNet",
       
       n_h = self$n_hospitals
       #plot it
-      ggplot(el, aes(x = target, y = origin)) + 
+      ggplot(el, aes(x = origin, y = target)) + 
         geom_raster(aes(fill = col)) + 
         scale_fill_manual(name = NULL, values = c("grey", rainbow(max(el$origin_c)))) +
         scale_x_discrete(name = "Origin",
-                         breaks = levels(el$origin)[seq(1,n_h, length.out = 10)]) + 
+                         breaks = levels(el$origin)[round(seq(1,n_h, length.out = 10),0)]) + 
         scale_y_discrete(name = "Target", 
-                         breaks = levels(el$target)[seq(1,n_h, length.out = 10)]) +
+                         breaks = levels(el$target)[round(seq(1,n_h, length.out = 10),0)]) +
         labs(x = "Origin", y = "Target", title = "Clustered matrix") +
         theme_bw() + theme(axis.text.x = element_text(size = 8, angle = 90, vjust = 0.3),
                            axis.text.y = element_text(size = 8),

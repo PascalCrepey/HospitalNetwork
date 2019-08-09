@@ -19,6 +19,8 @@ create_fake_patientDB(n_patients = 50, n_hospitals = 10,
 \item{days_since_discharge}{the number of days between a discharge date and an admission date (default: max(0, rnorm(1, mean = 30, sd = 10)))}
 
 \item{length_of_stay}{the length of stay (default: max(1, rnorm(1, mean = 5, sd = 3) )}
+
+\item{start_id_patients, start_id_hospitals}{change starting ids (used for clustered network)}
 }
 \value{
 a data.table containing all patients stays

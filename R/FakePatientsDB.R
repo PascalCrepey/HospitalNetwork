@@ -8,6 +8,7 @@
 #' @param avg_n_stays the average number of stays per patient
 #' @param days_since_discharge the number of days between a discharge date and an admission date (default: max(0, rnorm(1, mean = 30, sd = 10)))
 #' @param length_of_stay the length of stay (default: max(1, rnorm(1, mean = 5, sd = 3) )
+#' @param start_id_patients,start_id_hospitals change starting ids (used for clustered network)
 #'
 #' @return a data.table containing all patients stays
 #' @export
@@ -34,14 +35,14 @@ create_fake_patientDB <- function(n_patients = 50,
     
     p_stays = NULL
     last_discharge_date = NULL
-    for (hID in hospitals){
+    for (hID in hospitals) {
       stay = create_patient_stay(pID = pID, hID = hID, 
                                  last_discharge_date = last_discharge_date,
                                  days_since_discharge = days_since_discharge,
                                  length_of_stay = length_of_stay)
       last_discharge_date = stay$Ddate
       
-      if (!is.null(p_stays)){
+      if (!is.null(p_stays)) {
         p_stays = rbindlist(list(p_stays, stay))
       }else{
         p_stays = stay
@@ -108,6 +109,11 @@ create_fake_patientDB_clustered <- function(n_patients = 50,
   
   #merge all stays
   all_p_stays = rbindlist(p_stays)
+  
+  #randomize hospital names
+  trHID = data.table(curr_hid = unique(all_p_stays$hID))
+  trHID[, new_hid := sample(curr_hid, .N, replace = FALSE)]
+  all_p_stays[trHID, hID := new_hid ,on = c("hID" = "curr_hid")]
 }
 #' Create a fake patient stay
 #'
