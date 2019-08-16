@@ -93,7 +93,6 @@ checkBase <- function(base,
 #' @param ... other parameters passed on to internal functions
 #' 
 #' @return The adjusted database as a data.table
-#' @export
 #' 
 deleteErrorRecords<-function(base,
                              theErrors,
