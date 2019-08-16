@@ -47,22 +47,82 @@ checkBase <- function(base,
                       ...)
 {
     new_base = checkFormat(base,
+                           patientID = patientID,
+                           hospitalID = hospitalID,
+                           admDate = admDate,
+                           disDate = disDate,
                            deleteMissing = deleteMissing)
     
     new_base = checkDates(base = new_base,
+                          patientID = patientID,
+                          hospitalID = hospitalID,
+                          admDate = admDate,
+                          disDate = disDate,
                           convertDates = convertDates,
                           dateFormat = dateFormat,
                           deleteErrors = deleteErrors,
                           ...)
     
     new_base = adjust_overlapping_stays(base = new_base,
-                                        patientID = "pID",#ID
-                                        hospitalID = "hID",#FINESS
-                                        admDate = "Adate",
-                                        disDate = "Ddate",
+                                        patientID = patientID,
+                                        hospitalID = hospitalID,
+                                        admDate = admDate,
+                                        disDate = disDate,
                                         maxIteration = maxIteration,
                                         ...)
     return(new_base)
+}
+
+
+#'Function that removes error records, either just one record or entire patient. 
+#'
+#' @param base (data.table).
+#'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+#'         pID: patientID (character)
+#'         hID: hospitalID (character)
+#'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
+#'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
+#' @param theErrors a list of indeces for the records to be deleted in the base datatable 
+#' @param deleteErrors (character) How incorrect records should be deleted: 
+#'                     "record" deletes just the incorrect record
+#'                     "patient" deletes all records of each patient with one or more incorrect records.
+#' @param patientID (charachter) the columns name containing the patient ID. Default is "pID"
+#' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID"
+#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
+#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
+#' @param ... other parameters passed on to internal functions
+#' 
+#' @return The adjusted database as a data.table
+#' @export
+#' 
+deleteErrorRecords<-function(base,
+                             theErrors,
+                             deleteErrors = NULL,
+                             patientID = "pID",
+                             hospitalID = "hID",
+                             disDate = "Ddate",
+                             admDate = "Adate",
+                             ...){
+  message(length(theErrors)," erroneous records found.")
+  if (is.null(deleteErrors)) {
+    stop("Please deal with those errors or set option 'deleteMissing' to 'record' or 'patient'.")
+  } else {
+    if (deleteErrors == "record") {
+      to_remove = theErrors
+      new_base = base[!to_remove, ]
+      message(paste0("Deleting erroneous records... \nDeleted ",
+                     length(to_remove),
+                     " records"))
+    } else if (deleteErrors == "patient") {
+      to_remove = theErrors
+      ids = (unique(base[to_remove, ..patientID]))[[1]]
+      new_base = base[!((base[,..patientID])[[1]] %in% ids),]
+      message(paste0("Removing patients that have at least one erroneous record... \nDeleted ",
+                     nrow(base) - nrow(new_base),
+                     " records ")) 
+    } else stop("deleteErrors not or incorrectly specified")
+  }
+  return(new_base)
 }
 
 #' Check database format
@@ -83,64 +143,60 @@ checkBase <- function(base,
 #' @return Returns either an error message, or the database (modified if need be).
 #' 
 checkFormat <- function(base,
+                        patientID = "pID",
+                        hospitalID = "hID",
+                        admDate = "Adate",
+                        disDate = "Ddate",
                         deleteMissing = NULL)
 {
-    if (!"data.frame" %in% class(base)) {
-        stop("The database must be either a data.frame or a data.table object")
-    } else if (!"data.table" %in% class(base)) {
-        setDT(base)
-        message("Converting database to a data.table object")
-    }
-    
-    # Check missing columns
-    cols = c("pID", "hID", "Adate", "Ddate")
-    missingCols = setdiff(cols, colnames(base))
-    if (length(missingCols)) {
-        stop(paste0("The following column(s) is/are missing: ",
-                    paste0(missingCols, collapse = ", "),
-                    ". Please check that your database contains at least the columns mentionned in the documentation, and that they are in the right format. Names are case sensitive."))
-    }
-
-    # Check format of "pID" and "hID" columns
-    cls = sapply(c("pID", "hID"), function(x) typeof(base[[x]]))
-    wrong = names(cls[cls != "character"])
-    if (length(wrong)) {
-        stop(paste0("The following column(s) is/are not of type 'character': ",
-                    paste0(wrong, collapse = ", "),
-                    "."))
-    }
-
-    # Check for missing values    
-    # For columns in 'cols', check if a value is 'NA' or only blank spaces
-    missing = base[, lapply(.SD, function(x) trimws(x) == "" | is.na(x)),
-                   .SDcols = cols]
-    # If at least one missing value in the database:
-    if (any(as.matrix(missing))) {
-        if (is.null(deleteMissing)) {
-            msng = lapply(missing, any)
-            names_msng = names(msng[msng == TRUE])
-            stop(paste0("The following column(s) contain(s) missing values: ",
-                        paste0(names_msng, collapse = ", "),
-                        ". Please deal with those missing values or set option 'deleteMissing' to 'record' or 'patient'."))
-        } else if (deleteMissing == "record") {
-            to_remove = which(rowSums(missing) > 0)
-            new_base = base[!to_remove, ]
-            message(paste0("Deleting records that contains a missing value for at least one of the four mandatory variables... \nDeleted ",
-                           length(to_remove),
-                           " records"))
-        } else if (deleteMissing == "patient") {
-            to_remove = which(rowSums(missing) > 0)
-            ids = base[to_remove, unique(pID)]
-            new_base = base[!pID %in% ids,]
-            message(paste0("Removing patients that have at least one record with a missing value in at least one of the four mandatory variables... \nDeleted ",
-                    nrow(base) - nrow(new_base),
-                    " records")) 
-        }
-    } else {
-        new_base = base
-    }
-    
-    return(new_base)
+  if (!"data.frame" %in% class(base)) {
+    stop("The database must be either a data.frame or a data.table object")
+  } else if (!"data.table" %in% class(base)) {
+    setDT(base)
+    message("Converting database to a data.table object")
+  }
+  
+  # Check missing columns
+  cols = c(patientID, hospitalID, admDate, disDate)
+  missingCols = setdiff(cols, colnames(base))
+  if (length(missingCols)) {
+    stop(paste0("The following column(s) is/are missing: ",
+                paste0(missingCols, collapse = ", "),
+                ". Please check that your database contains at least the columns mentionned in the documentation, and that they are in the right format. Names are case sensitive."))
+  }
+  
+  # Check format of "pID" and "hID" columns
+  cls = sapply(c(patientID, hospitalID), function(x) typeof(base[[x]]))
+  wrong = names(cls[cls != "character"])
+  if (length(wrong)) {
+    stop(paste0("The following column(s) is/are not of type 'character': ",
+                paste0(wrong, collapse = ", "),
+                "."))
+  }
+  
+  # Check for missing values    
+  # For columns in 'cols', check if a value is 'NA' or only blank spaces
+  print("Checking for missing values...")
+  missing = base[, lapply(.SD, function(x) trimws(x) == "" | is.na(x)),
+                 .SDcols = cols]
+  # If at least one missing value in the database:
+  if (any(as.matrix(missing))) {
+    msng = lapply(missing, any)
+    names_msng = names(msng[msng == TRUE])
+    to_remove=which(rowSums(missing) > 0)
+    message(paste0("The following column(s) contain(s) missing values: ",
+                   paste0(names_msng, collapse = ", ")))
+    new_base=deleteErrorRecords(base,
+                                to_remove,
+                                patientID = patientID,
+                                hospitalID = hospitalID,
+                                admDate = admDate,
+                                disDate = disDate,
+                                deleteErrors=deleteMissing)
+  } else {
+    new_base = base
+  }
+  return(new_base)
 } 
                       
 
@@ -166,13 +222,17 @@ checkFormat <- function(base,
 #' @importFrom lubridate is.Date ymd ydm myd mdy dmy dym
 #' 
 checkDates <- function(base,
+                       patientID = "pID",
+                       hospitalID = "hID",
+                       admDate = "Adate",
+                       disDate = "Ddate",
                        convertDates = FALSE,
                        dateFormat   = NULL,
                        deleteErrors = NULL,
                        ...)
 {
     # Use functions from package 'lubridate'
-    cols = c("Adate", "Ddate")
+    cols = c(admDate, disDate)
     notDate = base[, lapply(.SD, is.Date) == FALSE, .SDcols = cols]
     needsConverting = names(which(notDate))
 
@@ -186,42 +246,40 @@ checkDates <- function(base,
         message(paste0("Converting ",
                        paste0(needsConverting, collapse = ", "),
                        " to Date format"))
-        # Converting Dates using lubridate function corresponding to the format provided in 'dateFormat'
-        base[, `:=`(Adate_new = do.call(dateFormat, list(Adate)),
-                    Ddate_new = do.call(dateFormat, list(Ddate)))]
+        # Converting Dates using lubridate function "parse_date_time" corresponding to the format provided in 'dateFormat'
+        base[, `:=`(Adate_new = do.call(function(x){suppressWarnings(parse_date_time(x,dateFormat))}, list(get(admDate))),
+                    Ddate_new = do.call(function(x){suppressWarnings(parse_date_time(x,dateFormat))}, list(get(disDate))))]
         # If some have failed to parse, throw a message and return the lines that have failed
         failed = base[is.na(Adate_new) | is.na(Ddate_new), , which = T]
         if (length(failed)) {
-            message("Parsing of dates failed for the following records:")
-            print(base[failed, .(pID, hID, Adate, Ddate)])
-            stop()
+            message(paste0("Parsing of dates failed for the ",length(failed)," records:"))
+
+            base=deleteErrorRecords(base,
+                                    failed,
+                                    patientID = patientID,
+                                    hospitalID = hospitalID,
+                                    admDate = admDate,
+                                    disDate = disDate,
+                                    deleteErrors=deleteErrors)
         }
-        if (!length(failed)) {
-            base[, c("Adate", "Ddate") := NULL]
-            setnames(base, old = c("Adate_new", "Ddate_new"), new = cols)
-        }
+        base[, c(admDate, disDate) := NULL]
+        setnames(base, old = c("Adate_new", "Ddate_new"), new = cols)
     }
     
     # Check if there are records with discharge before admission in admission or discharge field, and delete them as given in function options  
-    wrongOrder = base[Adate > Ddate, , which = T]
+    wrongOrder = base[admDate > disDate, , which = T]
+
     if (length(wrongOrder)) {
         message(paste0("Found ",
                        length(wrongOrder),
                        " records with admission date posterior to discharge date."))
-        print(base[wrongOrder,])
-        if (is.null(deleteErrors)) {
-            stop("Please, correct the records or set argument 'deleteErrors'.")                
-        } else if (deleteErrors == "record") {
-            base = base[!wrongOrder, ]
-            message(paste0("Deleted ", length(wrongOrder), " incorrect records"))
-        } else if(deleteErrors == "patient") {
-            n = nrow(base)
-            ids = base[wrongOrder, unique(pID)]
-            base = base[!(pID %in% ids), ]
-            message(paste0("Deleted patients with incorrect records, deleted ",
-                           n - nrow(base),
-                           " records"))
-        }
+        base=deleteErrorRecords(base,
+                              wrongOrder,
+                              patientID = patientID,
+                              hospitalID = hospitalID,
+                              admDate = admDate,
+                              disDate = disDate,
+                              deleteErrors=deleteErrors)
     }
        
     ## # Delete single day cases if only overnight patients are defined
@@ -270,7 +328,6 @@ adjust_overlapping_stays = function(base,
   nbefore=nrow(base)
   cat("Removing duplicate records\n")
   base<-unique(base)
-  print(nrow(base))
   cat(paste0("Removed ",nbefore-nrow(base)," duplicates\n"))
   
   N = base[, .N]
@@ -281,8 +338,8 @@ adjust_overlapping_stays = function(base,
   C1A=(base[,get(patientID)] %in% probPatients)
   probBase=base[C1A,]
   nonProbBase=base[!C1A,]
-  
-  iterator=0;
+
+  iterator=0
   while(iterator<maxIteration&sum(C1&C2)>0){
     cat(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping hospital stays\nSplitting database and correcting\n"))
     
