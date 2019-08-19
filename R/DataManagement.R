@@ -323,7 +323,11 @@ adjust_overlapping_stays = function(base,
                              disDate = "Ddate",
                              maxIteration =25,
                              ...) {
+  #Currently only working with the required minimum variables... We might need to consider carrying any extra columns over.
+  useCols<-colnames(base) %in% c(patientID,hospitalID,admDate,disDate)
+  base<-base[,.SD,.SDcols=useCols]
   data.table::setkeyv(base, c(patientID,admDate,disDate))
+  
   nbefore=nrow(base)
   cat("Removing duplicate records\n")
   base<-unique(base)
@@ -354,6 +358,7 @@ adjust_overlapping_stays = function(base,
     cat("Combining and sorting\n")
     
     probBase=rbind(a,b,c)
+    colnames(probBase)<-c(patientID,hospitalID,admDate,disDate)
     data.table::setkeyv(probBase, c(patientID,admDate,disDate))
     
     C3 = ((probBase[, get(disDate)]-probBase[, get(admDate)])<0)
