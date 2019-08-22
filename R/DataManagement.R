@@ -156,17 +156,18 @@ checkFormat <- function(base,
                         disDate = "Ddate",
                         deleteMissing = NULL,
                         verbose = FALSE)
-{
-  if (!"data.frame" %in% class(base)) {
+{ 
+  new_base=base
+  if (!"data.frame" %in% class(new_base)) {
     stop("The database must be either a data.frame or a data.table object")
-  } else if (!"data.table" %in% class(base)) {
-    setDT(base)
+  } else if (!"data.table" %in% class(new_base)) {
+    setDT(new_base)
     if (verbose) message("Converting database to a data.table object")
   }
   
   # Check missing columns
   cols = c(patientID, hospitalID, admDate, disDate)
-  missingCols = setdiff(cols, colnames(base))
+  missingCols = setdiff(cols, colnames(new_base))
   if (length(missingCols)) {
     stop(paste0("The following column(s) is/are missing: ",
                 paste0(missingCols, collapse = ", "),
@@ -174,7 +175,7 @@ checkFormat <- function(base,
   }
   
   # Check format of "pID" and "hID" columns
-  cls = sapply(c(patientID, hospitalID), function(x) typeof(base[[x]]))
+  cls = sapply(c(patientID, hospitalID), function(x) typeof(new_base[[x]]))
   wrong = names(cls[cls != "character"])
   if (length(wrong)) {
     stop(paste0("The following column(s) is/are not of type 'character': ",
@@ -185,7 +186,7 @@ checkFormat <- function(base,
   # Check for missing values    
   # For columns in 'cols', check if a value is 'NA' or only blank spaces
   if (verbose) message("Checking for missing values...")
-  missing = base[, lapply(.SD, function(x) trimws(x) == "" | is.na(x)),
+  missing = new_base[, lapply(.SD, function(x) trimws(x) == "" | is.na(x)),
                  .SDcols = cols]
   # If at least one missing value in the database:
   if (any(as.matrix(missing))) {
@@ -194,7 +195,7 @@ checkFormat <- function(base,
     to_remove = which(rowSums(missing) > 0)
     if (verbose) message(paste0("The following column(s) contain(s) missing values: ",
                    paste0(names_msng, collapse = ", ")))
-    new_base = deleteErrorRecords(base,
+    new_base = deleteErrorRecords(new_base,
                                 to_remove,
                                 patientID = patientID,
                                 hospitalID = hospitalID,
@@ -202,8 +203,6 @@ checkFormat <- function(base,
                                 disDate = disDate,
                                 deleteErrors=deleteMissing, 
                                 verbose = verbose)
-  } else {
-    new_base = base
   }
   return(new_base)
 } 
@@ -243,8 +242,9 @@ checkDates <- function(base,
                        ...)
 {
     # Use functions from package 'lubridate'
+    new_base=base
     cols = c(admDate, disDate)
-    notDate = base[, lapply(.SD, is.Date) == FALSE, .SDcols = cols]
+    notDate = new_base[, lapply(.SD, is.Date) == FALSE, .SDcols = cols]
     needsConverting = names(which(notDate))
 
     if (length(needsConverting) & !convertDates) {
@@ -258,14 +258,14 @@ checkDates <- function(base,
                        paste0(needsConverting, collapse = ", "),
                        " to Date format"))
         # Converting Dates using lubridate function "parse_date_time" corresponding to the format provided in 'dateFormat'
-        base[, `:=`(Adate_new = do.call(function(x){suppressWarnings(lubridate::as_date(lubridate::parse_date_time(x,dateFormat)))}, list(get(admDate))),
+      new_base[, `:=`(Adate_new = do.call(function(x){suppressWarnings(lubridate::as_date(lubridate::parse_date_time(x,dateFormat)))}, list(get(admDate))),
                     Ddate_new = do.call(function(x){suppressWarnings(lubridate::as_date(lubridate::parse_date_time(x,dateFormat)))}, list(get(disDate))))]
         # If some have failed to parse, throw a message and return the lines that have failed
-        failed = base[is.na(Adate_new) | is.na(Ddate_new), , which = T]
+        failed = new_base[is.na(Adate_new) | is.na(Ddate_new), , which = T]
         if (length(failed)) {
             if (verbose) message(paste0("Parsing of dates failed for the ",length(failed)," records:"))
 
-            base=deleteErrorRecords(base,
+            base=deleteErrorRecords(new_base,
                                     failed,
                                     patientID = patientID,
                                     hospitalID = hospitalID,
@@ -274,18 +274,18 @@ checkDates <- function(base,
                                     deleteErrors=deleteErrors, 
                                     verbose = verbose)
         }
-        base[, c(admDate, disDate) := NULL]
-        setnames(base, old = c("Adate_new", "Ddate_new"), new = cols)
+        new_base[, c(admDate, disDate) := NULL]
+        setnames(new_base, old = c("Adate_new", "Ddate_new"), new = cols)
     }
     
     # Check if there are records with discharge before admission in admission or discharge field, and delete them as given in function options  
-    wrongOrder = base[admDate > disDate, , which = T]
+    wrongOrder = new_base[admDate > disDate, , which = T]
 
     if (length(wrongOrder)) {
         if (verbose) message(paste0("Found ",
                        length(wrongOrder),
                        " records with admission date posterior to discharge date."))
-        base=deleteErrorRecords(base,
+        base=deleteErrorRecords(new_base,
                               wrongOrder,
                               patientID = patientID,
                               hospitalID = hospitalID,
@@ -302,7 +302,7 @@ checkDates <- function(base,
     ##     print(paste0("Deleted ",nrBefore-nrow(base)," patient stay records who did not stay overnight"))
     ## }
     
-    return(base)
+    return(new_base)
 }
 
 
@@ -339,24 +339,25 @@ adjust_overlapping_stays = function(base,
                              maxIteration =25,
                              verbose = FALSE,
                              ...) {
+  new_base=base
   #Currently only working with the required minimum variables... We might need to consider carrying any extra columns over.
-  useCols<-colnames(base) %in% c(patientID,hospitalID,admDate,disDate)
+  useCols<-colnames(new_base) %in% c(patientID,hospitalID,admDate,disDate)
   base=base[,.SD,.SDcols=useCols]
-  data.table::setkeyv(base, c(patientID,admDate,disDate))
+  data.table::setkeyv(new_base, c(patientID,admDate,disDate))
   
-  nbefore = nrow(base)
+  nbefore = nrow(new_base)
   if (verbose) message("Removing duplicate records\n")
-  base=unique(base)
-  if (verbose) message(paste0("Removed ",nbefore-nrow(base)," duplicates\n"))
+  new_base=unique(new_base)
+  if (verbose) message(paste0("Removed ",nbefore-nrow(new_base)," duplicates\n"))
   
-  N = base[, .N]
+  N = new_base[, .N]
   
-  C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
-  C2 = ((base[, get(admDate)][-1]-base[, get(disDate)][-N])<0) 
-  probPatients=base[-1][(C1&C2),get(patientID)]
-  C1A=(base[,get(patientID)] %in% probPatients)
-  probBase=base[C1A,]
-  nonProbBase=base[!C1A,]
+  C1 = new_base[, get(patientID)][-N] == new_base[, get(patientID)][-1]
+  C2 = ((new_base[, get(admDate)][-1]-new_base[, get(disDate)][-N])<0) 
+  probPatients=new_base[-1][(C1&C2),get(patientID)]
+  C1A=(new_base[,get(patientID)] %in% probPatients)
+  probBase=new_base[C1A,]
+  nonProbBase=new_base[!C1A,]
 
   iterator=0
   while(iterator<maxIteration&sum(C1&C2)>0){
@@ -379,23 +380,18 @@ adjust_overlapping_stays = function(base,
     data.table::setkeyv(probBase, c(patientID,admDate,disDate))
 
     C3 = ((probBase[, get(disDate)]-probBase[, get(admDate)])<0)
-    base<-probBase[!C3,]
+    new_base<-probBase[!C3,]
     
-    Nprob = base[, .N]
-    C1 = base[, get(patientID)][-Nprob] == base[, get(patientID)][-1]
-    C2 = ((base[, get(admDate)][-1]-base[, get(disDate)][-Nprob])<0) 
-    probPatients=base[-1][(C1&C2),get(patientID)]
-    C1A=(base[,get(patientID)] %in% probPatients)
+    Nprob = new_base[, .N]
+    C1 = new_base[, get(patientID)][-Nprob] == new_base[, get(patientID)][-1]
+    C2 = ((new_base[, get(admDate)][-1]-new_base[, get(disDate)][-Nprob])<0) 
+    probPatients=new_base[-1][(C1&C2),get(patientID)]
+    C1A=(new_base[,get(patientID)] %in% probPatients)
     
-    probBase=base[C1A,]
-    nonProbBase=rbind(nonProbBase,base[!C1A,])
+    probBase=new_base[C1A,]
+    nonProbBase=rbind(nonProbBase,new_base[!C1A,])
     
     iterator<-iterator+1
   }
   return(nonProbBase)
 }
-
-
-
-      
-      
