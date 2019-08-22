@@ -325,12 +325,12 @@ adjust_overlapping_stays = function(base,
                              ...) {
   #Currently only working with the required minimum variables... We might need to consider carrying any extra columns over.
   useCols<-colnames(base) %in% c(patientID,hospitalID,admDate,disDate)
-  base<-base[,.SD,.SDcols=useCols]
+  base=base[,.SD,.SDcols=useCols]
   data.table::setkeyv(base, c(patientID,admDate,disDate))
   
   nbefore=nrow(base)
   cat("Removing duplicate records\n")
-  base<-unique(base)
+  base=unique(base)
   cat(paste0("Removed ",nbefore-nrow(base)," duplicates\n"))
   
   N = base[, .N]
@@ -348,22 +348,24 @@ adjust_overlapping_stays = function(base,
     
     Nprob = probBase[, .N]
     data.table::setkeyv(probBase, c(patientID,admDate,disDate))
-    
+
     C1 = probBase[, get(patientID)][-Nprob] == probBase[, get(patientID)][-1]
     C2 = ((probBase[, get(admDate)][-1]-probBase[, get(disDate)][-Nprob])<0) 
-    
+
     a=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][(C1&C2), get(admDate)],Ddate=probBase[-1][(C1&C2), get(admDate)])
     b=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-1][(C1&C2), get(disDate)],Ddate=probBase[-Nprob][(C1&C2), get(disDate)])
     c=data.table(pID=probBase[-Nprob][!(C1&C2), get(patientID)],hID=probBase[-Nprob][!(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][!(C1&C2), get(admDate)],Ddate=probBase[-Nprob][!(C1&C2), get(disDate)])
+    d=data.table(pID=probBase[Nprob, get(patientID)],hID=probBase[Nprob, get(hospitalID)],Adate=probBase[Nprob, get(admDate)],Ddate=probBase[Nprob, get(disDate)])
     cat("Combining and sorting\n")
-    
-    probBase=rbind(a,b,c)
-    colnames(probBase)<-c(patientID,hospitalID,admDate,disDate)
+
+    probBase=rbind(a,b,c,d)
+    setnames(probBase,c(patientID,hospitalID,admDate,disDate)) 
     data.table::setkeyv(probBase, c(patientID,admDate,disDate))
-    
+
     C3 = ((probBase[, get(disDate)]-probBase[, get(admDate)])<0)
     base<-probBase[!C3,]
     
+    Nprob = base[, .N]
     C1 = base[, get(patientID)][-Nprob] == base[, get(patientID)][-1]
     C2 = ((base[, get(admDate)][-1]-base[, get(disDate)][-Nprob])<0) 
     probPatients=base[-1][(C1&C2),get(patientID)]
@@ -376,6 +378,7 @@ adjust_overlapping_stays = function(base,
   }
   return(nonProbBase)
 }
+
 
 
       
