@@ -29,6 +29,7 @@
 #' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
 #' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
+#' @param verbose (boolean) print diagnostic messages. Default is TRUE.
 #' @param ... other parameters passed on to internal functions
 #' 
 #' @return The adjusted database as a data.table
@@ -44,6 +45,7 @@ checkBase <- function(base,
                       disDate = "Ddate",
                       admDate = "Adate",
                       maxIteration = 25,
+                      verbose = TRUE,
                       ...)
 {
     new_base = checkFormat(base,
@@ -51,7 +53,8 @@ checkBase <- function(base,
                            hospitalID = hospitalID,
                            admDate = admDate,
                            disDate = disDate,
-                           deleteMissing = deleteMissing)
+                           deleteMissing = deleteMissing, 
+                           verbose = verbose)
 
     new_base = checkDates(base=new_base,
                           patientID = patientID,
@@ -60,7 +63,8 @@ checkBase <- function(base,
                           disDate = disDate,
                           convertDates = convertDates,
                           dateFormat = dateFormat,
-                          deleteErrors = deleteErrors,
+                          deleteErrors = deleteErrors, 
+                          verbose = verbose,
                           ...)
     
     new_base = adjust_overlapping_stays(base = new_base,
@@ -68,7 +72,8 @@ checkBase <- function(base,
                                         hospitalID = hospitalID,
                                         admDate = admDate,
                                         disDate = disDate,
-                                        maxIteration = maxIteration,
+                                        maxIteration = maxIteration, 
+                                        verbose = verbose,
                                         ...)
     return(new_base)
 }
@@ -90,6 +95,7 @@ checkBase <- function(base,
 #' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID"
 #' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
 #' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
+#' @param verbose (boolean) print diagnostic messages. Default is FALSE.
 #' @param ... other parameters passed on to internal functions
 #' 
 #' @return The adjusted database as a data.table
@@ -101,22 +107,23 @@ deleteErrorRecords<-function(base,
                              hospitalID = "hID",
                              disDate = "Ddate",
                              admDate = "Adate",
+                             verbose = FALSE,
                              ...){
-  message(length(theErrors)," erroneous records found.")
+  if (verbose) message(length(theErrors)," erroneous records found.")
   if (is.null(deleteErrors)) {
     stop("Please deal with those errors or set option 'deleteMissing' to 'record' or 'patient'.")
   } else {
     if (deleteErrors == "record") {
       to_remove = theErrors
       new_base = base[!to_remove, ]
-      message(paste0("Deleting erroneous records... \nDeleted ",
+      if (verbose) message(paste0("Deleting erroneous records... \nDeleted ",
                      length(to_remove),
                      " records"))
     } else if (deleteErrors == "patient") {
       to_remove = theErrors
       ids = (unique(base[to_remove, ..patientID]))[[1]]
       new_base = base[!((base[,..patientID])[[1]] %in% ids),]
-      message(paste0("Removing patients that have at least one erroneous record... \nDeleted ",
+      if (verbose) message(paste0("Removing patients that have at least one erroneous record... \nDeleted ",
                      nrow(base) - nrow(new_base),
                      " records ")) 
     } else stop("deleteErrors not or incorrectly specified")
@@ -138,6 +145,7 @@ deleteErrorRecords<-function(base,
 #' NULL (default): do not delete. Stops the function with an error message.
 #' "record": deletes just the incorrect record.
 #' "patient": deletes all records of each patient with one or more incorrect records.
+#' @param verbose (boolean) print diagnostic messages. Default is FALSE.
 #' 
 #' @return Returns either an error message, or the database (modified if need be).
 #' 
@@ -146,13 +154,14 @@ checkFormat <- function(base,
                         hospitalID = "hID",
                         admDate = "Adate",
                         disDate = "Ddate",
-                        deleteMissing = NULL)
+                        deleteMissing = NULL,
+                        verbose = FALSE)
 {
   if (!"data.frame" %in% class(base)) {
     stop("The database must be either a data.frame or a data.table object")
   } else if (!"data.table" %in% class(base)) {
     setDT(base)
-    message("Converting database to a data.table object")
+    if (verbose) message("Converting database to a data.table object")
   }
   
   # Check missing columns
@@ -175,23 +184,24 @@ checkFormat <- function(base,
   
   # Check for missing values    
   # For columns in 'cols', check if a value is 'NA' or only blank spaces
-  print("Checking for missing values...")
+  if (verbose) message("Checking for missing values...")
   missing = base[, lapply(.SD, function(x) trimws(x) == "" | is.na(x)),
                  .SDcols = cols]
   # If at least one missing value in the database:
   if (any(as.matrix(missing))) {
     msng = lapply(missing, any)
     names_msng = names(msng[msng == TRUE])
-    to_remove=which(rowSums(missing) > 0)
-    message(paste0("The following column(s) contain(s) missing values: ",
+    to_remove = which(rowSums(missing) > 0)
+    if (verbose) message(paste0("The following column(s) contain(s) missing values: ",
                    paste0(names_msng, collapse = ", ")))
-    new_base=deleteErrorRecords(base,
+    new_base = deleteErrorRecords(base,
                                 to_remove,
                                 patientID = patientID,
                                 hospitalID = hospitalID,
                                 admDate = admDate,
                                 disDate = disDate,
-                                deleteErrors=deleteMissing)
+                                deleteErrors=deleteMissing, 
+                                verbose = verbose)
   } else {
     new_base = base
   }
@@ -209,11 +219,12 @@ checkFormat <- function(base,
 #'         hID: hospitalID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
-#' @param convertDates boolean indicating if dates need to be converted to POSIXct if they are not
-#' @param dateFormat character giving the input format of the date character string
-#' @param deleteErrors character indicating the way incorrect records should be deleted: 
+#' @param convertDates (boolean) indicating if dates need to be converted to POSIXct if they are not
+#' @param dateFormat (character) giving the input format of the date character string
+#' @param deleteErrors (character) indicating the way incorrect records should be deleted: 
 #'                     "record" deletes just the incorrect record
 #'                     "patient" deletes all records of each patient with one or more incorrect records.
+#' @param verbose (boolean) print diagnostic messages. Default is FALSE.
 #' @param ... other parameters passed on to internal functions
 #' 
 #' @return The corrected database as data.table.
@@ -228,6 +239,7 @@ checkDates <- function(base,
                        convertDates = FALSE,
                        dateFormat   = NULL,
                        deleteErrors = NULL,
+                       verbose = FALSE,
                        ...)
 {
     # Use functions from package 'lubridate'
@@ -242,16 +254,16 @@ checkDates <- function(base,
     }
 
     if (length(needsConverting) & convertDates) {
-        message(paste0("Converting ",
+      if (verbose) message(paste0("Converting ",
                        paste0(needsConverting, collapse = ", "),
                        " to Date format"))
         # Converting Dates using lubridate function "parse_date_time" corresponding to the format provided in 'dateFormat'
-        base[, `:=`(Adate_new = do.call(function(x){suppressWarnings(as_date(parse_date_time(x,dateFormat)))}, list(get(admDate))),
-                    Ddate_new = do.call(function(x){suppressWarnings(as_date(parse_date_time(x,dateFormat)))}, list(get(disDate))))]
+        base[, `:=`(Adate_new = do.call(function(x){suppressWarnings(lubridate::as_date(lubridate::parse_date_time(x,dateFormat)))}, list(get(admDate))),
+                    Ddate_new = do.call(function(x){suppressWarnings(lubridate::as_date(lubridate::parse_date_time(x,dateFormat)))}, list(get(disDate))))]
         # If some have failed to parse, throw a message and return the lines that have failed
         failed = base[is.na(Adate_new) | is.na(Ddate_new), , which = T]
         if (length(failed)) {
-            message(paste0("Parsing of dates failed for the ",length(failed)," records:"))
+            if (verbose) message(paste0("Parsing of dates failed for the ",length(failed)," records:"))
 
             base=deleteErrorRecords(base,
                                     failed,
@@ -259,7 +271,8 @@ checkDates <- function(base,
                                     hospitalID = hospitalID,
                                     admDate = admDate,
                                     disDate = disDate,
-                                    deleteErrors=deleteErrors)
+                                    deleteErrors=deleteErrors, 
+                                    verbose = verbose)
         }
         base[, c(admDate, disDate) := NULL]
         setnames(base, old = c("Adate_new", "Ddate_new"), new = cols)
@@ -269,7 +282,7 @@ checkDates <- function(base,
     wrongOrder = base[admDate > disDate, , which = T]
 
     if (length(wrongOrder)) {
-        message(paste0("Found ",
+        if (verbose) message(paste0("Found ",
                        length(wrongOrder),
                        " records with admission date posterior to discharge date."))
         base=deleteErrorRecords(base,
@@ -278,7 +291,8 @@ checkDates <- function(base,
                               hospitalID = hospitalID,
                               admDate = admDate,
                               disDate = disDate,
-                              deleteErrors=deleteErrors)
+                              deleteErrors=deleteErrors, 
+                              verbose = verbose)
     }
        
     ## # Delete single day cases if only overnight patients are defined
@@ -307,11 +321,12 @@ checkDates <- function(base,
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
 #'         
-#' @param patientID (charachter) the columns name containing the patient ID. Default is "pID"
-#' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID"
-#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
-#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
-#' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
+#' @param patientID (charachter) the columns name containing the patient ID. Default is "pID".
+#' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID".
+#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate".
+#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate".
+#' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions.
+#' @param verbose (boolean) print diagnostic messages. Default is FALSE.
 #' @param ... other parameters passed on to internal functions
 #' 
 #' @return The corrected database as data.table.
@@ -322,16 +337,17 @@ adjust_overlapping_stays = function(base,
                              admDate = "Adate",
                              disDate = "Ddate",
                              maxIteration =25,
+                             verbose = FALSE,
                              ...) {
   #Currently only working with the required minimum variables... We might need to consider carrying any extra columns over.
   useCols<-colnames(base) %in% c(patientID,hospitalID,admDate,disDate)
   base=base[,.SD,.SDcols=useCols]
   data.table::setkeyv(base, c(patientID,admDate,disDate))
   
-  nbefore=nrow(base)
-  cat("Removing duplicate records\n")
+  nbefore = nrow(base)
+  if (verbose) message("Removing duplicate records\n")
   base=unique(base)
-  cat(paste0("Removed ",nbefore-nrow(base)," duplicates\n"))
+  if (verbose) message(paste0("Removed ",nbefore-nrow(base)," duplicates\n"))
   
   N = base[, .N]
   
@@ -344,7 +360,7 @@ adjust_overlapping_stays = function(base,
 
   iterator=0
   while(iterator<maxIteration&sum(C1&C2)>0){
-    cat(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping hospital stays\nSplitting database and correcting\n"))
+    if (verbose) message(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping hospital stays\nSplitting database and correcting\n"))
     
     Nprob = probBase[, .N]
     data.table::setkeyv(probBase, c(patientID,admDate,disDate))

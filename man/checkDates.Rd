@@ -4,8 +4,9 @@
 \alias{checkDates}
 \title{Check and fix the dates in patient database}
 \usage{
-checkDates(base, convertDates = FALSE, dateFormat = NULL,
-  deleteErrors = NULL, ...)
+checkDates(base, patientID = "pID", hospitalID = "hID",
+  admDate = "Adate", disDate = "Ddate", convertDates = FALSE,
+  dateFormat = NULL, deleteErrors = NULL, verbose = FALSE, ...)
 }
 \arguments{
 \item{base}{(data.table).
@@ -15,13 +16,15 @@ A patient discharge database, in the form of a data.table. The data.table should
     Adate: admission date (POSIXct, but character can be converted to POSIXct)
     Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 
-\item{convertDates}{boolean indicating if dates need to be converted to POSIXct if they are not}
+\item{convertDates}{(boolean) indicating if dates need to be converted to POSIXct if they are not}
 
-\item{dateFormat}{character giving the input format of the date character string}
+\item{dateFormat}{(character) giving the input format of the date character string}
 
-\item{deleteErrors}{character indicating the way incorrect records should be deleted: 
+\item{deleteErrors}{(character) indicating the way incorrect records should be deleted: 
 "record" deletes just the incorrect record
 "patient" deletes all records of each patient with one or more incorrect records.}
+
+\item{verbose}{(boolean) print diagnostic messages. Default is FALSE.}
 
 \item{...}{other parameters passed on to internal functions}
 }
