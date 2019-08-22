@@ -52,8 +52,8 @@ checkBase <- function(base,
                            admDate = admDate,
                            disDate = disDate,
                            deleteMissing = deleteMissing)
-    
-    new_base = checkDates(base = new_base,
+
+    new_base = checkDates(base=new_base,
                           patientID = patientID,
                           hospitalID = hospitalID,
                           admDate = admDate,
@@ -246,8 +246,8 @@ checkDates <- function(base,
                        paste0(needsConverting, collapse = ", "),
                        " to Date format"))
         # Converting Dates using lubridate function "parse_date_time" corresponding to the format provided in 'dateFormat'
-        base[, `:=`(Adate_new = do.call(function(x){suppressWarnings(parse_date_time(x,dateFormat))}, list(get(admDate))),
-                    Ddate_new = do.call(function(x){suppressWarnings(parse_date_time(x,dateFormat))}, list(get(disDate))))]
+        base[, `:=`(Adate_new = do.call(function(x){suppressWarnings(as_date(parse_date_time(x,dateFormat)))}, list(get(admDate))),
+                    Ddate_new = do.call(function(x){suppressWarnings(as_date(parse_date_time(x,dateFormat)))}, list(get(disDate))))]
         # If some have failed to parse, throw a message and return the lines that have failed
         failed = base[is.na(Adate_new) | is.na(Ddate_new), , which = T]
         if (length(failed)) {
