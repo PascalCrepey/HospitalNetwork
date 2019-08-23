@@ -279,7 +279,7 @@ checkDates <- function(base,
     }
     
     # Check if there are records with discharge before admission in admission or discharge field, and delete them as given in function options  
-    wrongOrder = base[admDate > disDate, , which = T]
+    wrongOrder = base[get(admDate) > get(disDate), , which = T]
 
     if (length(wrongOrder)) {
         if (verbose) message(paste0("Found ",
