@@ -4,10 +4,10 @@
 \alias{create_fake_patientDB}
 \title{Create a fake patient database}
 \usage{
-create_fake_patientDB(n_patients = 50, n_hospitals = 10,
+create_fake_patientDB(n_patients = 100, n_hospitals = 10,
   avg_n_stays = 3, days_since_discharge = NULL,
   length_of_stay = NULL, start_id_patients = 1,
-  start_id_hospitals = 1)
+  start_id_hospitals = 1, with_errors = FALSE)
 }
 \arguments{
 \item{n_patients}{the number of different patients in the database}
@@ -21,6 +21,8 @@ create_fake_patientDB(n_patients = 50, n_hospitals = 10,
 \item{length_of_stay}{the length of stay (default: max(1, rnorm(1, mean = 5, sd = 3) )}
 
 \item{start_id_patients, start_id_hospitals}{change starting ids (used for clustered network)}
+
+\item{with_errors}{(boolean) introduce or not random errors in the database. Default to FALSE.}
 }
 \value{
 a data.table containing all patients stays
