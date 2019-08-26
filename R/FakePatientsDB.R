@@ -9,19 +9,21 @@
 #' @param days_since_discharge the number of days between a discharge date and an admission date (default: max(0, rnorm(1, mean = 30, sd = 10)))
 #' @param length_of_stay the length of stay (default: max(1, rnorm(1, mean = 5, sd = 3) )
 #' @param start_id_patients,start_id_hospitals change starting ids (used for clustered network)
+#' @param with_errors (boolean) introduce or not random errors in the database. Default to FALSE.
 #'
 #' @return a data.table containing all patients stays
 #' @export
 #' 
 #' @importFrom stats rnorm
 #'
-create_fake_patientDB <- function(n_patients = 50, 
+create_fake_patientDB <- function(n_patients = 100, 
                                   n_hospitals = 10, 
                                   avg_n_stays = 3, 
                                   days_since_discharge = NULL, 
                                   length_of_stay = NULL, 
                                   start_id_patients = 1, 
-                                  start_id_hospitals = 1){
+                                  start_id_hospitals = 1,
+                                  with_errors = FALSE) {
   #create patients IDs
   pIDs = paste0("p", formatC((1 + start_id_patients - 1):(start_id_patients + n_patients - 1), 
                              width = nchar(n_patients), flag = "0"))
@@ -51,6 +53,34 @@ create_fake_patientDB <- function(n_patients = 50,
     p_stays
   })
   all_p_stays = rbindlist(all_p_stays)
+
+    ## Generate errors in the database
+    if (with_errors) {
+        N = nrow(all_p_stays)
+        # Add overlapping stays
+        all_p_stays = rbind(all_p_stays,
+                            data.table(
+                                pID = c(rep("X", 3), rep("Y", 4)),
+                                hID = c("a", "b", "a", "a", "b", "c", "c"),
+                                Adate = c(Sys.Date(), Sys.Date() + 1, Sys.Date() + 9, Sys.Date(), Sys.Date() + 1, Sys.Date() + 8, Sys.Date() + 9),
+                                Ddate = c(Sys.Date() + 7, Sys.Date() + 9, Sys.Date() + 10, Sys.Date() + 7, Sys.Date() + 4, Sys.Date() + 11, Sys.Date() + 13)
+                            ))
+        # Mess up dates
+        all_p_stays[sample(1:N, N/n_patients), Adate := Adate + 1000] # Adate > Ddate
+        all_p_stays[, Adate := as.character(Adate)] # Wrong format
+        # Duplicated rows
+        all_p_stays = rbind(all_p_stays,
+                            all_p_stays[sample(1:N, N/n_patients),])
+        # Missing values
+        all_p_stays[sample(1:N, N/n_patients), pID := NA]
+        all_p_stays[sample(1:N, N/n_patients), hID := " "]
+        all_p_stays[sample(1:N, N/n_patients), Adate := NA]
+        all_p_stays[sample(1:N, N/n_patients), Adate := ""]
+        all_p_stays[sample(1:N, N/n_patients), Ddate := NA]
+        
+    }
+    
+    return(all_p_stays)
 }
 
 #' Create a fake patient database with clustering
