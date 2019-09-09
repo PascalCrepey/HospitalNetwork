@@ -45,19 +45,21 @@ checkBase <- function(base,
                       disDate = "Ddate",
                       admDate = "Adate",
                       maxIteration = 25,
+                      returnReport = FALSE,
                       verbose = TRUE,
                       ...)
 {
     new_base = base
-    new_base = checkFormat(new_base,
+    
+    checkResults = checkFormat(new_base,
                            patientID = patientID,
                            hospitalID = hospitalID,
                            admDate = admDate,
                            disDate = disDate,
                            deleteMissing = deleteMissing, 
                            verbose = verbose)
-
-    new_base = checkDates(base=new_base,
+    
+    checkResults = c(checkResults[names(checkResults)!="base"],checkDates(base=checkResults$base,
                           patientID = patientID,
                           hospitalID = hospitalID,
                           admDate = admDate,
@@ -66,17 +68,21 @@ checkBase <- function(base,
                           dateFormat = dateFormat,
                           deleteErrors = deleteErrors, 
                           verbose = verbose,
-                          ...)
+                          ...))
     
-    new_base = adjust_overlapping_stays(base = new_base,
+    checkResults = c(checkResults[names(checkResults)!="base"],adjust_overlapping_stays(base = checkResults$base,
                                         patientID = patientID,
                                         hospitalID = hospitalID,
                                         admDate = admDate,
                                         disDate = disDate,
                                         maxIteration = maxIteration, 
                                         verbose = verbose,
-                                        ...)
-    return(new_base)
+                                        ...))
+    if(returnReport){
+      return(checkResults)
+    } else{
+      return(checkResults$base)
+    }
 }
 
 
@@ -158,6 +164,7 @@ checkFormat <- function(base,
                         deleteMissing = NULL,
                         verbose = FALSE)
 { 
+  report=list()
   if (!"data.frame" %in% class(base)) {
     stop("The database must be either a data.frame or a data.table object")
   } else if (!"data.table" %in% class(base)) {
@@ -186,6 +193,7 @@ checkFormat <- function(base,
   # Check for missing values    
   # For columns in 'cols', check if a value is 'NA' or only blank spaces
   if (verbose) message("Checking for missing values...")
+  startN = base[, .N]
   missing = base[, lapply(.SD, function(x) trimws(x) == "" | is.na(x)),
                  .SDcols = cols]
   # If at least one missing value in the database:
@@ -195,6 +203,8 @@ checkFormat <- function(base,
     to_remove = which(rowSums(missing) > 0)
     if (verbose) message(paste0("The following column(s) contain(s) missing values: ",
                    paste0(names_msng, collapse = ", ")))
+    report$missing=length(to_remove)
+    
     base = deleteErrorRecords(base,
                                 to_remove,
                                 patientID = patientID,
@@ -203,8 +213,16 @@ checkFormat <- function(base,
                                 disDate = disDate,
                                 deleteErrors=deleteMissing, 
                                 verbose = verbose)
+  } else {
+    report$missing=0
   }
-  return(base)
+  endN = base[, .N]
+  
+  report$removedCF=startN-endN
+  
+  report$base=base
+  # also return the number of deleted records, the number of NAs (not always the same)
+  return(report)
 } 
                       
 
@@ -242,7 +260,9 @@ checkDates <- function(base,
                        ...)
 {
     # Use functions from package 'lubridate'
-  
+    report = list()
+    report$failedParse=0
+    startN = base[, .N]
     cols = c(admDate, disDate)
     notDate = base[, lapply(.SD, is.Date) == FALSE, .SDcols = cols]
     needsConverting = names(which(notDate))
@@ -264,7 +284,7 @@ checkDates <- function(base,
         failed = base[is.na(Adate_new) | is.na(Ddate_new), , which = T]
         if (length(failed)) {
             if (verbose) message(paste0("Parsing of dates failed for the ",length(failed)," records:"))
-
+            report$failedParse=length(failed)
             base=deleteErrorRecords(base,
                                     failed,
                                     patientID = patientID,
@@ -301,8 +321,15 @@ checkDates <- function(base,
     ##     base<-subset(base,Adate<Ddate)
     ##     print(paste0("Deleted ",nrBefore-nrow(base)," patient stay records who did not stay overnight"))
     ## }
+    # also return number of 'wrong order' records, deleted records
     
-    return(base)
+    endN = base[, .N]
+  
+    report$negativeLOS=length(wrongOrder)
+    report$removedCD=(startN-endN)
+    report$base=base
+    
+    return(report)
 }
 
 
@@ -339,6 +366,7 @@ adjust_overlapping_stays = function(base,
                              maxIteration =25,
                              verbose = FALSE,
                              ...) {
+  report=list()
 
   #Currently only working with the required minimum variables... We might need to consider carrying any extra columns over.
   useCols<-colnames(base) %in% c(patientID,hospitalID,admDate,disDate)
@@ -349,7 +377,9 @@ adjust_overlapping_stays = function(base,
   if (verbose) message("Removing duplicate records\n")
   base=unique(base)
   if (verbose) message(paste0("Removed ",nbefore-nrow(base)," duplicates\n"))
+  report$removedDuplicates=nbefore-nrow(base)
   
+  startN = nrow(base)
   N = base[, .N]
   
   C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
@@ -393,5 +423,12 @@ adjust_overlapping_stays = function(base,
     
     iterator<-iterator+1
   }
-  return(nonProbBase)
+  endN = nrow(nonProbBase)
+
+
+  report$neededIterations=iterator
+  report$allIterations= (iterator>=maxIteration)
+  report$addedAOS=(endN-startN)
+  report$base = nonProbBase
+  return(report)
 }
