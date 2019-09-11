@@ -73,9 +73,9 @@ get_metrics <-
       theMatrix=network$matrix
     } else {
       graph = network
-      theMatrix=igraph::as_adj(graph,type = "both")
+      theMatrix=igraph::as_adj(graph,type = "both",sparse = FALSE, attr="weight")
     }
-
+    
     ## MAIN
     DT_list = list()
     ## transfers
