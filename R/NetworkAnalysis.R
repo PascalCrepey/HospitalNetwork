@@ -65,26 +65,24 @@ get_metrics <-
         graph = igraph::graph_from_adjacency_matrix(network,
                                             mode = mode,
                                             weighted = weighted)
-        theMatrix=network
     } else if ("HospiNet" %in% class(network)){
       graph = igraph::graph_from_adjacency_matrix(network$matrix,
                                           mode = mode,
                                           weighted = weighted)
-      theMatrix=network$matrix
     } else {
       graph = network
-      theMatrix=igraph::as_adj(graph,type = "both",sparse = FALSE, attr="weight")
     }
     
     ## MAIN
     DT_list = list()
     ## transfers
     if (transfers) {
-        patients_sent = as.data.table(rowSums(theMatrix), keep.rownames = T)
-        patients_received = as.data.table(colSums(theMatrix), keep.rownames = T)
-        colnames(patients_sent) = c("node", "patients_sent")
-        colnames(patients_received) = c("node", "patients_received")
+        patients_sent<-as.data.table(igraph::strength(myNet$igraph,mode = "in"), keep.rownames = T)
+        colnames(patients_sent)<-c("node","patients_sent")
         setkey(patients_sent, node)
+        
+        patients_received<-as.data.table(igraph::strength(myNet$igraph,mode = "in"), keep.rownames = T)
+        colnames(patients_received)<-c("node","patients_received")
         setkey(patients_received, node)
         DT_list$transfers = merge(patients_received, patients_sent)
     }
@@ -113,16 +111,12 @@ get_metrics <-
             hubs = clusters
         }
         DT_list[paste0("hubs",hubs)] = lapply(hubs, function(g) {
-            ## get matrices by cluster
-            mat_byclust = get_matrix_bycluster(mat = theMatrix,
-                                               DT = DT_list[[g]],
-                                               clusters = g)
-            ## get graphs by group from the matrices
-            graph_byclust = lapply(mat_byclust, function(x) {
-                igraph::graph_from_adjacency_matrix(x,
-                                            mode = mode,
-                                            weighted = weighted)
-            })
+            ## instead of getting matrices by cluster, and getting graphs by group from the matrices:
+            ## use the direct method, based on subgraph() to get graphs by cluster
+            graph_byclust=get_graph_bycluster(graph=graph,
+                                DT = DT_list[[g]],
+                                clusters = g)
+            
             ## get hub scores by group
             DT = get_hubs_bycluster(graphs = graph_byclust, name = g)
             return(DT)
@@ -342,6 +336,26 @@ get_matrix_bycluster <-
     ## END OF MAIN
     return(mat_byclust)        
 }
+
+get_graph_bycluster <-
+  function(graph, DT, clusters)
+  {
+    ## MAIN
+    ## Get list of members of each clusters
+    n = 1:length(unique(DT[[clusters]]))
+    members = list()
+    members[n] = lapply(n, function(x) {
+      bool = DT[[clusters]] == x
+      return(DT[bool, node])
+    })
+    ##Select groups of more than one member
+    members=members[lapply(members,length)>1]
+    
+    ## Get matrices by cluster
+    graph_byclust = lapply(members, function(x) igraph::induced_subgraph(graph, x,impl = "copy_and_delete"))
+    ## END OF MAIN
+    return(graph_byclust)        
+  }
 
 # getAuthorities <-
 #     function()
