@@ -133,7 +133,7 @@ HospiNet <- R6::R6Class("HospiNet",
     print = function() {
       cat(paste0(self$n_hospitals, " hospitals and ", self$n_movements, " movements.\n"))
       cat(paste0("Movement window is ", self$window_threshold, " days. \n"))
-      if (nrow(self$matrix) <= 10) {
+      if (self$n_hospitals <= 10) {
         print(self$matrix)
       }else{
         cat("Matrix too big to be printed on screen.")
@@ -149,6 +149,7 @@ HospiNet <- R6::R6Class("HospiNet",
     matrix = function(value) {
       if (missing(value)) {
         if (is.null(private$.matrix)){
+          message("Constructing full matrix")
           private$.matrix = matrix_from_edgelist(edgelist = private$.edgelist)
           private$.matrix
         }else {
@@ -168,9 +169,11 @@ HospiNet <- R6::R6Class("HospiNet",
     igraph = function(value) {
       if (missing(value)) {
         if (is.null(private$.igraph)){
-          private$.igraph = igraph::graph_from_adjacency_matrix(self$matrix, 
-                                                                weighted = TRUE, 
-                                                                mode = "directed")
+          private$.igraph = igraph::graph_from_data_frame(self$edgelist) 
+                                                                #weighted = TRUE, 
+                                                                #mode = "directed")
+          igraph::E(private$.igraph)$weight <- as.numeric(unlist(self$edgelist[,"N"]))
+ 
           private$.igraph
         } else {
           private$.igraph
@@ -182,7 +185,7 @@ HospiNet <- R6::R6Class("HospiNet",
     n_hospitals = function(value) {
       if (missing(value)) {
         if (is.null(private$.n_hospitals)){
-          private$.n_hospitals = nrow(self$matrix)
+          private$.n_hospitals = vcount(self$igraph)
         } else {
           private$.n_hospitals
         }
@@ -193,7 +196,7 @@ HospiNet <- R6::R6Class("HospiNet",
     n_movements = function(value) {
       if (missing(value)) {
         if (is.null(private$.n_movements)) {
-          private$.n_movements = sum(self$matrix)
+          private$.n_movements = sum(igraph::strength(self$igraph,mode = "in"))
         }else{
           private$.n_movements
         }
