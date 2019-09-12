@@ -77,7 +77,7 @@ get_metrics <-
     DT_list = list()
     ## transfers
     if (transfers) {
-        patients_sent<-as.data.table(igraph::strength(myNet$igraph,mode = "in"), keep.rownames = T)
+        patients_sent<-as.data.table(igraph::strength(myNet$igraph,mode = "out"), keep.rownames = T)
         colnames(patients_sent)<-c("node","patients_sent")
         setkey(patients_sent, node)
         
