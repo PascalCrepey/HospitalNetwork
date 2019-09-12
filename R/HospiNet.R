@@ -50,6 +50,7 @@
 HospiNet <- R6::R6Class("HospiNet",
   private = list(
     .matrix = NULL,
+    .metricsTable=NULL,
     .edgelist = NULL,
     .n_hospitals = NULL,
     .n_movements = NULL,
@@ -199,6 +200,16 @@ HospiNet <- R6::R6Class("HospiNet",
         
       } else {
         stop("`$n_movements` is read only", call. = FALSE)
+      }
+    },
+    metricsTable = function(value) {
+      if (missing(value)) {
+        if (is.null(private$.metricsTable)){
+          private$.metricsTable = get_metrics(self$igraph)
+        }
+        private$.metricsTable
+      } else {
+        stop("`$metricsTable` is read only", call. = FALSE)
       }
     },
     window_threshold = function(value) {
