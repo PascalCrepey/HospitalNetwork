@@ -26,16 +26,18 @@ get_metrics <-
              transfers = TRUE,
              metrics = c("degree",
                          "closeness",
+                         "clusters",
                          "betweenness"),
-             clusters = c("cluster_fast_greedy",
-                          "cluster_infomap"),
+             clusters = c("cluster_fast_greedy","cluster_infomap"),
+            # hubs=NULL,
              hubs = "all_clusters",
              options = list(
                  degree = list(modes = c("in", "out", "total")),
                  closeness = list(modes = "total"),
                  betweenness = list() ,
                  cluster_fast_greedy = list(undirected = "collapse"),
-                 cluster_infomap = list(undirected = "collapse")
+                 cluster_infomap = list(undirected = "collapse"),
+                 clusters= list(algos=c("cluster_fast_greedy","cluster_infomap"),undirected = "collapse")
                  )
              )
 {
@@ -77,11 +79,11 @@ get_metrics <-
     DT_list = list()
     ## transfers
     if (transfers) {
-        patients_sent<-as.data.table(igraph::strength(myNet$igraph,mode = "out"), keep.rownames = T)
+        patients_sent<-as.data.table(igraph::strength(graph,mode = "out"), keep.rownames = T)
         colnames(patients_sent)<-c("node","patients_sent")
         setkey(patients_sent, node)
         
-        patients_received<-as.data.table(igraph::strength(myNet$igraph,mode = "in"), keep.rownames = T)
+        patients_received<-as.data.table(igraph::strength(graph,mode = "in"), keep.rownames = T)
         colnames(patients_received)<-c("node","patients_received")
         setkey(patients_received, node)
         DT_list$transfers = merge(patients_received, patients_sent)
@@ -92,14 +94,6 @@ get_metrics <-
         DT = do.call(paste0("get_", metric), options[[metric]])
         setkey(DT, node)
         return(DT)
-    })
-    ## clusters
-    DT_list[clusters] = lapply(clusters, function(algo) {
-      options[[algo]]$graph = graph
-      options[[algo]]$algo = algo
-      DT = do.call(get_clusters,options[[algo]])
-      setkey(DT, node)
-      return(DT)
     })
 
     ## hubs
@@ -238,33 +232,41 @@ get_betweenness <-
 #' 
 get_clusters <-
     function(graph,
-             algo,
+             algos,
              undirected,
              ...)
 {
     ## CHECK ARGUMENTS
     coll = checkmate::makeAssertCollection()
     checkmate::assertClass(graph, classes = "igraph", add = coll)
-    if(class(algo) == "character") {
-        checkmate::assertCharacter(algo, unique = T, max.len = 1, add = coll)
-    } else {
-      stop("Argument 'algo' must be a character vector")
+    if(!class(algos) %in% c("list", "character")) {
+      stop("Argument 'algo' must be either a character vector or a list of character elements")
+    }
+    if(class(algos) == "list") {
+      checkmate::assertList(algos, types = "character", unique = T, add = coll)
+    }
+    if(class(algos) == "character") {
+      checkmate::assertCharacter(algos, unique = T, add = coll)
     }
     ## END OF CHECK
     ## MAIN
     if(length(undirected)) {
-        graph = igraph::as.undirected(graph, mode = undirected)
+      graph = igraph::as.undirected(graph, mode = undirected)
     }
-    ## running the cluster algortihm 
-    cluster = do.call(get(algo, asNamespace("igraph")), list(graph,...))
-    
-    DT_cluster = data.table(cluster$names,
-                            as.factor(cluster$membership))
-    colnames(DT_cluster) = c("node", algo)
+    DT_list = list()
+    DT_list[algos] = lapply(algos, function(x) {
+      ## running the cluster algortihm 
+      tmpcluster = do.call(get(x, asNamespace("igraph")), list(graph,...))
+      tmp = data.table(tmpcluster$names,as.factor(tmpcluster$membership))
+      colnames(tmp) = c("node", x)
+      setkey(tmp, node)
+      return(tmp)
+    })
+    DT_merged = Reduce(merge, DT_list)
+    setkey(DT_merged, node)
     ## END MAIN
-    return(DT_cluster)
+    return(DT_merged)
 }
-
 
 #' Function computing hub scores for each node. If bycluster = TRUE, hub scores are computed by cluster
 #'
@@ -278,7 +280,7 @@ get_hubs_global <-
 {
     hubs = igraph::hub_score(graph, ...)
     DT_hubs = as.data.table(hubs$vector, keep.rownames = T)
-    colnames(DT_hubs) = c("node", "hub_score")
+    colnames(DT_hubs) = c("node", "hub_score_global")
     setkey(DT_hubs, node)
     return(DT_hubs)
 }
@@ -311,7 +313,7 @@ get_hubs_bycluster <-
     return(DT_merged)
 }
 
-
+### DEPRECATED, now using get_graph_bycluster
 #' Function returning matrices of transfers within each by clusters
 #' 
 #' @param mat The adjacency matrix of the network

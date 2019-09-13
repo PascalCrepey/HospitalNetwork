@@ -92,16 +92,16 @@ per_hospital_summary<-function(base,
                                verbose = FALSE,
                                ...){
   losPerHosp<-(base[, .(mean(get(disDate)-get(admDate))), by = .(get(hospitalID))])
-  setnames(losPerHosp,c("hID","LOS"))
-  data.table::setkey(losPerHosp,hID)
+  setnames(losPerHosp,c("node","LOS"))
+  data.table::setkey(losPerHosp,node)
 
   patientsPerHosp<-(base[, .(length(unique(get(patientID)))), by = .(get(hospitalID))])
-  setnames(patientsPerHosp,c("hID","patients"))
-  data.table::setkey(patientsPerHosp,hID)
+  setnames(patientsPerHosp,c("node","patients"))
+  data.table::setkey(patientsPerHosp,node)
   
   admissionsPerHosp<-(base[, .N, by = .(get(hospitalID))])
-  setnames(admissionsPerHosp,c("hID","admissions"))
-  data.table::setkey(admissionsPerHosp,hID)
+  setnames(admissionsPerHosp,c("node","admissions"))
+  data.table::setkey(admissionsPerHosp,node)
 
   sumStats<-Reduce(function(x,y) merge(x = x, y = y, all=TRUE),list(
     losPerHosp, 

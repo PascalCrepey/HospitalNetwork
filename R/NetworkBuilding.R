@@ -201,8 +201,24 @@ hospinet_from_patient_database <- function(base,
   #          window_threshold = window_threshold, 
   #          nmoves_threshold = nmoves_threshold, 
   #          noloops = noloops)
+  dataSummary=all_admissions_summary(base,
+                                     patientID = patientID,
+                                     hospitalID = hospitalID,
+                                     admDate = admDate,
+                                     disDate = disDate)
+  
+  hospitalSummary = per_hospital_summary(base,
+                                         patientID = patientID,
+                                         hospitalID = hospitalID,
+                                         admDate = admDate,
+                                         disDate = disDate)
+  
   HospiNet$new(edgelist,
                window_threshold = window_threshold, 
                nmoves_threshold = nmoves_threshold, 
-               noloops = noloops)
+               noloops = noloops,
+               hsummary = hospitalSummary,
+               dsummary = dataSummary
+               
+               )
 }
