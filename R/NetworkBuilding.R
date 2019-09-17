@@ -185,6 +185,7 @@ hospinet_from_patient_database <- function(base,
                                            noloops = TRUE,
                                            window_threshold = 365,
                                            nmoves_threshold = NULL, 
+                                           create_MetricsTable=FALSE,
                                            verbose = FALSE){
   
   edgelist = edgelist_from_patient_database(base = base,
@@ -218,7 +219,8 @@ hospinet_from_patient_database <- function(base,
                nmoves_threshold = nmoves_threshold, 
                noloops = noloops,
                hsummary = hospitalSummary,
-               dsummary = dataSummary
+               dsummary = dataSummary,
+               create_MetricsTable=create_MetricsTable
                
                )
 }

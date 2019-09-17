@@ -143,7 +143,8 @@ HospiNet <- R6::R6Class("HospiNet",
                           nmoves_threshold,
                           noloops,
                           hsummary=NULL,
-                          dsummary=NULL
+                          dsummary=NULL,
+                          create_MetricsTable=FALSE
                           ){
       private$.edgelist = edgelist
       private$.window_threshold = window_threshold
@@ -162,6 +163,9 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.LOSPerHosp = hsummary[,.(node,LOS)]
         private$.patientsPerHosp = hsummary[,.(node,patients)]
         private$.admissionsPerHosp = hsummary[,.(node,admissions)]
+      }
+      if(create_MetricsTable){
+        private$.metricsTable=self$metricsTable
       }
     },
     print = function() {
