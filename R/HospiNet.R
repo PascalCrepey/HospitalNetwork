@@ -52,13 +52,32 @@ HospiNet <- R6::R6Class("HospiNet",
     .matrix = NULL,
     .edgelist = NULL,
     .n_hospitals = NULL,
+    .numHospitals = NULL, # Same as n_hospitals, but with a different source, maybe useful as double-check
     .n_movements = NULL,
     .window_threshold = NULL,
     .nmoves_threshold = NULL,
     .noloops = NULL,
     .igraph = NULL,
+    .LOSmean= NULL,
+    .TBAmean = NULL,
+    .LOSdistribution = NULL,
+    .TBAdistribution = NULL,
+    .LOSPerHosp = NULL,
+    .admissions= NULL, 
+    .admissionsPerHosp = NULL,
+    .patients= NULL, 
+    .patientsPerHosp = NULL,
+    .metricsTable=NULL,
     .degrees = NULL,
     .hist_degrees = NULL,
+    .closenesss = NULL,
+    .betweennesss = NULL,
+    .cluster_infomap = NULL,
+    .cluster_fast_greedy=NULL,
+    .hubs_global=NULL,
+    .hubs_infomap=NULL,
+    .hubs_fast_greedy=NULL,
+
     plot_hist_degree = function(){
       hd_long = melt(self$hist_degrees, id.vars = "degree")
       p = ggplot(hd_long[!is.na(value)], aes(x = degree, y = value, fill = variable)) + 
@@ -122,17 +141,37 @@ HospiNet <- R6::R6Class("HospiNet",
     initialize = function(edgelist, 
                           window_threshold,
                           nmoves_threshold,
-                          noloops
+                          noloops,
+                          hsummary=NULL,
+                          dsummary=NULL,
+                          create_MetricsTable=FALSE
                           ){
       private$.edgelist = edgelist
       private$.window_threshold = window_threshold
       private$.nmoves_threshold = nmoves_threshold
       private$.noloops = noloops
+      if (!is.null(dsummary)){
+        private$.LOSmean = dsummary$meanLOS
+        private$.TBAmean = dsummary$meanTBA
+        private$.admissions = dsummary$totalAdmissions
+        private$.patients = dsummary$numPatients
+        private$.numHospitals = dsummary$numHospitals # Same as n_hospitals, but with a different source, maybe useful as double-check
+        private$.LOSdistribution = dsummary$LOSdistribution
+        private$.TBAdistribution = dsummary$TBAdistribution
+      }
+      if (!is.null(hsummary)){
+        private$.LOSPerHosp = hsummary[,.(node,LOS)]
+        private$.patientsPerHosp = hsummary[,.(node,patients)]
+        private$.admissionsPerHosp = hsummary[,.(node,admissions)]
+      }
+      if(create_MetricsTable){
+        private$.metricsTable=self$metricsTable
+      }
     },
     print = function() {
       cat(paste0(self$n_hospitals, " hospitals and ", self$n_movements, " movements.\n"))
       cat(paste0("Movement window is ", self$window_threshold, " days. \n"))
-      if (nrow(self$matrix) <= 10) {
+      if (self$n_hospitals <= 10) {
         print(self$matrix)
       }else{
         cat("Matrix too big to be printed on screen.")
@@ -148,6 +187,7 @@ HospiNet <- R6::R6Class("HospiNet",
     matrix = function(value) {
       if (missing(value)) {
         if (is.null(private$.matrix)){
+          message("Constructing full matrix")
           private$.matrix = matrix_from_edgelist(edgelist = private$.edgelist)
           private$.matrix
         }else {
@@ -167,38 +207,17 @@ HospiNet <- R6::R6Class("HospiNet",
     igraph = function(value) {
       if (missing(value)) {
         if (is.null(private$.igraph)){
-          private$.igraph = igraph::graph_from_adjacency_matrix(self$matrix, 
-                                                                weighted = TRUE, 
-                                                                mode = "directed")
+          private$.igraph = igraph::graph_from_data_frame(self$edgelist) 
+                                                                #weighted = TRUE, 
+                                                                #mode = "directed")
+          igraph::E(private$.igraph)$weight <- as.numeric(unlist(self$edgelist[,"N"]))
+ 
           private$.igraph
         } else {
           private$.igraph
         }
       }else {
         stop("`$igraph` is read only", call. = FALSE)
-      }
-    },
-    n_hospitals = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.n_hospitals)){
-          private$.n_hospitals = nrow(self$matrix)
-        } else {
-          private$.n_hospitals
-        }
-      } else {
-        stop("`$n_hospitals` is read only", call. = FALSE)
-      }
-    },
-    n_movements = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.n_movements)) {
-          private$.n_movements = sum(self$matrix)
-        }else{
-          private$.n_movements
-        }
-        
-      } else {
-        stop("`$n_movements` is read only", call. = FALSE)
       }
     },
     window_threshold = function(value) {
@@ -222,14 +241,213 @@ HospiNet <- R6::R6Class("HospiNet",
         stop("`$noloops` is read only", call. = FALSE)
       }
     },
+    
+    LOSmean = function(value) {
+      if (missing(value)) {
+        private$.LOSmean
+      } else {
+        stop("`$LOSmean` is read only", call. = FALSE)
+      }
+    },
+    TBAmean = function(value) {
+      if (missing(value)) {
+        private$.TBAmean
+      } else {
+        stop("`$TBAmean` is read only", call. = FALSE)
+      }
+    },
+    admissions = function(value) {
+      if (missing(value)) {
+        private$.admissions
+      } else {
+        stop("`$admissions` is read only", call. = FALSE)
+      }
+    },
+    patients = function(value) {
+      if (missing(value)) {
+        private$.patients
+      } else {
+        stop("`$patients` is read only", call. = FALSE)
+      }
+    },
+    numHospitals = function(value) {
+      if (missing(value)) {
+        private$.numHospitals
+      } else {
+        stop("`$numHospitals` is read only", call. = FALSE)
+      }
+    },
+    LOSdistribution = function(value) {
+      if (missing(value)) {
+        private$.LOSdistribution
+      } else {
+        stop("`$LOSdistribution` is read only", call. = FALSE)
+      }
+    },
+    
+    TBAdistribution = function(value) {
+      if (missing(value)) {
+        private$.TBAdistribution
+      } else {
+        stop("`$noloops` is read only", call. = FALSE)
+      }
+    },
+
+    LOSPerHosp = function(value) {
+      if (missing(value)) {
+        private$.LOSPerHosp
+      } else {
+        stop("`$LOSPerHosp` is read only", call. = FALSE)
+      }
+    },
+    patientsPerHosp = function(value) {
+      if (missing(value)) {
+        private$.patientsPerHosp
+      } else {
+        stop("`$patientsPerHosp` is read only", call. = FALSE)
+      }
+    },
+    admissionsPerHosp = function(value) {
+      if (missing(value)) {
+        private$.admissionsPerHosp
+      } else {
+        stop("`$admissionsPerHosp` is read only", call. = FALSE)
+      }
+    },
+    
+    n_hospitals = function(value) {
+      if (missing(value)) {
+        if (is.null(private$.n_hospitals)){
+          private$.n_hospitals = vcount(self$igraph)
+        } else {
+          private$.n_hospitals
+        }
+      } else {
+        stop("`$n_hospitals` is read only", call. = FALSE)
+      }
+    },
+    n_movements = function(value) {
+      if (missing(value)) {
+        if (is.null(private$.n_movements)) {
+          private$.n_movements = sum(igraph::strength(self$igraph,mode = "in"))
+        }else{
+          private$.n_movements
+        }
+        
+      } else {
+        stop("`$n_movements` is read only", call. = FALSE)
+      }
+    },
+    
     degrees = function(value) {
       if (missing(value)) {
-        private$.degrees = get_degree(self$igraph, modes = c("total", "in", "out"))
+        if (is.null(private$.degrees)) {
+          private$.degrees = get_degree(self$igraph, modes = c("total", "in", "out"))
+        }
         private$.degrees
       } else {
         stop("`$noloops` is read only", call. = FALSE)
       }
     },
+    closenesss = function(value) {
+      if (missing(value)) {
+        if (is.null(private$.closenesss)) {
+          private$.closenesss = get_closeness(self$igraph, modes = "total")
+        }
+        private$.closenesss
+      } else {
+        stop("`$noloops` is read only", call. = FALSE)
+      }
+    },
+    betweennesss = function(value) {
+      if (missing(value)) {
+        if (is.null(private$.betweennesss)) {
+          private$.betweennesss = get_betweenness(self$igraph)
+        }
+        private$.betweennesss
+      } else {
+        stop("`$betweennesss` is read only", call. = FALSE)
+      }
+    },
+   cluster_infomap = function(value) {
+     if (missing(value)) {
+       if (is.null(private$.cluster_infomap)) {
+         private$.cluster_infomap = get_clusters(self$igraph,"cluster_infomap",undirected="collapse")
+       }
+       private$.cluster_infomap
+     } else {
+       stop("`$cluster_infomap` is read only", call. = FALSE)
+     }
+   },
+   cluster_fast_greedy = function(value) {
+     if (missing(value)) {
+       if (is.null(private$.cluster_fast_greedy)) {
+         private$.cluster_fast_greedy = get_clusters(self$igraph,"cluster_fast_greedy",undirected="collapse")
+       }
+       private$.cluster_fast_greedy
+     } else {
+       stop("`$cluster_fast_greedy` is read only", call. = FALSE)
+     }
+   },
+   hubs_global= function(value) {
+      if (missing(value)) {
+        if (is.null(private$.hubs_global)) {
+          private$.hubs_global=get_hubs_global(self$igraph)
+        }
+        private$.hubs_global
+      } else {
+        stop("`$hubs_global` is read only", call. = FALSE)
+      }
+   },
+   hubs_infomap = function(value) {
+     if (missing(value)) {
+       if (is.null(private$.hubs_infomap)) {
+         graph_byclust=get_graph_bycluster(graph=self$igraph,
+                                         DT = self$cluster_infomap,
+                                         clusters = "cluster_infomap")
+        private$.hubs_infomap = get_hubs_bycluster(graphs = graph_byclust, name = "cluster_infomap")
+       }
+       private$.hubs_infomap
+     } else {
+       stop("`$hubs_infomap` is read only", call. = FALSE)
+     }
+   },
+   hubs_fast_greedy = function(value) {
+     if (missing(value)) {
+       if (is.null(private$.hubs_fast_greedy)) {
+         graph_byclust=get_graph_bycluster(graph=self$igraph,
+                                           DT = self$cluster_fast_greedy,
+                                           clusters = "cluster_fast_greedy")
+         private$.hubs_fast_greedy = get_hubs_bycluster(graphs = graph_byclust, name = "cluster_fast_greedy")
+       }
+       private$.hubs_fast_greedy
+     } else {
+       stop("`$hubs_fast_greedy` is read only", call. = FALSE)
+     }
+   },
+   metricsTable = function(value) {
+     if (missing(value)) {
+       if (is.null(private$.metricsTable)){
+         private$.metricsTable = Reduce(function(x,y) merge(x = x, y = y, all=TRUE),list(
+           self$patientsPerHosp,
+           self$admissionsPerHosp,
+           self$LOSPerHosp,
+           self$betweennesss,
+           self$closenesss,
+           self$cluster_fast_greedy,
+           self$cluster_infomap,
+           self$hubs_infomap,
+           self$hubs_fast_greedy,
+           self$hubs_global
+         ))
+         #private$.metricsTable = self$hubs_fast_greedy
+         #private$.metricsTable = get_metrics(self$igraph)
+       }
+       private$.metricsTable
+     } else {
+       stop("`$metricsTable` is read only", call. = FALSE)
+     }
+   },
     hist_degrees = function(value) {
       if (missing(value)) {
         d_t = self$degrees[,.N, by = degree_total]

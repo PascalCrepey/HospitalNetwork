@@ -26,60 +26,65 @@ get_metrics <-
              transfers = TRUE,
              metrics = c("degree",
                          "closeness",
+                         "clusters",
                          "betweenness"),
-             clusters = c("cluster_fast_greedy",
-                          "cluster_infomap"),
+             clusters = c("cluster_fast_greedy","cluster_infomap"),
+            # hubs=NULL,
              hubs = "all_clusters",
              options = list(
                  degree = list(modes = c("in", "out", "total")),
                  closeness = list(modes = "total"),
-                 betweenness = list(),
+                 betweenness = list() ,
                  cluster_fast_greedy = list(undirected = "collapse"),
-                 cluster_infomap = list(undirected = "collapse")
+                 cluster_infomap = list(undirected = "collapse"),
+                 clusters= list(algos=c("cluster_fast_greedy","cluster_infomap"),undirected = "collapse")
                  )
              )
 {
     ## ARGUMENTS CHECK
-    coll = makeAssertCollection()
+    coll = checkmate::makeAssertCollection()
     ## Check network argument
-    if (!class(network) %in% c("igraph", "matrix", "HospiNet")) {
+    if (sum(class(network) %in% c("igraph", "matrix", "HospiNet"))==0) {
         stop("Please provide the network in the form of either a square adjacency matrix, an igraph graph, or an HospiNet object.")
     }
-    if (class(network) == "matrix") {
-        assertMatrix(network, mode = "numeric", add = coll) # matrix must contain numerics
-        assertMatrix(network, nrows = ncol(network), add = coll) # matrix must be square
+    if ("matrix" %in% class(network)) {
+        checkmate::assertMatrix(network, mode = "numeric", add = coll) # matrix must contain numerics
+        checkmate::assertMatrix(network, nrows = ncol(network), add = coll) # matrix must be square
     }
-    if (class(network) == "HospiNet") {
-      assertMatrix(network$matrix, mode = "numeric", add = coll) # matrix must contain numerics
-      assertMatrix(network$matrix, nrows = ncol(network$matrix), add = coll) # matrix must be square
+    if ("HospiNet" %in% class(network)) {
+      checkmate::assertMatrix(network$matrix, mode = "numeric", add = coll) # matrix must contain numerics
+      checkmate::assertMatrix(network$matrix, nrows = ncol(network$matrix), add = coll) # matrix must be square
     }
     ## Check metrics argument
-    assertCharacter(metrics, unique = T)
+    checkmate::assertCharacter(metrics, unique = T)
     ## Check options argument
-    assertList(options, types = "list", add = coll)
-    assertNamed(options, type = "unique", add = coll)
-    reportAssertions(coll)
+    checkmate::assertList(options, types = "list", add = coll)
+    checkmate::assertNamed(options, type = "unique", add = coll)
+    checkmate::reportAssertions(coll)
     ## END OF ARGUMENT CHECK
         
-    if (class(network) == "matrix") {
-        graph = graph_from_adjacency_matrix(network,
+    if ("matrix" %in% class(network)) {
+        graph = igraph::graph_from_adjacency_matrix(network,
                                             mode = mode,
                                             weighted = weighted)
-    } else if (class(network) == "HospiNet"){
-      graph = graph_from_adjacency_matrix(network$matrix,
+    } else if ("HospiNet" %in% class(network)){
+      graph = igraph::graph_from_adjacency_matrix(network$matrix,
                                           mode = mode,
                                           weighted = weighted)
-    } else graph = network
-
+    } else {
+      graph = network
+    }
+    
     ## MAIN
     DT_list = list()
     ## transfers
     if (transfers) {
-        patients_sent = as.data.table(rowSums(network), keep.rownames = T)
-        patients_received = as.data.table(colSums(network), keep.rownames = T)
-        colnames(patients_sent) = c("node", "patients_sent")
-        colnames(patients_received) = c("node", "patients_received")
+        patients_sent<-as.data.table(igraph::strength(graph,mode = "out"), keep.rownames = T)
+        colnames(patients_sent)<-c("node","patients_sent")
         setkey(patients_sent, node)
+        
+        patients_received<-as.data.table(igraph::strength(graph,mode = "in"), keep.rownames = T)
+        colnames(patients_received)<-c("node","patients_received")
         setkey(patients_received, node)
         DT_list$transfers = merge(patients_received, patients_sent)
     }
@@ -90,14 +95,7 @@ get_metrics <-
         setkey(DT, node)
         return(DT)
     })
-    ## clusters
-    DT_list[clusters] = lapply(clusters, function(algo) {
-        options[[algo]]$graph = graph
-        options[[algo]]$algo = algo
-        DT = do.call(get_clusters, options[[algo]])
-        setkey(DT, node)
-        return(DT)
-    })
+
     ## hubs
     if (!is.null(hubs)) {
         if (hubs == "global") {
@@ -107,16 +105,12 @@ get_metrics <-
             hubs = clusters
         }
         DT_list[paste0("hubs",hubs)] = lapply(hubs, function(g) {
-            ## get matrices by cluster
-            mat_byclust = get_matrix_bycluster(mat = network,
-                                               DT = DT_list[[g]],
-                                               clusters = g)
-            ## get graphs by group from the matrices
-            graph_byclust = lapply(mat_byclust, function(x) {
-                graph_from_adjacency_matrix(x,
-                                            mode = mode,
-                                            weighted = weighted)
-            })
+            ## instead of getting matrices by cluster, and getting graphs by group from the matrices:
+            ## use the direct method, based on subgraph() to get graphs by cluster
+            graph_byclust=get_graph_bycluster(graph=graph,
+                                DT = DT_list[[g]],
+                                clusters = g)
+            
             ## get hub scores by group
             DT = get_hubs_bycluster(graphs = graph_byclust, name = g)
             return(DT)
@@ -140,22 +134,22 @@ get_degree <-
     function(graph, modes = c("in", "out", "total"))
 {
     ## CHECK ARGUMENTS
-    coll = makeAssertCollection()
-    assertClass(graph, classes = "igraph", add = coll)
+    coll = checkmate::makeAssertCollection()
+    checkmate::assertClass(graph, classes = "igraph", add = coll)
     if(!class(modes) %in% c("list", "character")) {
         stop("Argument 'modes' must be either a character vector or a list of character elements")
     }
     if(class(modes) == "list") {
-        assertList(modes, types = "character", unique = T, add = coll)
+      checkmate::assertList(modes, types = "character", unique = T, add = coll)
     }
     if(class(modes) == "character") {
-        assertCharacter(modes, unique = T, add = coll)
+      checkmate::assertCharacter(modes, unique = T, add = coll)
     }
     ## END OF CHECK
     ## MAIN        
     DT_list = list()
     DT_list[modes] = lapply(modes, function(mode) {
-        tmp = as.data.table(degree(graph, mode = mode), keep.rownames = T)
+        tmp = as.data.table(igraph::degree(graph, mode = mode), keep.rownames = T)
         colnames(tmp) = c("node", paste0("degree_", mode))
         setkey(tmp, node)
         return(tmp)
@@ -181,22 +175,22 @@ get_closeness <-
     function(graph, modes = "total")
 {
     ## CHECK ARGUMENTS
-    coll = makeAssertCollection()
-    assertClass(graph, classes = "igraph", add = coll)
+    coll = checkmate::makeAssertCollection()
+    checkmate::assertClass(graph, classes = "igraph", add = coll)
     if(!class(modes) %in% c("list", "character")) {
         stop("Argument 'modes' must be either a character vector or a list of character elements")
     }
     if(class(modes) == "list") {
-        assertList(modes, types = "character", unique = T, add = coll)
+        checkmate::assertList(modes, types = "character", unique = T, add = coll)
     }
     if(class(modes) == "character") {
-        assertCharacter(modes, unique = T, add = coll)
+        checkmate::assertCharacter(modes, unique = T, add = coll)
     }
     ## END OF CHECK
     ## MAIN        
     DT_list = list()
     DT_list[modes] = lapply(modes, function(mode) {
-        tmp = as.data.table(closeness(graph, mode = mode), keep.rownames = T)
+        tmp = as.data.table(igraph::closeness(graph, mode = mode), keep.rownames = T)
         colnames(tmp) = c("node", paste0("closeness_", mode))
         setkey(tmp, node)
         return(tmp)
@@ -216,11 +210,11 @@ get_betweenness <-
     function(graph)
 {
     ## CHECK ARGUMENTS
-    coll = makeAssertCollection()
-    assertClass(graph, classes = "igraph", add = coll)
+    coll = checkmate::makeAssertCollection()
+    checkmate::assertClass(graph, classes = "igraph", add = coll)
     ## END OF CHECK
     ## MAIN
-    DT = as.data.table(betweenness(graph), keep.rownames = T)
+    DT = as.data.table(igraph::betweenness(graph), keep.rownames = T)
     colnames(DT) = c("node", "betweenness")
     setkey(DT, node)
     ## END OF MAIN
@@ -230,7 +224,7 @@ get_betweenness <-
 #' Compute the clusters
 #'
 #' @param graph an igraph object
-#' @param algo the type of algorithm
+#' @param algo the type of algorithm, single argument describing a cluster function from the igraph package
 #' @param undirected either "mutual" or "arbitrary"
 #' @param ... other arguments to be passed on to the algorithm
 #'
@@ -238,35 +232,41 @@ get_betweenness <-
 #' 
 get_clusters <-
     function(graph,
-             algo,
+             algos,
              undirected,
              ...)
 {
     ## CHECK ARGUMENTS
-    coll = makeAssertCollection()
-    assertClass(graph, classes = "igraph", add = coll)
-    if(!class(algo) %in% c("list", "character")) {
-        stop("Argument 'algo' must be either a character vector or a list of character elements")
+    coll = checkmate::makeAssertCollection()
+    checkmate::assertClass(graph, classes = "igraph", add = coll)
+    if(!class(algos) %in% c("list", "character")) {
+      stop("Argument 'algo' must be either a character vector or a list of character elements")
     }
-    if(class(algo) == "list") {
-        assertList(algo, types = "character", unique = T, max.len = 1, add = coll)
+    if(class(algos) == "list") {
+      checkmate::assertList(algos, types = "character", unique = T, add = coll)
     }
-    if(class(algo) == "character") {
-        assertCharacter(algo, unique = T, max.len = 1, add = coll)
+    if(class(algos) == "character") {
+      checkmate::assertCharacter(algos, unique = T, add = coll)
     }
     ## END OF CHECK
     ## MAIN
     if(length(undirected)) {
-        graph = as.undirected(graph, mode = undirected)
-    }    
-    cluster = do.call(algo, list(graph, ...))
-    DT_cluster = data.table(cluster$names,
-                            as.factor(cluster$membership))
-    colnames(DT_cluster) = c("node", algo)
+      graph = igraph::as.undirected(graph, mode = undirected)
+    }
+    DT_list = list()
+    DT_list[algos] = lapply(algos, function(x) {
+      ## running the cluster algortihm 
+      tmpcluster = do.call(get(x, asNamespace("igraph")), list(graph,...))
+      tmp = data.table(tmpcluster$names,as.factor(tmpcluster$membership))
+      colnames(tmp) = c("node", x)
+      setkey(tmp, node)
+      return(tmp)
+    })
+    DT_merged = Reduce(merge, DT_list)
+    setkey(DT_merged, node)
     ## END MAIN
-    return(DT_cluster)
+    return(DT_merged)
 }
-
 
 #' Function computing hub scores for each node. If bycluster = TRUE, hub scores are computed by cluster
 #'
@@ -278,9 +278,9 @@ get_clusters <-
 get_hubs_global <-
     function(graph, ...)
 {
-    hubs = hub_score(graph, ...)
+    hubs = igraph::hub_score(graph, ...)
     DT_hubs = as.data.table(hubs$vector, keep.rownames = T)
-    colnames(DT_hubs) = c("node", "hub_score")
+    colnames(DT_hubs) = c("node", "hub_score_global")
     setkey(DT_hubs, node)
     return(DT_hubs)
 }
@@ -298,9 +298,11 @@ get_hubs_bycluster <-
 {
     ## MAIN
     ## Get hub scores for each graph
-    hubs = lapply(graphs, function(x) hub_score(x, ...))
+    hubs = lapply(graphs, function(x) igraph::hub_score(x, ...))
+   
     ## Create data tables and then merge
     tmp = lapply(hubs, function(x) as.data.table(x$vector, keep.rownames = T))
+    
     DT_hubs = lapply(tmp, function(x) {
         colnames(x) = c("node", paste0("hub_score_by_", name))
         setkey(x, node)
@@ -311,7 +313,7 @@ get_hubs_bycluster <-
     return(DT_merged)
 }
 
-
+### DEPRECATED, now using get_graph_bycluster
 #' Function returning matrices of transfers within each by clusters
 #' 
 #' @param mat The adjacency matrix of the network
@@ -329,11 +331,33 @@ get_matrix_bycluster <-
         bool = DT[[clusters]] == x
         return(DT[bool, node])
     })
+    ##Select groups of more than one member
+    members=members[lapply(members,length)>1]
     ## Get matrices by cluster
     mat_byclust = lapply(members, function(x) mat[x,x])
     ## END OF MAIN
     return(mat_byclust)        
 }
+
+get_graph_bycluster <-
+  function(graph, DT, clusters)
+  {
+    ## MAIN
+    ## Get list of members of each clusters
+    n = 1:length(unique(DT[[clusters]]))
+    members = list()
+    members[n] = lapply(n, function(x) {
+      bool = DT[[clusters]] == x
+      return(DT[bool, node])
+    })
+    ##Select groups of more than one member
+    members=members[lapply(members,length)>1]
+    
+    ## Get matrices by cluster
+    graph_byclust = lapply(members, function(x) igraph::induced_subgraph(graph, x,impl = "copy_and_delete"))
+    ## END OF MAIN
+    return(graph_byclust)        
+  }
 
 # getAuthorities <-
 #     function()
