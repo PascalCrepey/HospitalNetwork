@@ -122,20 +122,21 @@ deleteErrorRecords<-function(base,
   } else {
     if (deleteErrors == "record") {
       to_remove = theErrors
-      new_base = base[!to_remove, ]
+      base = base[!to_remove, ]
       if (verbose) message(paste0("Deleting erroneous records... \nDeleted ",
                      length(to_remove),
                      " records"))
     } else if (deleteErrors == "patient") {
       to_remove = theErrors
       ids = (unique(base[to_remove, ..patientID]))[[1]]
-      new_base = base[!((base[,..patientID])[[1]] %in% ids),]
+      oldLen=nrown(base)
+      base = base[!((base[,..patientID])[[1]] %in% ids),]
       if (verbose) message(paste0("Removing patients that have at least one erroneous record... \nDeleted ",
-                     nrow(base) - nrow(new_base),
+                     oldLen - nrow(base),
                      " records ")) 
     } else stop("deleteErrors not or incorrectly specified")
   }
-  return(new_base)
+  return(base)
 }
 
 #' Check database format
