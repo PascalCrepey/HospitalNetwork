@@ -404,7 +404,7 @@ adjust_overlapping_stays = function(base,
     b=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-1][(C1&C2), get(disDate)],Ddate=probBase[-Nprob][(C1&C2), get(disDate)])
     c=data.table(pID=probBase[-Nprob][!(C1&C2), get(patientID)],hID=probBase[-Nprob][!(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][!(C1&C2), get(admDate)],Ddate=probBase[-Nprob][!(C1&C2), get(disDate)])
     d=data.table(pID=probBase[Nprob, get(patientID)],hID=probBase[Nprob, get(hospitalID)],Adate=probBase[Nprob, get(admDate)],Ddate=probBase[Nprob, get(disDate)])
-    cat("Combining and sorting\n")
+    if (verbose) message("Combining and sorting\n")
 
     probBase=rbind(a,b,c,d)
     setnames(probBase,c(patientID,hospitalID,admDate,disDate)) 
