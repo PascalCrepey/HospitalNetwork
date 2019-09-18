@@ -105,6 +105,55 @@ HospiNet <- R6::R6Class("HospiNet",
                            plot.title = element_text(size = 12), 
                            panel.grid = element_blank())
     }, 
+    plot_spaghetti = function(plotLinks=5000, alphaSteps=15,alphaSet=0.1){
+      
+      if(plotLinks>length(self$matrix)) plotLinks=length(self$matrix)
+      
+      comms<-split(myNet$cluster_infomap,by="cluster_infomap")
+      getComRow<-function(y){unlist(lapply(1:length(comms),function(x){sum(myNet$matrix[(c(comms[[x]][,"node"]))[[1]],(c(comms[[y]][,"node"]))[[1]]])}))}
+      absMat<-matrix(unlist(lapply(1:length(comms),getComRow)),nrow = length(comms), ncol = length(comms))
+      
+      newDendro<-hclust(as.dist(1/(absMat+0.001)),method="average")
+
+      levelData<-data.frame(firstLevel=cutree(newDendro,ceiling(length(newDendro$order)/4)),
+                            secondLevel=cutree(newDendro,ceiling(length(newDendro$order)/6)),
+                            thirdlevel=cutree(newDendro,ceiling(length(newDendro$order)/12))
+      )
+      
+      hierarchy<-rbind(
+        (data.frame(from=rep("origin",max(levelData[,3])),to=unique(paste0("level3-",levelData[,3])))),
+        unique(data.frame(from=paste0("level3-",levelData[,3]),to=paste0("level2-",levelData[,2]))),
+        unique(data.frame(from=paste0("level2-",levelData[,2]),to=paste0("level1-",levelData[,1]))),
+        data.frame(from=paste0("level1-",levelData[,1]),to=paste0("comms-",names(comms))),
+        data.frame(from=paste0("comms-",data.frame(myNet$cluster_infomap)[,"cluster_infomap"]),to=(myNet$cluster_infomap[,"node"])[[1]])
+      )
+
+      myleaves<-colnames(self$matrix)
+      vertices <- data.frame(name = unique(c(as.character(hierarchy$from), as.character(hierarchy$to))) ) 
+      mygraph <- igraph::graph_from_data_frame(hierarchy, vertices=vertices)
+
+      maxStr=self$matrix[order(-self$matrix)][1]
+      minStr=self$matrix[order(-self$matrix)][plotLinks]
+      steps=round((maxStr-minStr)/alphaSteps)
+      
+      strongConnections<-do.call("rbind", lapply(seq(minStr,maxStr,by=steps),function(x){data.frame(from=myleaves[which(self$matrix>x,arr.ind = T)[,1]],to=myleaves[which(self$matrix>x,arr.ind = T)[,2]])}))
+
+      from <- match( strongConnections$from, vertices$name)
+      to <- match( strongConnections$to, vertices$name)
+      lay=ggraph::create_layout(mygraph, layout = 'dendrogram', circular = TRUE) 
+
+      spaghetti<-
+        ggraph::ggraph(lay) + 
+        ggraph::geom_conn_bundle(data = ggraph::get_con(from = from, to = to), aes(colour="black"),alpha=alphaSet, colour="black", tension = 0.80,n=150) + 
+        ggraph::geom_node_point(aes(filter = leaf, x = x*1.05, y=y*1.05),colour="black",size=2) +
+        ggraph::geom_node_point(aes(filter = leaf, x = x*1.05, y=y*1.05),colour="black",stroke=0.5,pch=21, size=2) +
+        ggplot2::theme_void()+
+        ggplot2::theme(legend.position = "none")
+      
+      spaghetti
+
+    },
+    
     plot_clustered_matrix = function(){
       #get the clustering
       cl <- cluster_infomap(self$igraph, modularity = FALSE)
@@ -177,10 +226,13 @@ HospiNet <- R6::R6Class("HospiNet",
         cat("Matrix too big to be printed on screen.")
       }
     },
-    plot = function(type = "matrix"){
+    plot = function(type = "matrix", plotLinks=5000, alphaSteps=15,alphaSet=0.1){
       if (type == "degree") private$plot_hist_degree()
       else if (type == "matrix") private$plot_matrix()
       else if (type == "clustered_matrix") private$plot_clustered_matrix()
+      else if (type == "circular_network") private$plot_spaghetti(plotLinks=plotLinks,alphaSteps=alphaSteps,alphaSet=alphaSet)
+      else message("Unknown plot type for HospiNet")
+      
     }
   ),
   active = list(
@@ -466,4 +518,3 @@ HospiNet <- R6::R6Class("HospiNet",
     }
   )
 )
-
