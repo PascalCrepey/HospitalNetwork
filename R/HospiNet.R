@@ -109,8 +109,8 @@ HospiNet <- R6::R6Class("HospiNet",
       
       if(plotLinks>length(self$matrix)) plotLinks=length(self$matrix)
       
-      comms<-split(myNet$cluster_infomap,by="cluster_infomap")
-      getComRow<-function(y){unlist(lapply(1:length(comms),function(x){sum(myNet$matrix[(c(comms[[x]][,"node"]))[[1]],(c(comms[[y]][,"node"]))[[1]]])}))}
+      comms<-split(self$cluster_infomap,by="cluster_infomap")
+      getComRow<-function(y){unlist(lapply(1:length(comms),function(x){sum(self$matrix[(c(comms[[x]][,"node"]))[[1]],(c(comms[[y]][,"node"]))[[1]]])}))}
       absMat<-matrix(unlist(lapply(1:length(comms),getComRow)),nrow = length(comms), ncol = length(comms))
       
       newDendro<-hclust(as.dist(1/(absMat+0.001)),method="average")
@@ -125,7 +125,7 @@ HospiNet <- R6::R6Class("HospiNet",
         unique(data.frame(from=paste0("level3-",levelData[,3]),to=paste0("level2-",levelData[,2]))),
         unique(data.frame(from=paste0("level2-",levelData[,2]),to=paste0("level1-",levelData[,1]))),
         data.frame(from=paste0("level1-",levelData[,1]),to=paste0("comms-",names(comms))),
-        data.frame(from=paste0("comms-",data.frame(myNet$cluster_infomap)[,"cluster_infomap"]),to=(myNet$cluster_infomap[,"node"])[[1]])
+        data.frame(from=paste0("comms-",data.frame(self$cluster_infomap)[,"cluster_infomap"]),to=(self$cluster_infomap[,"node"])[[1]])
       )
 
       myleaves<-colnames(self$matrix)
