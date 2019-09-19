@@ -23,7 +23,7 @@ test_that("checkDates has worked properly", {
     cols = c("Adate", "Ddate")
     expect_s3_class(base, "data.table")
     expect_true(all(cols %in% colnames(base)))
-    expect_true(all(base[, lapply(.SD, is.Date), .SDcols = cols] == TRUE))
+    expect_true(all(base[, lapply(.SD, is.instant), .SDcols = cols] == TRUE))
     expect_true(all(base[, lapply(.SD, is.na), .SDcols = cols] == FALSE))
     expect_equal(base[Adate > Ddate, .N], 0)
 })

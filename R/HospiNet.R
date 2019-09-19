@@ -4,6 +4,7 @@
 #' @docType class
 #' @importFrom R6 R6Class
 #' @import ggplot2
+#' @import ggraph
 #' @export
 #' @keywords data
 #' @return Object of \code{\link{R6Class}} with methods for accessing hospital networks.

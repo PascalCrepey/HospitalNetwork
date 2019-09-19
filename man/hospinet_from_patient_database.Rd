@@ -7,7 +7,7 @@
 hospinet_from_patient_database(base, patientID = "pID",
   hospitalID = "hID", admDate = "Adate", disDate = "Ddate",
   noloops = TRUE, window_threshold = 365, nmoves_threshold = NULL,
-  verbose = FALSE)
+  create_MetricsTable = TRUE, verbose = FALSE)
 }
 \arguments{
 \item{base}{(data.table).
@@ -30,6 +30,9 @@ A threshold for the number of days between discharge and admission to be counted
 
 \item{nmoves_threshold}{(numeric)
 A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.}
+
+\item{create_MetricsTable}{(boolean)
+Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.}
 
 \item{verbose}{TRUE to print computation steps}
 }

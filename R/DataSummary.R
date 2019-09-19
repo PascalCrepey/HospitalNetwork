@@ -45,19 +45,20 @@ all_admissions_summary<-function(base,
                                  verbose = FALSE,
                                  ...){
   sumStats<-list()
-
-  LOS=difftime(base[,get(disDate)],base[,get(admDate)],units="days")
-  N = base[, .N]
-  C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
-  TBA = (base[,get(admDate)][-1]-base[,get(disDate)][-N])[C1]
   
-  sumStats$meanLOS<-mean(LOS)
-  sumStats$meanTBA<-mean(TBA)
-  sumStats$totalAdmissions<-nrow(base)
-  sumStats$numPatients<-length(unique(base[,get(patientID)]))
-  sumStats$numHospitals<-length(unique(base[,get(hospitalID)]))
-  sumStats$LOSdistribution<-table(LOS)
-  sumStats$TBAdistribution<-table(TBA)
+  LOS = difftime(base[[disDate]], base[[admDate]], units = "days")
+
+  N = base[, .N]
+  C1 = base[, ..patientID][-N] == base[, ..patientID][-1]
+  TBA = (base[[admDate]][-1]-base[[disDate]][-N])[C1]
+  
+  sumStats$meanLOS <- mean(LOS)
+  sumStats$meanTBA <- mean(TBA)
+  sumStats$totalAdmissions <- nrow(base)
+  sumStats$numPatients <- length(unique(base[,..patientID]))
+  sumStats$numHospitals <- length(unique(base[,..hospitalID]))
+  sumStats$LOSdistribution <- table(LOS)
+  sumStats$TBAdistribution <- table(TBA)
 
   if(verbose) print(paste("Average LOS, overnight stays ",mean(LOS)))
   if(verbose) print(paste("Average TBA ",mean(TBA)))
@@ -91,21 +92,21 @@ per_hospital_summary<-function(base,
                                admDate = "Adate",
                                verbose = FALSE,
                                ...){
-  losPerHosp<-(base[, .(mean(difftime(get(disDate),get(admDate),units="days"))), by = .(get(hospitalID))])
+  losPerHosp<-(base[, .(mean(difftime(get(disDate),get(admDate),units="days"))), by = hospitalID])
   #losPerHosp<-as.numeric(losPerHosp,units="days")
   
   setnames(losPerHosp,c("node","LOS"))
   data.table::setkey(losPerHosp,node)
-
-  patientsPerHosp<-(base[, .(length(unique(get(patientID)))), by = .(get(hospitalID))])
+  
+  patientsPerHosp<- base[,uniqueN(.SD), .SDcols=patientID, by = hospitalID]
   setnames(patientsPerHosp,c("node","patients"))
   data.table::setkey(patientsPerHosp,node)
   
-  admissionsPerHosp<-(base[, .N, by = .(get(hospitalID))])
+  admissionsPerHosp<-(base[, .N, by = hospitalID])
   setnames(admissionsPerHosp,c("node","admissions"))
   data.table::setkey(admissionsPerHosp,node)
 
-  sumStats<-Reduce(function(x,y) merge(x = x, y = y, all=TRUE),list(
+  sumStats<-Reduce(function(x,y) merge(x = x, y = y, all = TRUE),list(
     losPerHosp, 
     patientsPerHosp, 
     admissionsPerHosp

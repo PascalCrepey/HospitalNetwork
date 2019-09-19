@@ -33,9 +33,45 @@ Class providing the HospiNet object with its methods
 
 \item{\code{noloops}}{TRUE if loops have been removed (read-only)}
 
-\item{\code{degrees}}{number of connections for each hospitals (total, in, and out)}
-
 \item{\code{hist_degrees}}{histogram data of the number of connections per hospital}
+
+\item{\code{numHospitals}}{the number of hospitals in the network (read-only). Same as n_hospitals, but with a different source (base instead of igraph), maybe useful as double-check}
+
+\item{\code{TBAmean}}{the mean time between admissions (read-only)}
+
+\item{\code{TBAdistribution}}{the distribution of time between admissions (read-only)}
+
+\item{\code{LOSmean=}}{the mean length of stay (read-only)}
+
+\item{\code{LOSdistribution}}{the distribution of length of stay (read-only)}
+
+\item{\code{LOSPerHosp}}{the mean length of stay for each hospital (read-only)}
+
+\item{\code{admissions}}{the number of admissions in the entire data base (read-only)}
+
+\item{\code{admissionsPerHosp}}{the number of admissions to each hospital (read-only)}
+
+\item{\code{patients}}{the number of unique patients in the data base (read-only)}
+
+\item{\code{patientsPerHosp}}{the number of unique patients admitted to each hospital (read-only)}
+
+\item{\code{degrees}}{number of connections for each hospitals (total, in, and out)(read-only)}
+
+\item{\code{closenesss}}{the closeness centrality of each hospital (read-only)}
+
+\item{\code{betweennesss}}{the betweenness centrality of each hospital (read-only)}
+
+\item{\code{cluster_infomap}}{the assigned community for each hospital, based on the infomap algorithm (read-only)}
+
+\item{\code{cluster_fast_greedy}}{the assigned community for each hospital, based on the greedy modularity optimisation algorithm (read-only)}
+
+\item{\code{hubs_global}}{Kleinberg's hub centrality scores, based on the entire network (read-only)}
+
+\item{\code{hubs_infomap}}{same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)}
+
+\item{\code{hubs_fast_greedy}}{same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)}
+
+\item{\code{metricsTable}}{(data.table) all of the above metrics for each hospital (read-only)}
 }}
 
 \section{Methods}{

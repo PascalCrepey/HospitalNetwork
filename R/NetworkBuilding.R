@@ -106,22 +106,23 @@ edgelist_from_patient_database = function(base,
     ## Fourth condition, the time between discharge of row n and admission  
     ## of row n+1 needs to be shorter or equal to window_threshold (C4)
 
-    C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
+    C1 = base[, ..patientID][-N] == base[, ..patientID][-1]
     #C2 = base[, mode_sortie][-N] %in% c("mutation", "transfert") 
     #C3 = base[, mode_entree][-1] %in% c("mutation", "transfert")
-    C4 = ((base[, get(admDate)][-1] - base[, get(disDate)][-N]) < (window_threshold*3600*24))
+    C4 = ((base[, ..admDate][-1] - base[, ..disDate][-N]) < (window_threshold*3600*24))
     
     ## If all conditions are met, retrieve hospitalID number of row n (origin)
     if (verbose) cat("Compute origins...\n")
-    origin = base[-N][C1 & C4, get(hospitalID)]
+    origin = base[-N][as.vector(C1 & C4), ..hospitalID]
 
     ## If all conditions are met, retrieve hospitalID number of row n+1 (target)
     if (verbose) cat("Compute targets...\n")
-    target = base[-1][C1 & C4, get(hospitalID)]
+    target = base[-1][as.vector(C1 & C4), ..hospitalID]
 
     ## Create DT with each row representing a movement from "origin" to "target"
     if (verbose) cat("Compute frequencies...\n")
     DT_links = data.table(cbind(origin, target))
+    setnames(DT_links, 1:2, c("origin", "target"))
     data.table::setkey(DT_links, origin, target)
 
     ## Count the movements across each nodes
@@ -204,7 +205,8 @@ hospinet_from_patient_database <- function(base,
   #          window_threshold = window_threshold, 
   #          nmoves_threshold = nmoves_threshold, 
   #          noloops = noloops)
-  dataSummary=all_admissions_summary(base,
+  #browser()
+  dataSummary = all_admissions_summary(base,
                                      patientID = patientID,
                                      hospitalID = hospitalID,
                                      admDate = admDate,
@@ -222,7 +224,5 @@ hospinet_from_patient_database <- function(base,
                noloops = noloops,
                hsummary = hospitalSummary,
                dsummary = dataSummary,
-               create_MetricsTable=create_MetricsTable
-               
-               )
+               create_MetricsTable=create_MetricsTable)
 }

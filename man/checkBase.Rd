@@ -7,7 +7,7 @@
 checkBase(base, deleteMissing = NULL, convertDates = FALSE,
   dateFormat = NULL, deleteErrors = NULL, patientID = "pID",
   hospitalID = "hID", disDate = "Ddate", admDate = "Adate",
-  maxIteration = 25, verbose = TRUE, ...)
+  maxIteration = 25, returnReport = FALSE, verbose = TRUE, ...)
 }
 \arguments{
 \item{base}{(data.table).

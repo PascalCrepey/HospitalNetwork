@@ -247,7 +247,7 @@ checkFormat <- function(base,
 #' 
 #' @return The corrected database as data.table.
 #' 
-#' @importFrom lubridate is.Date ymd ydm myd mdy dmy dym
+#' @importFrom lubridate is.Date is.instant ymd ydm myd mdy dmy dym
 #' 
 checkDates <- function(base,
                        patientID = "pID",
