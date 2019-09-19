@@ -166,6 +166,8 @@ edgelist_from_patient_database = function(base,
 #'     A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.
 #' @param nmoves_threshold (numeric)
 #'     A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.
+#' @param create_MetricsTable (boolean)
+#'     Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.
 #' @param verbose TRUE to print computation steps
 #'     
 #' @seealso \code{\link{HospiNet}}
@@ -185,7 +187,7 @@ hospinet_from_patient_database <- function(base,
                                            noloops = TRUE,
                                            window_threshold = 365,
                                            nmoves_threshold = NULL, 
-                                           create_MetricsTable=FALSE,
+                                           create_MetricsTable=TRUE,
                                            verbose = FALSE){
   
   edgelist = edgelist_from_patient_database(base = base,

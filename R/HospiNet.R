@@ -26,8 +26,28 @@
 #' @field window_threshold the window threshold used to compute the network (read-only)
 #' @field nmoves_threshold the nmoves threshold used to compute the network (read-only)
 #' @field noloops TRUE if loops have been removed (read-only)
-#' @field degrees number of connections for each hospitals (total, in, and out)
+
 #' @field hist_degrees histogram data of the number of connections per hospital 
+#' @field numHospitals the number of hospitals in the network (read-only). Same as n_hospitals, but with a different source (base instead of igraph), maybe useful as double-check
+#' @field TBAmean the mean time between admissions (read-only)
+#' @field TBAdistribution the distribution of time between admissions (read-only)
+#' @field LOSmean= the mean length of stay (read-only)
+#' @field LOSdistribution the distribution of length of stay (read-only)
+#' @field LOSPerHosp the mean length of stay for each hospital (read-only)
+#' @field admissions the number of admissions in the entire data base (read-only)
+#' @field admissionsPerHosp the number of admissions to each hospital (read-only)
+#' @field patients the number of unique patients in the data base (read-only)
+#' @field patientsPerHosp the number of unique patients admitted to each hospital (read-only)
+
+#' @field degrees number of connections for each hospitals (total, in, and out)(read-only)
+#' @field closenesss the closeness centrality of each hospital (read-only)
+#' @field betweennesss the betweenness centrality of each hospital (read-only)
+#' @field cluster_infomap the assigned community for each hospital, based on the infomap algorithm (read-only)
+#' @field cluster_fast_greedy the assigned community for each hospital, based on the greedy modularity optimisation algorithm (read-only)
+#' @field hubs_global Kleinberg's hub centrality scores, based on the entire network (read-only)
+#' @field hubs_infomap same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)
+#' @field hubs_fast_greedy same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)
+#' @field metricsTable (data.table) all of the above metrics for each hospital (read-only)
 #' 
 #' @section Methods:
 #' \describe{
