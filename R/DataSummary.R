@@ -46,7 +46,7 @@ all_admissions_summary<-function(base,
                                  ...){
   sumStats<-list()
 
-  LOS=base[,get(disDate)]-base[,get(admDate)]
+  LOS=difftime(base[,get(disDate)],base[,get(admDate)],units="days")
   N = base[, .N]
   C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
   TBA = (base[,get(admDate)][-1]-base[,get(disDate)][-N])[C1]
@@ -91,7 +91,9 @@ per_hospital_summary<-function(base,
                                admDate = "Adate",
                                verbose = FALSE,
                                ...){
-  losPerHosp<-(base[, .(mean(get(disDate)-get(admDate))), by = .(get(hospitalID))])
+  losPerHosp<-(base[, .(mean(difftime(get(disDate),get(admDate),units="days"))), by = .(get(hospitalID))])
+  #losPerHosp<-as.numeric(losPerHosp,units="days")
+  
   setnames(losPerHosp,c("node","LOS"))
   data.table::setkey(losPerHosp,node)
 
