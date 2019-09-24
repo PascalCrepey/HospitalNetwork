@@ -46,11 +46,12 @@ checkBase <- function(base,
                       admDate = "Adate",
                       maxIteration = 25,
                       returnReport = FALSE,
+                      retainAuxData = FALSE,
                       verbose = TRUE,
                       ...)
 {
     new_base = base
-    
+
     checkResults = checkFormat(new_base,
                            patientID = patientID,
                            hospitalID = hospitalID,
@@ -58,7 +59,7 @@ checkBase <- function(base,
                            disDate = disDate,
                            deleteMissing = deleteMissing, 
                            verbose = verbose)
-    
+
     checkResults = c(checkResults[names(checkResults)!="base"],checkDates(base=checkResults$base,
                           patientID = patientID,
                           hospitalID = hospitalID,
@@ -69,13 +70,14 @@ checkBase <- function(base,
                           deleteErrors = deleteErrors, 
                           verbose = verbose,
                           ...))
-    
+
     checkResults = c(checkResults[names(checkResults)!="base"],adjust_overlapping_stays(base = checkResults$base,
                                         patientID = patientID,
                                         hospitalID = hospitalID,
                                         admDate = admDate,
                                         disDate = disDate,
                                         maxIteration = maxIteration, 
+                                        retainAuxData=retainAuxData,
                                         verbose = verbose,
                                         ...))
     if(returnReport){
@@ -129,7 +131,7 @@ deleteErrorRecords<-function(base,
     } else if (deleteErrors == "patient") {
       to_remove = theErrors
       ids = (unique(base[to_remove, ..patientID]))[[1]]
-      oldLen=nrown(base)
+      oldLen=nrow(base)
       base = base[!((base[,..patientID])[[1]] %in% ids),]
       if (verbose) message(paste0("Removing patients that have at least one erroneous record... \nDeleted ",
                      oldLen - nrow(base),
@@ -366,12 +368,19 @@ adjust_overlapping_stays = function(base,
                              disDate = "Ddate",
                              maxIteration =25,
                              verbose = FALSE,
+                             retainAuxData = FALSE,
                              ...) {
   report=list()
 
   #Currently only working with the required minimum variables... We might need to consider carrying any extra columns over.
   useCols<-colnames(base) %in% c(patientID,hospitalID,admDate,disDate)
-  base=base[,.SD,.SDcols=useCols]
+  extraCols=colnames(base)[!(colnames(base) %in% c(patientID,hospitalID,admDate,disDate))]
+  auxDataExists=(length(extraCols)>0)
+  if(auxDataExists&verbose&retainAuxData){
+    message("Found following auxiliary data fields: ")
+    message(paste0(",",extraCols))
+  }
+  if(!retainAuxData) base=base[,.SD,.SDcols=useCols]
   data.table::setkeyv(base, c(patientID,admDate,disDate))
   
   nbefore = nrow(base)
@@ -393,21 +402,48 @@ adjust_overlapping_stays = function(base,
   iterator=0
   while(iterator<maxIteration&sum(C1&C2)>0){
     if (verbose) message(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping hospital stays\nSplitting database and correcting\n"))
-    
+
     Nprob = probBase[, .N]
     data.table::setkeyv(probBase, c(patientID,admDate,disDate))
 
     C1 = probBase[, get(patientID)][-Nprob] == probBase[, get(patientID)][-1]
     C2 = ((probBase[, get(admDate)][-1]-probBase[, get(disDate)][-Nprob])<0) 
-
-    a=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][(C1&C2), get(admDate)],Ddate=probBase[-1][(C1&C2), get(admDate)])
-    b=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-1][(C1&C2), get(disDate)],Ddate=probBase[-Nprob][(C1&C2), get(disDate)])
-    c=data.table(pID=probBase[-Nprob][!(C1&C2), get(patientID)],hID=probBase[-Nprob][!(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][!(C1&C2), get(admDate)],Ddate=probBase[-Nprob][!(C1&C2), get(disDate)])
-    d=data.table(pID=probBase[Nprob, get(patientID)],hID=probBase[Nprob, get(hospitalID)],Adate=probBase[Nprob, get(admDate)],Ddate=probBase[Nprob, get(disDate)])
+    
+    if(retainAuxData&auxDataExists){
+      a=data.table(
+        pID=probBase[-Nprob][(C1&C2), get(patientID)],
+        hID=probBase[-Nprob][(C1&C2), get(hospitalID)],
+        Adate=probBase[-Nprob][(C1&C2), get(admDate)],
+        Ddate=probBase[-1][(C1&C2), get(admDate)],
+        probBase[-Nprob][(C1&C2),..extraCols])
+      b=data.table(
+        pID=probBase[-Nprob][(C1&C2), get(patientID)],
+        hID=probBase[-Nprob][(C1&C2), get(hospitalID)],
+        Adate=probBase[-1][(C1&C2), get(disDate)],
+        Ddate=probBase[-Nprob][(C1&C2), get(disDate)],
+        probBase[-Nprob][(C1&C2),..extraCols])
+      c=data.table(pID=probBase[-Nprob][!(C1&C2), get(patientID)],
+                   hID=probBase[-Nprob][!(C1&C2), get(hospitalID)],
+                   Adate=probBase[-Nprob][!(C1&C2), get(admDate)],
+                   Ddate=probBase[-Nprob][!(C1&C2), get(disDate)],
+                   probBase[-Nprob][!(C1&C2),..extraCols])
+      d=data.table(pID=probBase[Nprob, get(patientID)],
+                   hID=probBase[Nprob, get(hospitalID)],
+                   Adate=probBase[Nprob, get(admDate)],
+                   Ddate=probBase[Nprob, get(disDate)],
+                   probBase[Nprob,..extraCols])
+      probBase=rbind(a,b,c,d)
+      setnames(probBase,c(patientID,hospitalID,admDate,disDate,extraCols)) 
+    }else{
+      a=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][(C1&C2), get(admDate)],Ddate=probBase[-1][(C1&C2), get(admDate)])
+      b=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-1][(C1&C2), get(disDate)],Ddate=probBase[-Nprob][(C1&C2), get(disDate)])
+      c=data.table(pID=probBase[-Nprob][!(C1&C2), get(patientID)],hID=probBase[-Nprob][!(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][!(C1&C2), get(admDate)],Ddate=probBase[-Nprob][!(C1&C2), get(disDate)])
+      d=data.table(pID=probBase[Nprob, get(patientID)],hID=probBase[Nprob, get(hospitalID)],Adate=probBase[Nprob, get(admDate)],Ddate=probBase[Nprob, get(disDate)])
+      probBase=rbind(a,b,c,d)
+      setnames(probBase,c(patientID,hospitalID,admDate,disDate)) 
+    }
     if (verbose) message("Combining and sorting\n")
 
-    probBase=rbind(a,b,c,d)
-    setnames(probBase,c(patientID,hospitalID,admDate,disDate)) 
     data.table::setkeyv(probBase, c(patientID,admDate,disDate))
 
     C3 = ((probBase[, get(disDate)]-probBase[, get(admDate)])<0)
