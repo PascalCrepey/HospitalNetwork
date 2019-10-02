@@ -93,44 +93,46 @@ edgelist_from_patient_database = function(base,
                               verbose = FALSE
                               )
 {
+    #### GET MOVEMENTS OF PATIENTS
+    ## Function to compute time between admissions between EACH PAIR of
+    ## facilities, for ONE individual:
+    #### 1. Sort by admission date
+    #### 2. Take admission date from last record N, and substract ALL previous
+    #### discharge dates (not just the previous one), i.e discharge dates from
+    #### records 1 to N-1
+    #### 3. Then decrement N by 1, and repeat.
+
+    get_tba = function(x) {
+        N = nrow(x)
+        tba = lapply(1:(N-1), function(i) {
+            vals = list()
+            vals$diff = difftime(time1 = x$Adate[N-i+1],
+                                 time2 = x$Ddate[(N-i):1],
+                                 units = "days")
+            vals$origin = x$hID[(N-i):1]
+            vals$target = x$hID[N-i+1]
+            return(vals)
+        })
+        tba = rbindlist(lapply(tba, as.data.table))
+        return(tba)
+    }
+
     data.table::setkeyv(base, c(patientID, admDate))
     N = base[, .N]
 
-    #### GET MOVEMENTS OF PATIENTS
-    ## Compare rows n and n+1
-    ## First condition, rows n and n+1 must have same patientID (C1)
-    ## Second condition, "mode_sortie" of row n must be "mutation" or
-    ## "transfert" (C2) => not included yet
-    ## Third condition, "mode_entree" of row n+1 must be "mutation" or
-    ## "transfert" (C3) => not included yet
-    ## Fourth condition, the time between discharge of row n and admission  
-    ## of row n+1 needs to be shorter or equal to window_threshold (C4)
-
-    C1 = base[, ..patientID][-N] == base[, ..patientID][-1]
-    #C2 = base[, mode_sortie][-N] %in% c("mutation", "transfert") 
-    #C3 = base[, mode_entree][-1] %in% c("mutation", "transfert")
-    C4 = ((base[, ..admDate][-1] - base[, ..disDate][-N]) < (window_threshold*3600*24))
-    
-    ## If all conditions are met, retrieve hospitalID number of row n (origin)
-    if (verbose) cat("Compute origins...\n")
-    origin = base[-N][as.vector(C1 & C4), ..hospitalID]
-
-    ## If all conditions are met, retrieve hospitalID number of row n+1 (target)
-    if (verbose) cat("Compute targets...\n")
-    target = base[-1][as.vector(C1 & C4), ..hospitalID]
-
-    ## Create DT with each row representing a movement from "origin" to "target"
+    # Compute the times between admissions, by individual
     if (verbose) cat("Compute frequencies...\n")
-    DT_links = data.table(cbind(origin, target))
-    setnames(DT_links, 1:2, c("origin", "target"))
-    data.table::setkey(DT_links, origin, target)
+    tba = base[, get_tba(.SD), by = pID]
+    
+    # Filter according to the window threshold
+    DT_links = tba[between(diff, 0, window_threshold), .(pID, origin, target)]
 
-    ## Count the movements across each nodes
-    if (verbose) cat("Compute unique links...\n")
-    single_links = unique(DT_links)
+    # Count the movements across each nodes
     if (verbose) cat("Compute histogram of movements (edge list)\n")
+    data.table::setkey(DT_links, origin, target)
+    single_links = unique(DT_links[, .(origin, target)])
     histogr = DT_links[single_links, .N, by = .EACHI] # this is the edge list
-
+    
     if (noloops) {
         if (verbose) cat("Removing loops...\n")
         # histogr[origin == target, N := 0] # set matrix diagonal to 0 # TD: This delivers an empty list I run it.
