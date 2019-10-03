@@ -78,9 +78,23 @@ TODO
 
 ## Workflow
 
+The main function of the package is ```hospinet_from_patient_database()```, which takes the database as argument.
+It will first performs various diagnostic tests by calling the function ```checkBase()```, to check for possible issues, and to ensure that the data is formatted correctly. 
+
+If the tests are successful, ```hospinet_from_patient_database()``` will proceed with several operations and function calls to construct the network. The return value is an ```HospiNet``` R6 object that contains the network itself, as well as different metrics and information on the network.
+
 ### Diagnostic tests {#diag}
 
-Several diagnostic functions are provided to check for possible errors in the database. These functions also offer the possibily to automatically correct the issues it may have found in the database. However, since we cannot guarantee having checked for every possible issue, we encourage you to ensure the data is in the correct format, and is free of errors, prior to run the diagnostic functions. By default, the diagnostic functions will not modify the database, but return informative messages on the issues found. If you wish the diagnostic functions to try to autocorrect the database, we recommend that you carefully check the result afterwards. 
+The diagnostic tests on the database are performed by the function ```checkBase()```.
+
+The function will check for possible errors in the database. It also offer the possibily to automatically correct the issues it may have found in the database. However, since we cannot guarantee having checked for every possible issue, we encourage you to ensure the data is in the correct format, and is free of errors, prior to run the function. By default, ```checkBase()``` will not modify the database, but return informative messages on the issues found. If you wish the function to try to autocorrect the database, you must set the corresponding arguments (see [Data management](#datamanagement)). We recommend that you carefully check the result afterwards. 
+
+```{r check_example, error = TRUE}
+# Example
+library(HospitalNetwork)
+base = create_fake_patientDB(n_patients = 100, n_hospitals = 10, with_errors = TRUE)
+checkBase(base)
+```
 
 #### Requierements
 
@@ -92,13 +106,30 @@ The requierements to pass the diagnostic tests are the following:
 
 * columns ```"pID"``` and ```"hID"``` must be of type ```character```.
 
-* dates are handled using functions from the ```lubridate``` package. They should be ```POSIXct date-time objects```. If they are provided as character strings, the diagnostic functions will try to parse them to date-time objects using ```lubridate``` functions (see [Data management](#datamanagement)).
+* dates are handled using functions from the ```lubridate``` package. They should be ```POSIXct date-time objects```. Alternatively, they can be provided as character strings. In that case, you can use ```checkBase()``` to try to parse them to date-time objects using ```lubridate``` functions (see [Data management](#datamanagement)).
 
 * stays should not overlap (see [Data management](#datamanagement) for more details).
 
 #### Data management {#datamanagement}
 
-TODO
+The diagnostic functions of ```checkBase()``` will check for the following issues:
+
+* missing values: the following values will be flagged as missing: actual missing values of the form ```NA``` or ```NaN```, character strings ``` "NA", "na", "Na", "N/A", "n/a", "N/a", "NaN")```, and empty character strings or empty quotes ```"", "''"```.
+
+* discharge date of a stay anterior to its admission date.
+
+* overlapping stays: **TODO**
+
+You can use the function ```checkBase()``` to try to correct automatically the issues it has found by setting the corresponding arguments.
+
+* missing values: to remove entries with missing values, set the argument ```deleteMissing```. If set to ```"record"```, the record with the missing value will be removed. If set to ```"patient"```, all records of the same patient will be removed.
+
+* errors: to remove errors, such as discharge date of a stay anterior to admission date, set the argument ```deleteErrors```. If set to ```"record"```, the record with the error will be removed. If set to ```"patient"```, all records of the same patient will be removed.
+
+* overlapping stays: ```checkBase()``` will automatically handle overlapping stays as follows: **TODO**
+
+* dates: if admission and discharge dates are provided as character strings, you can use ```checkBase()``` to try to parse them to a date-time object, which uses internally the ```lubridate``` functions. To do that, set the argument ```convertDates = TRUE```. You must also specify in what format are the dates ("year-month-day", "day-month-year", etc.) by setting the argument ```dateFormat = c("ymd", "ydm", "dmy", "dym", "mdy", "myd")```.
+
 
 ##The *HospiNet* object
 
