@@ -17,11 +17,14 @@ Imports:
     igraph,
     lubridate,
     R6,
-    ggplot2
+    ggplot2,
+    magrittr,
+    kableExtra,
+    pander
 Depends: 
   data.table
 RoxygenNote: 6.1.1
-Suggests: 
+Suggests:
     knitr,
     qpdf,
     rmarkdown,
