@@ -80,10 +80,11 @@ checkBase <- function(base,
                                         retainAuxData=retainAuxData,
                                         verbose = verbose,
                                         ...))
-    if(returnReport){
-      return(checkResults)
-    } else{
-      return(checkResults$base)
+    if (verbose) message("Done.")
+    if (returnReport) {
+        return(checkResults)
+    } else {
+        return(checkResults$base)
     }
 }
 
@@ -96,7 +97,7 @@ checkBase <- function(base,
 #'         hID: hospitalID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
-#' @param theErrors a list of indeces for the records to be deleted in the base datatable 
+#' @param toRemove a list of indeces for the records to be deleted in the base datatable 
 #' @param deleteErrors (character) How incorrect records should be deleted: 
 #'                     "record" deletes just the incorrect record
 #'                     "patient" deletes all records of each patient with one or more incorrect records.
@@ -109,36 +110,50 @@ checkBase <- function(base,
 #' 
 #' @return The adjusted database as a data.table
 #' 
-deleteErrorRecords<-function(base,
-                             theErrors,
-                             deleteErrors = NULL,
-                             patientID = "pID",
-                             hospitalID = "hID",
-                             disDate = "Ddate",
-                             admDate = "Adate",
-                             verbose = FALSE,
-                             ...){
-  if (verbose) message(length(theErrors)," erroneous records found.")
-  if (is.null(deleteErrors)) {
-    stop("Please deal with those errors or set option 'deleteMissing' to 'record' or 'patient'.")
-  } else {
-    if (deleteErrors == "record") {
-      to_remove = theErrors
-      base = base[!to_remove, ]
-      if (verbose) message(paste0("Deleting erroneous records... \nDeleted ",
-                     length(to_remove),
-                     " records"))
-    } else if (deleteErrors == "patient") {
-      to_remove = theErrors
-      ids = (unique(base[to_remove, ..patientID]))[[1]]
-      oldLen=nrow(base)
-      base = base[!((base[,..patientID])[[1]] %in% ids),]
-      if (verbose) message(paste0("Removing patients that have at least one erroneous record... \nDeleted ",
-                     oldLen - nrow(base),
-                     " records ")) 
-    } else stop("deleteErrors not or incorrectly specified")
-  }
-  return(base)
+delete <- function(base,
+                   toRemove,
+                   case = NULL,
+                   option = NULL,
+                   patientID = "pID",
+                   hospitalID = "hID",
+                   disDate = "Ddate",
+                   admDate = "Adate",
+                   verbose = TRUE,
+                   ...) {
+
+    if (verbose) {
+        if (case == "missing") {
+            message("Found ", length(toRemove)," record(s) with missing values.")
+            if (is.null(option)) {
+                stop("\nPlease deal with these missing values or set option 'deleteMissing' to 'record' or 'patient'.")
+            }
+        } else if (case == "errors") {
+            message("Found ", length(toRemove)," erroneous record(s).")
+            if (is.null(option)) {
+                stop("Please deal with these erroneous records or set option 'deleteErrors' to 'record' or 'patient'.")
+            }
+        } else {
+            stop("Argument case must be set to 'missing' or 'errors'.")
+        }
+    }
+    
+    if (option == "record") {
+        base = base[!toRemove, ]
+        if (verbose) {
+            message(paste0("Deleting records... \nDeleted ", length(toRemove), " records"))
+        }
+    } else if (option == "patient") {
+        ids = unique(base[toRemove, ..patientID])[[1]]
+        oldLen = nrow(base)
+        base = base[!((base[,..patientID])[[1]] %in% ids),]
+        if (verbose) {
+            message(paste0("Removing patients that have at least one erroneous record... \nDeleted ",
+                           oldLen - nrow(base),
+                           " records "))
+        }
+    } else stop("Argument", paste0("delete", option), "not or incorrectly specified")
+    
+    return(base)
 }
 
 #' Check database format
@@ -197,8 +212,12 @@ checkFormat <- function(base,
   # For columns in 'cols', check if a value is 'NA' or only blank spaces
   if (verbose) message("Checking for missing values...")
   startN = base[, .N]
-  missing = base[, lapply(.SD, function(x) trimws(x) == "" | is.na(x)),
-                 .SDcols = cols]
+  missing = base[, lapply(.SD, function(x) {
+      trimws(x) %in% c("", "NA", "na", "Na", "N/A",
+                       "n/a", "N/a", "NaN", "''") | is.na(x)
+  }),
+  .SDcols = cols]
+
   # If at least one missing value in the database:
   if (any(as.matrix(missing))) {
     msng = lapply(missing, any)
@@ -208,14 +227,15 @@ checkFormat <- function(base,
                    paste0(names_msng, collapse = ", ")))
     report$missing=length(to_remove)
     
-    base = deleteErrorRecords(base,
-                                to_remove,
-                                patientID = patientID,
-                                hospitalID = hospitalID,
-                                admDate = admDate,
-                                disDate = disDate,
-                                deleteErrors=deleteMissing, 
-                                verbose = verbose)
+    base = delete(base,
+                  to_remove,
+                  case = "missing",
+                  option = deleteMissing, 
+                  patientID = patientID,
+                  hospitalID = hospitalID,
+                  admDate = admDate,
+                  disDate = disDate,
+                  verbose = verbose)
   } else {
     report$missing=0
   }
@@ -267,7 +287,7 @@ checkDates <- function(base,
     report$failedParse=0
     startN = base[, .N]
     cols = c(admDate, disDate)
-    notDate = base[, lapply(.SD, is.Date) == FALSE, .SDcols = cols]
+    notDate = base[, lapply(.SD, is.instant) == FALSE, .SDcols = cols]
     needsConverting = names(which(notDate))
 
     if (length(needsConverting) & !convertDates) {
@@ -288,14 +308,15 @@ checkDates <- function(base,
         if (length(failed)) {
             if (verbose) message(paste0("Parsing of dates failed for the ",length(failed)," records:"))
             report$failedParse=length(failed)
-            base=deleteErrorRecords(base,
-                                    failed,
-                                    patientID = patientID,
-                                    hospitalID = hospitalID,
-                                    admDate = admDate,
-                                    disDate = disDate,
-                                    deleteErrors=deleteErrors, 
-                                    verbose = verbose)
+            base = delete(base,
+                          toRemove = failed,
+                          case = "errors",
+                          option = deleteErrors,
+                          patientID = patientID,
+                          hospitalID = hospitalID,
+                          admDate = admDate,
+                          disDate = disDate,
+                          verbose = verbose)
         }
         base[, c(admDate, disDate) := NULL]
         setnames(base, old = c("Adate_new", "Ddate_new"), new = cols)
@@ -308,16 +329,17 @@ checkDates <- function(base,
         if (verbose) message(paste0("Found ",
                        length(wrongOrder),
                        " records with admission date posterior to discharge date."))
-        base=deleteErrorRecords(base,
-                              wrongOrder,
-                              patientID = patientID,
-                              hospitalID = hospitalID,
-                              admDate = admDate,
-                              disDate = disDate,
-                              deleteErrors=deleteErrors, 
-                              verbose = verbose)
+        base = delete(base,
+                      toRemove = wrongOrder,
+                      case = "errors",
+                      option = deleteErrors,
+                      patientID = patientID,
+                      hospitalID = hospitalID,
+                      admDate = admDate,
+                      disDate = disDate,
+                      verbose = verbose)
     }
-       
+    
     ## # Delete single day cases if only overnight patients are defined
     ## if(overnight){
     ##     nrBefore<-nrow(base)
@@ -384,9 +406,9 @@ adjust_overlapping_stays = function(base,
   data.table::setkeyv(base, c(patientID,admDate,disDate))
   
   nbefore = nrow(base)
-  if (verbose) message("Removing duplicate records\n")
-  base=unique(base)
-  if (verbose) message(paste0("Removed ",nbefore-nrow(base)," duplicates\n"))
+  if (verbose) message("Checking for duplicated records...")
+  base = unique(base)
+  if (verbose) message(paste0("Removed ", nbefore-nrow(base), " duplicates"))
   report$removedDuplicates=nbefore-nrow(base)
   
   startN = nrow(base)
@@ -401,7 +423,7 @@ adjust_overlapping_stays = function(base,
 
   iterator=0
   while(iterator<maxIteration&sum(C1&C2)>0){
-    if (verbose) message(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping hospital stays\nSplitting database and correcting\n"))
+    if (verbose) message(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping hospital stays\nSplitting database and correcting"))
 
     Nprob = probBase[, .N]
     data.table::setkeyv(probBase, c(patientID,admDate,disDate))
@@ -442,7 +464,7 @@ adjust_overlapping_stays = function(base,
       probBase=rbind(a,b,c,d)
       setnames(probBase,c(patientID,hospitalID,admDate,disDate)) 
     }
-    if (verbose) message("Combining and sorting\n")
+    if (verbose) message("Combining and sorting")
 
     data.table::setkeyv(probBase, c(patientID,admDate,disDate))
 
