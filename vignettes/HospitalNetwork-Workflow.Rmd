@@ -14,22 +14,50 @@ knitr::opts_chunk$set(
 )
 ```
 
-##Context
-This document illustrates the way the *HospitalNetwork* package is intended to work. It describes the necessary datasets to provide, and the way they are analysed by the functions. 
+## Context
 
-##Data
-The package requires a minimal set of information in order to build a network of hospitals. This set of data is describe under the section "Required data". To proceed to further analysis, the package can use additional information in case they are available. These informations are listed under the section "Optional informations". Each row must correspond to a patient stay. Patient stays are not allowed to overlap (see diagnostics functions). To ensure consistency of the network regarding potential yearly seasonality, at least one year of data should be provided.
+This R package contains functions to help interested researchers construct networks from data on movement of individual between locations. Although this package was initially developed in the context of networks of healthcare facilities, where the links represent transfer of patients between facilities, the process can be generalized to the movement of any type of subject between any type of locations.
 
-###Required data
+Formally, a network is composed of *nodes* which may or may not be connected by *edges* (or links). In the context of this package, the nodes are the facilities, and the links represent connections between facilities. Although the definition of a node is straightforward, one can define a *connection* between two facilities in different ways. This package allows to construct a network using various definition of a connection, which are discussed in detail here [ref].
 
-|Item| Variable name |Description|
-|----|:-------------:|-----------|
-|Patient ID | pID | an anonymized identifier unique to each patient|
-|Hospital ID| hID | an anonymized identifier unique to each hospital|
-|Admission date| Adate | the date of admission of the patient in a hospital|
-|Discharge date| Ddate | the date of discharge of the patient from a hospital|
+In terms of data structure, a common way of representing a network is with a simple $n*n$ matrix (often called adjacency matrix, or contact matrix). The rows and columns contain the nodes (which appear once in each), and each cell contains the information on whether or not the two nodes are connected.
 
-###Optional data (in the same database)
+
+```{r adjacency-matrix, echo = F, dev = 'svg', results = 'asis'}
+data = c(0,0,602,0,339,687,0,0,0,0,373,1294,0,718,86,296,263,0,0,35,0,598,0,0,0)
+mat = matrix(data, nrow = 5, ncol = 5)
+colnames(mat) = LETTERS[1:5]
+rownames(mat) = colnames(mat)
+pander::pandoc.table(mat, caption = 'Example of a matrix representation of a 5-nodes network. By convention, the rows contain the facilities of origin, and the columns contain the target facilities. Each cell contains the number of subjects transfered.', )
+```
+
+At its core, the purpose of this package is to compute the contact matrix from raw data on movement between facilities. Additionally, this package provides the researcher with various tools to analyse and visualize the constructed network.
+
+
+## Data
+
+The package requires a minimal set of information in order to build a network of facilities. This set of data is describe under the section "Required data". To proceed to further analysis, the package can use additional information in case they are available. These informations are listed under the section "Optional informations". 
+
+### Required data
+
+The minimal data needed to construct the network is a simple table with four variables:
+
+* **subject ID:** an identifier unique to each subject
+* **facility ID:** an identifier unique to each facility
+* **admission date:** the date of admission of the subject in the facility
+* **discharge date:** the date of discharge of the subject from the facility
+
+Therefore, each row must correspond to a unique stay of a subject in a facility. Stays are not allowed to overlap (see [Data management](#datamanagement)).
+
+```{r data_example}
+library(HospitalNetwork)
+data = create_fake_patientDB(n_patients = 3, n_hospitals = 3)
+data
+```
+
+### Optional data (in the same database)
+
+TODO
 
 | Item          | Variable name     | Description                 |
 |---------------|:-----------------:|-----------------------------|
@@ -40,17 +68,37 @@ The package requires a minimal set of information in order to build a network of
 
 ### Optional data (in a separate database)
 
+TODO
+
 |Item| Variable name |Description|
 |----|:-------------:|-----------|
 |Hospital localization| localisation | GPS coordinates of the hospital|
 |Hospital capacity | capacity | the number of beds available in the hospital|
 |Hospital type | type | the type of hospital (ECDC level definitions)|
 
-##Workflow
+## Workflow
 
-0. Run diagnostic tests on the data to ensure its compatibility.
-1. {Patient ID, Hospital ID, Admission date, Discharge date} -> {Patient ID, Hospital ID, OriginID, sequence} where OriginID contains either *NA*, or the Hospital ID previously visited by the patient, according to the referral window, and sequence is the stay order, unique for each patient.
-2. {Patient ID, Hospital ID, OriginID, sequence} -> *HospiNet* S3 object containing the hospital transfer matrix and the relevant measures.
+### Diagnostic tests {#diag}
+
+Several diagnostic functions are provided to check for possible errors in the database. These functions also offer the possibily to automatically correct the issues it may have found in the database. However, since we cannot guarantee having checked for every possible issue, we encourage you to ensure the data is in the correct format, and is free of errors, prior to run the diagnostic functions. By default, the diagnostic functions will not modify the database, but return informative messages on the issues found. If you wish the diagnostic functions to try to autocorrect the database, we recommend that you carefully check the result afterwards. 
+
+#### Requierements
+
+The requierements to pass the diagnostic tests are the following:
+
+* the database must be of class ```data.frame``` or ```data.table```. The functions are implemented in the ```data.table``` framework, so if a ```data.frame``` is provided, it will be converted to a ```data.table```.
+
+* the database must have at least four columms. By default the column names must be: ```c("pID", "hID", "Adate", "Ddate"```. Although we recommend using these column names, it is possible to use different names by providing them as arguments.
+
+* columns ```"pID"``` and ```"hID"``` must be of type ```character```.
+
+* dates are handled using functions from the ```lubridate``` package. They should be ```POSIXct date-time objects```. If they are provided as character strings, the diagnostic functions will try to parse them to date-time objects using ```lubridate``` functions (see [Data management](#datamanagement)).
+
+* stays should not overlap (see [Data management](#datamanagement) for more details).
+
+#### Data management {#datamanagement}
+
+TODO
 
 ##The *HospiNet* object
 
@@ -67,7 +115,7 @@ The informations contained in an *HospiNet* objects are:
 
 ## Using the package
 
-```{r setup}
+```{r setup, eval = F}
 library(HospitalNetwork)
 
 mydbmed = create_fake_patientDB(n_patients = 100, n_hospital = 10)
