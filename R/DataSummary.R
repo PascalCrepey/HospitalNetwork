@@ -55,8 +55,8 @@ all_admissions_summary<-function(base,
   sumStats$meanLOS <- mean(LOS)
   sumStats$meanTBA <- mean(TBA)
   sumStats$totalAdmissions <- nrow(base)
-  sumStats$numPatients <- length(unique(base[,..patientID]))
-  sumStats$numHospitals <- length(unique(base[,..hospitalID]))
+  sumStats$numPatients <- nrow(unique(base[,..patientID]))
+  sumStats$numHospitals <- nrow(unique(base[,..hospitalID]))
   sumStats$LOSdistribution <- table(LOS)
   sumStats$TBAdistribution <- table(TBA)
 
@@ -106,11 +106,10 @@ per_hospital_summary<-function(base,
   setnames(admissionsPerHosp,c("node","admissions"))
   data.table::setkey(admissionsPerHosp,node)
 
-  sumStats<-Reduce(function(x,y) merge(x = x, y = y, all = TRUE),list(
-    losPerHosp, 
-    patientsPerHosp, 
-    admissionsPerHosp
-    ))
+  sumStats<-Reduce(function(x,y) merge(x = x, y = y, all = TRUE),
+                   list(losPerHosp,
+                        admissionsPerHosp,
+                        patientsPerHosp))
   
   return(sumStats)
 }
