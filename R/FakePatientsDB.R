@@ -57,6 +57,7 @@ create_fake_patientDB <- function(n_patients = 100,
     ## Generate errors in the database
     if (with_errors) {
         N = nrow(all_p_stays)
+        if (N <= 10) stop("Not enough records to introduce errors")
         # Add overlapping stays
         all_p_stays = rbind(all_p_stays,
                             data.table(
@@ -72,11 +73,16 @@ create_fake_patientDB <- function(n_patients = 100,
         all_p_stays = rbind(all_p_stays,
                             all_p_stays[sample(1:N, N/n_patients),])
         # Missing values
-        all_p_stays[sample(1:N, N/n_patients), pID := NA]
-        all_p_stays[sample(1:N, N/n_patients), hID := " "]
-        all_p_stays[sample(1:N, N/n_patients), Adate := NA]
-        all_p_stays[sample(1:N, N/n_patients), Adate := ""]
-        all_p_stays[sample(1:N, N/n_patients), Ddate := NA]
+        all_p_stays[1, Ddate := NA]
+        all_p_stays[2, hID := " "]
+        all_p_stays[3, pID := "NA"]
+        all_p_stays[4, Adate := ""]
+        all_p_stays[5, Adate := "na"]
+        all_p_stays[6, Adate := "N/A"]
+        all_p_stays[7, Adate := "n/a"]
+        all_p_stays[8, Adate := "Na"]
+        all_p_stays[9, Adate := "N/a"]
+        all_p_stays[10, Adate := "NaN"]
         
     }
     

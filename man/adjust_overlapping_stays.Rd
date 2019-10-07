@@ -4,18 +4,11 @@
 \alias{adjust_overlapping_stays}
 \title{Check and fix overlapping admissions.}
 \usage{
-adjust_overlapping_stays(base, patientID = "pID", hospitalID = "hID",
+adjust_overlapping_stays(report, patientID = "pID", hospitalID = "hID",
   admDate = "Adate", disDate = "Ddate", maxIteration = 25,
-  verbose = FALSE, ...)
+  verbose = FALSE, retainAuxData = FALSE, ...)
 }
 \arguments{
-\item{base}{(data.table).
-A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-    pID: patientID (character)
-    hID: hospitalID (character)
-    Adate: admission date (POSIXct, but character can be converted to POSIXct)
-    Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
-
 \item{patientID}{(charachter) the columns name containing the patient ID. Default is "pID".}
 
 \item{hospitalID}{(charachter) the columns name containing the hospital ID. Default is "hID".}
@@ -29,6 +22,13 @@ A patient discharge database, in the form of a data.table. The data.table should
 \item{verbose}{(boolean) print diagnostic messages. Default is FALSE.}
 
 \item{...}{other parameters passed on to internal functions}
+
+\item{base}{(data.table).
+A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+    pID: patientID (character)
+    hID: hospitalID (character)
+    Adate: admission date (POSIXct, but character can be converted to POSIXct)
+    Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 }
 \value{
 The corrected database as data.table.

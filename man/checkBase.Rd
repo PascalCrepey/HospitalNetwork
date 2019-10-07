@@ -4,10 +4,11 @@
 \alias{checkBase}
 \title{General check function}
 \usage{
-checkBase(base, deleteMissing = NULL, convertDates = FALSE,
-  dateFormat = NULL, deleteErrors = NULL, patientID = "pID",
+checkBase(base, convertDates = F, dateFormat = NULL,
+  deleteMissing = NULL, deleteErrors = NULL, patientID = "pID",
   hospitalID = "hID", disDate = "Ddate", admDate = "Adate",
-  maxIteration = 25, returnReport = FALSE, verbose = TRUE, ...)
+  maxIteration = 25, returnReport = FALSE, retainAuxData = FALSE,
+  verbose = TRUE, ...)
 }
 \arguments{
 \item{base}{(data.table).
@@ -17,14 +18,14 @@ A patient discharge database, in the form of a data.table. The data.table should
     Adate: admission date (POSIXct, but character can be converted to POSIXct)
     Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 
+\item{convertDates}{boolean indicating if dates need to be converted to POSIXct if they are not}
+
+\item{dateFormat}{character giving the input format of the date character string}
+
 \item{deleteMissing}{(character) How to handle records that contain a missing value in at least one of the four mandatory variables:
 NULL (default): do not delete. Stops the function with an error message.
 "record": deletes just the incorrect record.
 "patient": deletes all records of each patient with one or more incorrect records.}
-
-\item{convertDates}{boolean indicating if dates need to be converted to POSIXct if they are not}
-
-\item{dateFormat}{character giving the input format of the date character string}
 
 \item{deleteErrors}{(character) How incorrect records should be deleted: 
 "record" deletes just the incorrect record

@@ -4,11 +4,13 @@
 \alias{checkFormat}
 \title{Check database format}
 \usage{
-checkFormat(base, patientID = "pID", hospitalID = "hID",
-  admDate = "Adate", disDate = "Ddate", deleteMissing = NULL,
-  verbose = FALSE)
+checkFormat(report, patientID = "pID", hospitalID = "hID",
+  admDate = "Adate", disDate = "Ddate", convertDates = FALSE,
+  dateFormat = NULL, verbose = TRUE)
 }
 \arguments{
+\item{verbose}{(boolean) print diagnostic messages. Default is FALSE.}
+
 \item{base}{(data.table)
 A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
     pID: patientID (character)
@@ -20,8 +22,6 @@ A patient discharge database, in the form of a data.table. The data.table should
 NULL (default): do not delete. Stops the function with an error message.
 "record": deletes just the incorrect record.
 "patient": deletes all records of each patient with one or more incorrect records.}
-
-\item{verbose}{(boolean) print diagnostic messages. Default is FALSE.}
 }
 \value{
 Returns either an error message, or the database (modified if need be).
