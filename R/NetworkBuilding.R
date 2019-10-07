@@ -82,69 +82,111 @@ matrix_from_edgelist <-
 #'
 #' @export
 #' 
-edgelist_from_patient_database = function(base,
-                              patientID = "pID",
-                              hospitalID = "hID",
-                              admDate = "Adate",
-                              disDate = "Ddate",
-                              noloops = TRUE,
-                              window_threshold = 365,
-                              nmoves_threshold = NULL, 
-                              verbose = FALSE
-                              )
+edgelist_from_base <- function(base,
+                               window_threshold = 0,
+                               count_option = "all",
+                               noloops = TRUE,
+                               nmoves_threshold = NULL, 
+                               patientID = "pID",
+                               hospitalID = "hID",
+                               admDate = "Adate",
+                               disDate = "Ddate",
+                               verbose = FALSE
+                               )
 {
-    #### GET MOVEMENTS OF PATIENTS
-    ## Function to compute time between admissions between EACH PAIR of
-    ## facilities, for ONE individual:
-    #### 1. Sort by admission date
-    #### 2. Take admission date from last record N, and substract ALL previous
-    #### discharge dates (not just the previous one), i.e discharge dates from
-    #### records 1 to N-1
-    #### 3. Then decrement N by 1, and repeat.
+    #=== GET MOVEMENTS OF PATIENTS =====================================================
+    ## This will be computed differently depending on what is our definition
+    ## of a connection
+    ## 1. if window_threshold = 0, this is by definition a direct transfer
+    ## 2. if window_threshold > 0:
+    ##        a. count a connection only for successive stays within the window
+    ##        b. count a connection for all stays within the window
 
-    get_tba = function(x) {
-        N = nrow(x)
-        tba = lapply(1:(N-1), function(i) {
-            vals = list()
-            vals$diff = difftime(time1 = x$Adate[N-i+1],
-                                 time2 = x$Ddate[(N-i):1],
-                                 units = "days")
-            vals$origin = x$hID[(N-i):1]
-            vals$target = x$hID[N-i+1]
-            return(vals)
-        })
-        tba = rbindlist(lapply(tba, as.data.table))
-        return(tba)
+    if (window_threshold == 0) {
+        count_option = "successive"
     }
-
-    data.table::setkeyv(base, c(patientID, admDate))
     N = base[, .N]
-
-    # Compute the times between admissions, by individual
-    if (verbose) cat("Compute frequencies...\n")
-    tba = base[, get_tba(.SD), by = pID]
+    data.table::setkeyv(base, c(patientID, admDate))
     
-    # Filter according to the window threshold
-    DT_links = tba[between(diff, 0, window_threshold), .(pID, origin, target)]
+    #--- Count only for successive stays -------------------------------------------------
+    ## Condition 1: rows n and n+1 must have same patientID (C1)
+    ## Condition 2: time between discharge of row n and admission of row n+1 needs to be
+    ## less than or equal to window_threshold (C2)
+    if (count_option == "successive") {
 
-    # Count the movements across each nodes
-    if (verbose) cat("Compute histogram of movements (edge list)\n")
-    data.table::setkey(DT_links, origin, target)
-    single_links = unique(DT_links[, .(origin, target)])
-    histogr = DT_links[single_links, .N, by = .EACHI] # this is the edge list
+        C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
+        diff = difftime(time1 = base[, get(admDate)][-1],
+                        time2 = base[, get(disDate)][-N],
+                        units = "days")
+        C2 = between(diff, 0, window_threshold)
+
+        ## If all conditions are met, retrieve hospitalID number of row n (origin)
+        if (verbose) cat("Compute origins...\n")
+        origin = base[-N][C1 & C2, .("pID" = get(patientID),
+                                     "origin" = get(hospitalID))]
+
+        ## If all conditions are met, retrieve hospitalID number of row n+1 (target)
+        if (verbose) cat("Compute targets...\n")
+        target = base[-1][C1 & C2, .("target" = get(hospitalID))]
+
+        ## Create DT with each row representing a movement from "origin" to "target"
+        ## this is the edgelist, by individual connections
+        if (verbose) cat("Compute frequencies...\n")
+        el_indiv = data.table(cbind(origin, target)) 
+        
+    } else if (count_option == "all") {
+        #--- Count for all stays ---------------------------------------------------------
+        ## Compute time between admissions between EACH PAIR of facilities, for one
+        ## individual
+        ##    1. Sort by admission date
+        ##    2. Take admission date from last record N, and substract ALL previous
+        ##       discharge dates (not just the previous one), i.e discharge dates from
+        ##       records 1 to N-1
+        ##    3. Then decrement N by 1, and repeat.
+        get_tba = function(x) {
+            N = nrow(x)
+            tba = lapply(1:(N-1), function(i) {
+                vals = list()
+                vals$diff = difftime(time1 = x$Adate[N-i+1],
+                                     time2 = x$Ddate[(N-i):1],
+                                     units = "days")
+                vals$origin = x$hID[(N-i):1]
+                vals$target = x$hID[N-i+1]
+                return(vals)
+            })
+            tba = rbindlist(lapply(tba, as.data.table))
+            return(tba)
+        }
+
+        ## Compute the times between admissions, by individual
+        if (verbose) cat("Compute frequencies...\n")
+        tba = base[, get_tba(.SD), by = pID]
     
+        ## Filter according to the window threshold
+        ## this creates the edgelist, by individual connections
+        el_indiv = tba[between(diff, 0, window_threshold), .(pID, origin, target)]
+    }
+    
+    #--- Aggregate edgelist by node ----------------------------------------------------
+    if (verbose) cat("Compute edgelist...\n")
+    data.table::setkey(el_indiv, origin, target)
+    unique_links = unique(el_indiv[, .(origin, target)])
+    el_aggr = el_indiv[unique_links, .N, by = .EACHI]
+
+    #--- Deal with loops ---------------------------------------------------------------
     if (noloops) {
         if (verbose) cat("Removing loops...\n")
-        # histogr[origin == target, N := 0] # set matrix diagonal to 0 # TD: This delivers an empty list I run it.
-        histogr <- subset(histogr,origin != target)
+        el_indiv = subset(el_indiv, origin != target)
+        el_aggr = subset(el_aggr, origin != target)
     }
     
     if (!is.null(nmoves_threshold)) {
-      if (verbose) cat("Removing edges below nmoves_threshold...\n")
-      histogr = histogr[N >= nmoves_threshold]
+        if (verbose) cat("Removing connections below nmoves_threshold...\n")
+        el_aggr = subset(el_aggr, N >= nmoves_threshold)
     }
 
-    return(histogr)
+    return(list("el_aggr" = el_aggr,
+                "el_indiv" = el_indiv))
 }
 
 
@@ -183,31 +225,29 @@ edgelist_from_patient_database = function(base,
 #' mat
 #' 
 hospinet_from_patient_database <- function(base,
+                                           window_threshold = 0,
+                                           count_option = "all",
+                                           noloops = TRUE,
+                                           nmoves_threshold = NULL, 
                                            patientID = "pID",
                                            hospitalID = "hID",
                                            admDate = "Adate",
                                            disDate = "Ddate",
-                                           noloops = TRUE,
-                                           window_threshold = 365,
-                                           nmoves_threshold = NULL, 
-                                           create_MetricsTable=TRUE,
-                                           verbose = FALSE){
+                                           create_MetricsTable = TRUE,
+                                           verbose = FALSE)
+{
+    edgelists = edgelist_from_base(base = base,
+                                   window_threshold = window_threshold,
+                                   count_option = count_option,
+                                   noloops = noloops,
+                                   nmoves_threshold = nmoves_threshold, 
+                                   patientID = patientID,
+                                   hospitalID = hospitalID,
+                                   admDate = admDate,
+                                   disDate = disDate,
+                                   verbose = verbose)
+                               
   
-  edgelist = edgelist_from_patient_database(base = base,
-                                            patientID = patientID,
-                                            hospitalID = hospitalID,
-                                            admDate = admDate,
-                                            disDate = disDate,
-                                            noloops = noloops,
-                                            window_threshold = window_threshold,
-                                            nmoves_threshold = nmoves_threshold, 
-                                            verbose = verbose)
-  
-  # HospiNet(matrix, edgelist, 
-  #          window_threshold = window_threshold, 
-  #          nmoves_threshold = nmoves_threshold, 
-  #          noloops = noloops)
-  #browser()
   dataSummary = all_admissions_summary(base,
                                      patientID = patientID,
                                      hospitalID = hospitalID,
@@ -219,8 +259,8 @@ hospinet_from_patient_database <- function(base,
                                          hospitalID = hospitalID,
                                          admDate = admDate,
                                          disDate = disDate)
-  
-  HospiNet$new(edgelist,
+
+  HospiNet$new(edgelists$el_aggr,
                window_threshold = window_threshold, 
                nmoves_threshold = nmoves_threshold, 
                noloops = noloops,
