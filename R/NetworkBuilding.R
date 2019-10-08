@@ -10,20 +10,24 @@
 #' 
 #' @import data.table
 #' 
-matrix_from_edgelist <-
-    function(edgelist,
-             origin_name = "origin",
-             target_name = "target",
-             value.var = "N",
-             format.long = F){
+matrix_from_edgelist <- function(edgelist,
+                                 origin_name = "origin",
+                                 target_name = "target",
+                                 value.var = "N",
+                                 format.long = F)
+{
+    if (!"data.table" %in% class(edgelist)) {
+        setDT(edgelist)
+    }
     if (format.long) {
         edgelist = edgelist[, .N, by = c(origin_name, target_name)] # group identical couples
     }
     if (!format.long) {
-        colnames(edgelist)[colnames(edgelist) == value.var] = "N"
+        setnames(edgelist, old = value.var, new = "N")
     }
-    colnames(edgelist)[colnames(edgelist) == origin_name] = "origin"
-    colnames(edgelist)[colnames(edgelist) == target_name] = "target"
+    setnames(edgelist,
+             old = c(origin_name, target_name),
+             new = c("origin", "target"))
 
     ## Some hospitalID are origins but not target, and vice-versa.
     ## They must be added in the respective columns to have a NxN matrix
@@ -33,21 +37,25 @@ matrix_from_edgelist <-
     missing_origin = setdiff(to, from)
     missing_target = setdiff(from, to)
 
-    if(length(missing_origin) + length(missing_target) > 0){
-      missing = data.table("origin" = c(missing_origin, missing_target),
-                           "target" = c(missing_origin, missing_target),
-                           'N' = 0)
-      complete = data.table::rbindlist(list(edgelist, missing))
-    }else{
+    if(length(missing_origin) + length(missing_target) > 0) {
+        missing = data.table("origin" = c(missing_origin, missing_target),
+                             "target" = c(missing_origin, missing_target),
+                             'N' = 0)
+        complete = data.table::rbindlist(list(edgelist, missing))
+    } else {
       #if nothing is missing
-      complete = edgelist
+        complete = edgelist
     }
     
-    DT_trans = data.table::dcast.data.table(complete, origin ~ target,
-                                drop = F, fill = 0, value.var = 'N')
+    DT_trans = data.table::dcast.data.table(complete,
+                                            origin ~ target,
+                                            drop = F,
+                                            fill = 0,
+                                            value.var = 'N')
     DT_trans[, origin := NULL]
-        matrix = as.matrix(DT_trans)
+    matrix = as.matrix(DT_trans)
     rownames(matrix) = colnames(matrix)
+
     return(matrix)
 }
 
