@@ -62,7 +62,7 @@ matrix_from_edgelist <- function(edgelist,
 
 #' Create an edge list from a patient database
 #' 
-#' This function creates the list of edges of the network from a patient discharge database. 
+#' This function creates the list of edges of the network from a database of stays of subjects in facilities. 
 #' 
 #' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
@@ -71,30 +71,35 @@ matrix_from_edgelist <- function(edgelist,
 #'        * hospitalID (character)
 #'        * admDate (date)
 #'        * disDate (date)
-#'        
+#' @param window_threshold (integer) A number of days. If two stays of a subject at two facilities occured within this window, this constitutes a connection between the two facilities (given that potential other conditions are met).
+#' @param count_option (character) How to count connections. Either "successive" or "all". See details.
+#' @param condition (character) Condition(s) used to decide what constitutes a connection. Can be "dates", "flags", or "both". See details.
+#' @param noloops (boolean).
+#'     Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).
+#' @param nmoves_threshold (numeric)
+#'     A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.
+#' @param flag_vars (list) Additional variables that can help flag a transfer, besides the dates of admission and discharge. Must be a named list of two character vectors which are the names of the columns that can flag a transfer: the column that can flag a potential origin, and the column that can flag a potential target. The list must be named with "origin" and "transfer". Eg: list("origin" = "var1", "target" = "var2"). See details.
+#' @param flag_values (list) A named list of two character vectors which contain the values of the variables in flag_var that are matched to flag a potential transfer. The list must be named with "origin" and "transfer". The character vectors might be of length greater than one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2", "value2")). The values in 'origin' and 'target' are the values that flag a potential origin of a transfer, or a potential target, respectively. See details.
 #' @param patientID (character)
 #' @param hospitalID (character)
 #' @param admDate (character)
 #' @param disDate (character)
 #'      Change the default names of the base columns.
-#'      
-#' @param noloops (boolean).
-#'     Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).
-#' @param window_threshold (numeric)
-#'     A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.
-#' @param nmoves_threshold (numeric)
-#'     A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.
 #' @param verbose TRUE to print computation steps
 #' 
-#' @return The edge list in the form of a data.table.
+#' @return A list of two data.tables, which are the edgelists. One in long format (el_long), and one aggregated by pair of nodes (el_aggr).
 #'
+#' @details TODO
 #' @export
 #' 
 edgelist_from_base <- function(base,
-                               window_threshold = 0,
-                               count_option = "all",
+                               window_threshold,
+                               count_option,
+                               condition,
                                noloops = TRUE,
-                               nmoves_threshold = NULL, 
+                               nmoves_threshold = NULL,
+                               flag_vars = NULL,
+                               flag_values = NULL,
                                patientID = "pID",
                                hospitalID = "hID",
                                admDate = "Adate",
@@ -109,9 +114,8 @@ edgelist_from_base <- function(base,
     ## 2. if window_threshold > 0:
     ##        a. count a connection only for successive stays within the window
     ##        b. count a connection for all stays within the window
-
-    if (window_threshold == 0) {
-        count_option = "successive"
+    if (!"data.table" %in% class(base)) {
+        setDT(base)
     }
     N = base[, .N]
     data.table::setkeyv(base, c(patientID, admDate))
@@ -128,19 +132,38 @@ edgelist_from_base <- function(base,
                         units = "days")
         C2 = between(diff, 0, window_threshold)
 
-        ## If all conditions are met, retrieve hospitalID number of row n (origin)
-        if (verbose) cat("Compute origins...\n")
-        origin = base[-N][C1 & C2, .("pID" = get(patientID),
-                                     "origin" = get(hospitalID))]
+        if (!is.null(flag_vars)) {
+            # Use additional variables to flag direct transfer
+            C3a = base[, get(flag_vars$origin)][-N] %in% flag_values$origin
+            C3b = base[, get(flag_vars$target)][-1] %in% flag_values$target
+            C3 = C3a & C3b
+        }
 
-        ## If all conditions are met, retrieve hospitalID number of row n+1 (target)
-        if (verbose) cat("Compute targets...\n")
-        target = base[-1][C1 & C2, .("target" = get(hospitalID))]
-
+        ##--- Compute origins and targets based on conditions ----------------------------
+        if (verbose) cat("Compute origins and targets...\n")
+        ## Compute connections only using dates
+        if (condition == "dates") {
+            origin = base[-N][C1 & C2, .("pID" = get(patientID),
+                                         "origin" = get(hospitalID))]
+            target = base[-1][C1 & C2, .("target" = get(hospitalID))]
+        } else if (condition == "flags") {
+        ## Compute connections only using flags
+            origin = base[-N][C1 & C3, .("pID" = get(patientID),
+                                         "origin" = get(hospitalID))]
+            target = base[-1][C1 & C3, .("target" = get(hospitalID))]
+        } else if (condition == "both") {
+        ## Compute connections using both dates and flags
+            origin = base[-N][C1 & C2 & C3, .("pID" = get(patientID),
+                                              "origin" = get(hospitalID))]
+            target = base[-1][C1 & C2 & C3, .("target" = get(hospitalID))]
+        } else { 
+            stop("Argument 'condition' must be set to 'dates', 'flags', or 'both'")
+        }
+                    
         ## Create DT with each row representing a movement from "origin" to "target"
         ## this is the edgelist, by individual connections
         if (verbose) cat("Compute frequencies...\n")
-        el_indiv = data.table(cbind(origin, target)) 
+        el_long = data.table(cbind(origin, target)) 
         
     } else if (count_option == "all") {
         #--- Count for all stays ---------------------------------------------------------
@@ -172,19 +195,18 @@ edgelist_from_base <- function(base,
     
         ## Filter according to the window threshold
         ## this creates the edgelist, by individual connections
-        el_indiv = tba[between(diff, 0, window_threshold), .(pID, origin, target)]
+        el_long = tba[between(diff, 0, window_threshold), .(pID, origin, target)]
     }
     
     #--- Aggregate edgelist by node ----------------------------------------------------
     if (verbose) cat("Compute edgelist...\n")
-    data.table::setkey(el_indiv, origin, target)
-    unique_links = unique(el_indiv[, .(origin, target)])
-    el_aggr = el_indiv[unique_links, .N, by = .EACHI]
+    data.table::setkey(el_long, origin, target)
+    el_aggr = el_long[, .N, by = c("origin", "target")]
 
     #--- Deal with loops ---------------------------------------------------------------
     if (noloops) {
         if (verbose) cat("Removing loops...\n")
-        el_indiv = subset(el_indiv, origin != target)
+        el_long = subset(el_long, origin != target)
         el_aggr = subset(el_aggr, origin != target)
     }
     
@@ -194,7 +216,7 @@ edgelist_from_base <- function(base,
     }
 
     return(list("el_aggr" = el_aggr,
-                "el_indiv" = el_indiv))
+                "el_long" = el_long))
 }
 
 
@@ -233,10 +255,13 @@ edgelist_from_base <- function(base,
 #' mat
 #' 
 hospinet_from_patient_database <- function(base,
-                                           window_threshold = 0,
-                                           count_option = "all",
+                                           window_threshold,
+                                           count_option,
+                                           condition,
                                            noloops = TRUE,
-                                           nmoves_threshold = NULL, 
+                                           nmoves_threshold = NULL,
+                                           flag_vars = NULL,
+                                           flag_values = NULL,
                                            patientID = "pID",
                                            hospitalID = "hID",
                                            admDate = "Adate",
@@ -247,8 +272,11 @@ hospinet_from_patient_database <- function(base,
     edgelists = edgelist_from_base(base = base,
                                    window_threshold = window_threshold,
                                    count_option = count_option,
+                                   condition = condition,
                                    noloops = noloops,
-                                   nmoves_threshold = nmoves_threshold, 
+                                   nmoves_threshold = nmoves_threshold,
+                                   flag_vars = flag_vars,
+                                   flag_values = flag_values,
                                    patientID = patientID,
                                    hospitalID = hospitalID,
                                    admDate = admDate,
