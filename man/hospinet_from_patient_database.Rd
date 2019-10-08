@@ -4,9 +4,10 @@
 \alias{hospinet_from_patient_database}
 \title{Create HospiNet object from patient database}
 \usage{
-hospinet_from_patient_database(base, patientID = "pID",
+hospinet_from_patient_database(base, window_threshold, count_option,
+  condition, noloops = TRUE, nmoves_threshold = NULL,
+  flag_vars = NULL, flag_values = NULL, patientID = "pID",
   hospitalID = "hID", admDate = "Adate", disDate = "Ddate",
-  noloops = TRUE, window_threshold = 365, nmoves_threshold = NULL,
   create_MetricsTable = TRUE, verbose = FALSE)
 }
 \arguments{
@@ -19,17 +20,17 @@ A patient discharge database, in the form of a data.table. The data.table should
    \item disDate (date)
    }}
 
-\item{patientID, hospitalID, admDate, disDate}{(character)
-Change the default names of the base columns.}
+\item{window_threshold}{(numeric)
+A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.}
 
 \item{noloops}{(boolean).
 Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).}
 
-\item{window_threshold}{(numeric)
-A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.}
-
 \item{nmoves_threshold}{(numeric)
 A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.}
+
+\item{patientID, hospitalID, admDate, disDate}{(character)
+Change the default names of the base columns.}
 
 \item{create_MetricsTable}{(boolean)
 Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.}

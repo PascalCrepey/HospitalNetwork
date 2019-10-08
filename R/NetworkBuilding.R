@@ -107,6 +107,52 @@ edgelist_from_base <- function(base,
                                verbose = FALSE
                                )
 {
+    #--- Check arguments ---------------------------------------------------------------
+    checks = makeAssertCollection()
+    assertDataFrame(base, add = checks)
+    assertTRUE(ncol(base) >= 4, add = checks)
+    assertPOSIXct(base[[admDate]], add = checks)
+    assertPOSIXct(base[[disDate]], add = checks)
+    assertCount(window_threshold, add = checks)
+    assertChoice(count_option, c("all", "successive"), add = checks)
+    assertLogical(noloops, add = checks)
+    assertCount(nmoves_threshold, null.ok = T, add = checks)    
+    assertChoice(condition, c("dates", "flags", "both"), add = checks)
+    assertCharacter(patientID, len = 1, add = checks)
+    assertCharacter(hospitalID, len = 1, add = checks)
+    assertCharacter(admDate, len = 1, add = checks)
+    assertCharacter(disDate, len = 1, add = checks)
+    assertLogical(verbose, add = checks)
+    if (any(!is.null(flag_vars), !is.null(flag_values))) {
+        if (is.null(flag_vars)) stop("If flag_values is provided, flag_vars must be provided too.")
+        if (is.null(flag_values)) stop("If flag_vars is provided, flag_values must be provided too.")
+        assertList(flag_vars, len = 2, unique = T, names = "strict", null.ok = T, add = checks)
+        assertSetEqual(names(flag_vars), c("origin", "target"), add = checks)
+        assertSubset(unlist(flag_vars), colnames(base), add = checks)
+        assertList(flag_values, len = 2, names = "strict", null.ok = T, add = checks)
+        assertSetEqual(names(flag_values), c("origin", "target"), add = checks)
+        assertSubset(flag_values$origin, base[[flag_vars$origin]], add = checks)
+        if (count_option == "all") message("Count option is all, therefore ignoring flags")
+        if (!any(flag_values$origin %in% base[[flag_vars$origin]])) {
+            warning("None of the values provided for origin in flag_values was found in ", flag_vars$origin)
+        }
+        if (!any(flag_values$target %in% base[[flag_vars$target]])) {
+            warning("None of the values provided for target in flag_values was found in ", flag_vars$target)
+        }
+    }
+    reportAssertions(checks)
+    if (is.null(flag_vars) & is.null(flag_values) & condition %in% c("flags", "both")) {
+        stop("You want to compute connections using flag variables but you have not specified any. Please specify 'flag_vars' and 'flag_values', or set argument 'condition' to 'dates'")
+    }
+    # Messages
+    if (condition == "flags") {
+        message("Using only flag variables to compute connections. Therefore ignoring window threshold")
+    }
+    if (window_threshold == 0 & count_option == "all") {
+        message("Window_threshold = 0 automatically sets count_option to 'successive'")
+        count_option = "successive"
+    }
+    
     #=== GET MOVEMENTS OF PATIENTS =====================================================
     ## This will be computed differently depending on what is our definition
     ## of a connection
