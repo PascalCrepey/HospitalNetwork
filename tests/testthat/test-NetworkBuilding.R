@@ -1,6 +1,6 @@
-#context("Testing the network content\n")
+#context("Testing the network building\n")
 
-## Create fake base with a specific number of connections
+##--- Create fake base with a specific number of connections -------------------
 pID = sort(paste0("p0", rep(1:9,2)))
 hID = rep(paste0("h", 1:2), 9)
 base = data.table("pID" = pID, "hID" = hID)
@@ -70,88 +70,156 @@ base[, `:=`(Adate = lubridate::parse_date_time(Adate, orders = "ymd"),
 ## Case H. If window = 42 -> 10 (C + p08*2)
 ## Case I. If window = 365 -> 13 (E + p08*3)
 
+elA = edgelist_from_base(base,
+                         window_threshold = 0,
+                         count_option = "successive",
+                         condition = "dates")
+elB = edgelist_from_base(base,
+                         window_threshold = 0,
+                         count_option = "successive",
+                         condition = "both",
+                         flag_vars = list("origin" = "modeOUT",
+                                          "target" = "modeIN"),
+                         flag_values = list("origin" = c("transfer", "mutation"),
+                                            "target" = c("transfer", "mutation")))
+elC = edgelist_from_base(base,
+                         window_threshold = 42,
+                         count_option = "successive",
+                         condition = "dates")
+elD = edgelist_from_base(base,
+                         window_threshold = 42,
+                         count_option = "successive",
+                         condition = "both",
+                         flag_vars = list("origin" = "modeOUT",
+                                          "target" = "modeIN"),
+                         flag_values = list("origin" = c("transfer", "mutation"),
+                                            "target" = c("transfer", "mutation")))
+elE = edgelist_from_base(base,
+                         window_threshold = 365,
+                         count_option = "successive",
+                         condition = "dates")
+elF = edgelist_from_base(base,
+                         window_threshold = 365,
+                         count_option = "successive",
+                         condition = "both",
+                         flag_vars = list("origin" = "modeOUT",
+                                          "target" = "modeIN"),
+                         flag_values = list("origin" = c("transfer", "mutation"),
+                                            "target" = c("transfer", "mutation")))
+elG = edgelist_from_base(base,
+                         window_threshold = 0,
+                         count_option = "successive",
+                         condition = "flags",
+                         flag_vars = list("origin" = "modeOUT",
+                                          "target" = "modeIN"),
+                         flag_values = list("origin" = c("transfer", "mutation"),
+                                            "target" = c("transfer", "mutation")))
+elH = edgelist_from_base(base,
+                         window_threshold = 42,
+                         count_option = "all",
+                         condition = "dates")
+elI = edgelist_from_base(base,
+                         window_threshold = 365,
+                         count_option = "all",
+                         condition = "dates")
+
+## TEST EDGELISTS
 test_that("edgelist_from_base() computes the right number of connections", {
-    # Case A
-    elA = edgelist_from_base(base,
-                             window_threshold = 0,
-                             count_option = "successive",
-                             condition = "dates")
     expect_equal(elA$el_long$pID, c("p01", "p02")) 
-    # Case B
-    elB = edgelist_from_base(base,
-                             window_threshold = 0,
-                             count_option = "successive",
-                             condition = "both",
-                             flag_vars = list("origin" = "modeOUT",
-                                             "target" = "modeIN"),
-                             flag_values = list("origin" = c("transfer", "mutation"),
-                                                "target" = c("transfer", "mutation")))
     expect_equal(elB$el_long$pID, "p01") 
-    # Case C
-    elC = edgelist_from_base(base,
-                             window_threshold = 42,
-                             count_option = "successive",
-                             condition = "dates")
     expect_equal(elC$el_long$pID, c("p01", "p02", "p03", "p04", "p05", rep("p08", 3)))
-    # Case D
-    elD = edgelist_from_base(base,
-                             window_threshold = 42,
-                             count_option = "successive",
-                             condition = "both",
-                             flag_vars = list("origin" = "modeOUT",
-                                              "target" = "modeIN"),
-                             flag_values = list("origin" = c("transfer", "mutation"),
-                                                "target" = c("transfer", "mutation")))
-     expect_equal(elD$el_long$pID, c("p01", "p03", "p05"))
-     # Case E
-     elE = edgelist_from_base(base,
-                              window_threshold = 365,
-                              count_option = "successive",
-                              condition = "dates")
-     expect_equal(elE$el_long$pID, c("p01", "p02", "p03", "p04", "p05", "p06", "p07", rep("p08", 3)))
-     # Case F
-     elF = edgelist_from_base(base,
-                              window_threshold = 365,
-                              count_option = "successive",
-                              condition = "both",
-                              flag_vars = list("origin" = "modeOUT",
-                                               "target" = "modeIN"),
-                              flag_values = list("origin" = c("transfer", "mutation"),
-                                                 "target" = c("transfer", "mutation")))
-     expect_equal(elF$el_long$pID, c("p01", "p03", "p05", "p07"))
-     # Case G
-     elG = edgelist_from_base(base,
-                              window_threshold = 0,
-                              count_option = "successive",
-                              condition = "flags",
-                              flag_vars = list("origin" = "modeOUT",
-                                               "target" = "modeIN"),
-                              flag_values = list("origin" = c("transfer", "mutation"),
-                                                 "target" = c("transfer", "mutation")))
-     expect_equal(elG$el_long$pID, c("p01", "p03", "p05", "p07"))
-     # Case H
-     elH = edgelist_from_base(base,
-                              window_threshold = 42,
-                              count_option = "all",
-                              condition = "dates")
-     expect_equal(elH$el_long$pID, c("p01", "p02", "p03", "p04", "p05", rep("p08", 5)))
-     # Case I
-     elI = edgelist_from_base(base,
-                              window_threshold = 365,
-                              count_option = "all",
-                              condition = "dates")
-     expect_equal(elI$el_long$pID, c("p01", "p02", "p03", "p04", "p05", "p06", "p07", rep("p08", 6)))
+    expect_equal(elD$el_long$pID, c("p01", "p03", "p05"))
+    expect_equal(elE$el_long$pID, c("p01", "p02", "p03", "p04", "p05", "p06", "p07", rep("p08", 3)))
+    expect_equal(elF$el_long$pID, c("p01", "p03", "p05", "p07"))
+    expect_equal(elG$el_long$pID, c("p01", "p03", "p05", "p07"))
+    expect_equal(elH$el_long$pID, c("p01", "p02", "p03", "p04", "p05", rep("p08", 5)))
+    expect_equal(elI$el_long$pID, c("p01", "p02", "p03", "p04", "p05", "p06", "p07", rep("p08", 6)))
+    #
+    expect_equal(elA$el_aggr$N, 2)
+    expect_equal(elB$el_aggr$N, 1)
+    expect_equal(elC$el_aggr$N, c(6,1,1))
+    expect_equal(elD$el_aggr$N, 3)
+    expect_equal(elE$el_aggr$N, c(8,1,1))
+    expect_equal(elF$el_aggr$N, 4)
+    expect_equal(elG$el_aggr$N, 4)
+    expect_equal(elH$el_aggr$N, c(6,1,1,1,1))
+    expect_equal(elI$el_aggr$N, c(8,1,1,1,1,1))
 })
 
-# Test hospinet
-hnet = hospinet_from_patient_database(base = base,
-                                      window_threshold = 0,
-                                      count_option = "all",
-                                      condition = "dates",
-                                      noloops = FALSE)
-test_that("the network contains the right number of hospitals", {
-    expect_equal(nrow(hnet$matrix), 4)
+## TEST MATRICES
+test_that("matrix_from_edgelist() computed the right matrix", {
+    suppressWarnings({
+        mA = matrix_from_edgelist(elA$el_long, count = NULL, format_long = T)
+        mB = matrix_from_edgelist(elB$el_long, count = NULL, format_long = T)
+        mC = matrix_from_edgelist(elC$el_long, count = NULL, format_long = T)
+        mD = matrix_from_edgelist(elD$el_long, count = NULL, format_long = T)
+        mE = matrix_from_edgelist(elE$el_long, count = NULL, format_long = T)
+        mF = matrix_from_edgelist(elF$el_long, count = NULL, format_long = T)
+        mG = matrix_from_edgelist(elG$el_long, count = NULL, format_long = T)
+        mH = matrix_from_edgelist(elH$el_long, count = NULL, format_long = T)
+        mI = matrix_from_edgelist(elI$el_long, count = NULL, format_long = T)
+        ##
+        mA2 = matrix_from_edgelist(elA$el_aggr, count = 'N', format_long = F)
+        mB2 = matrix_from_edgelist(elB$el_aggr, count = 'N', format_long = F)
+        mC2 = matrix_from_edgelist(elC$el_aggr, count = 'N', format_long = F)
+        mD2 = matrix_from_edgelist(elD$el_aggr, count = 'N', format_long = F)
+        mE2 = matrix_from_edgelist(elE$el_aggr, count = 'N', format_long = F)
+        mF2 = matrix_from_edgelist(elF$el_aggr, count = 'N', format_long = F)
+        mG2 = matrix_from_edgelist(elG$el_aggr, count = 'N', format_long = F)
+        mH2 = matrix_from_edgelist(elH$el_aggr, count = 'N', format_long = F)
+        mI2 = matrix_from_edgelist(elI$el_aggr, count = 'N', format_long = F)
+    })
+    expect_equal(mA["h1", "h2"], 2)
+    expect_equal(mB["h1", "h2"], 1)
+    expect_equal(c(mC["h1", "h2"], mC["h2", "h3"], mC["h3", "h4"]), c(6, 1, 1))
+    expect_equal(mD["h1", "h2"], 3)
+    expect_equal(c(mE["h1", "h2"], mE["h2", "h3"], mE["h3", "h4"]), c(8, 1, 1))
+    expect_equal(mF["h1", "h2"], 4)
+    expect_equal(mG["h1", "h2"], 4)
+    expect_equal(c(mH["h1", "h2"],
+                   mH['h1','h3'],
+                   mH['h2','h3'],
+                   mH['h2','h4'],
+                   mH['h3','h4']),
+                 c(6, 1, 1, 1, 1))
+    expect_equal(c(mI["h1","h2"],
+                   mI['h1','h3'],
+                   mI['h1','h4'],
+                   mH['h2','h3'],
+                   mH['h2','h4'],
+                   mH['h3','h4']),
+                 c(8, 1, 1, 1, 1, 1))
+    expect_equal(mA,mA2)
+    expect_equal(mB,mB2)
+    expect_equal(mC,mC2)
+    expect_equal(mD,mD2)
+    expect_equal(mE,mE2)
+    expect_equal(mF,mF2)
+    expect_equal(mG,mG2)
+    expect_equal(mH,mH2)
+    expect_equal(mI,mI2)
 })
+
+test_that("matrix_from_base() computes the right matrix", {
+    # only one test because this is a simple wrapper function of the two others
+    mC = matrix_from_base(base,
+                          window_threshold = 42,
+                          count_option = "successive",
+                          condition = "dates")
+    expect_equal(c(mC["h1", "h2"], mC["h2", "h3"], mC["h3", "h4"]), c(6, 1, 1))
+})
+
+
+
+## # Test hospinet
+## hnet = hospinet_from_patient_database(base = base,
+##                                       window_threshold = 0,
+##                                       count_option = "all",
+##                                       condition = "dates",
+##                                       noloops = FALSE)
+## test_that("the network contains the right number of hospitals", {
+##     expect_equal(nrow(hnet$matrix), 4)
+## })
 
 ## test_that("the network contains the right number of movements", {
 ##   expect_equal(sum(mydb[, .N - 1, by = pID]$V1), sum(hnet$matrix))
