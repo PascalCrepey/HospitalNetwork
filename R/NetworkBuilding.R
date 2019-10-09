@@ -152,33 +152,59 @@ matrix_from_base <- function(base,
     return(matrix)
 }
 
+
+#' Compute the edgelist of a network from a database of movements records.
+#'
+#' This function computes the edgelist of a network of facilities across
+#' which subjects can be transfered. The edgelist is computed from a database that
+#' contains the records of the subjects' stays in the facilities.
 #' 
-#' @param base (data.table).
-#'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-#'     
-#'        * patientID (character)
-#'        * hospitalID (character)
-#'        * admDate (date)
-#'        * disDate (date)
-#' @param window_threshold (integer) A number of days. If two stays of a subject at two facilities occured within this window, this constitutes a connection between the two facilities (given that potential other conditions are met).
-#' @param count_option (character) How to count connections. Either "successive" or "all". See details.
-#' @param condition (character) Condition(s) used to decide what constitutes a connection. Can be "dates", "flags", or "both". See details.
-#' @param noloops (boolean).
-#'     Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).
-#' @param nmoves_threshold (numeric)
-#'     A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.
-#' @param flag_vars (list) Additional variables that can help flag a transfer, besides the dates of admission and discharge. Must be a named list of two character vectors which are the names of the columns that can flag a transfer: the column that can flag a potential origin, and the column that can flag a potential target. The list must be named with "origin" and "transfer". Eg: list("origin" = "var1", "target" = "var2"). See details.
-#' @param flag_values (list) A named list of two character vectors which contain the values of the variables in flag_var that are matched to flag a potential transfer. The list must be named with "origin" and "transfer". The character vectors might be of length greater than one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2", "value2")). The values in 'origin' and 'target' are the values that flag a potential origin of a transfer, or a potential target, respectively. See details.
+#' @param base (data.table) A database of records of stays of subjects in
+#'     facilities. The table should have at least the following columns:
+#'     \itemize{ \item\bold{patientID} (character) unique subject identifier
+#'     \item\bold{hospitalID} (character) unique facility identifier
+#'     \item\bold{admDate} (POSIXct) date of admission in the facility
+#'     \item\bold{disDate} (POSIXct) date of discharge of the facility }
+#' @param window_threshold (integer) A number of days. If two stays of a subject
+#'     at two facilities occured within this window, this constitutes a
+#'     connection between the two facilities (given that potential other
+#'     conditions are met).
+#' @param count_option (character) How to count connections. Either "successive"
+#'     or "all". See details.
+#' @param condition (character) Condition(s) used to decide what constitutes a
+#'     connection. Can be "dates", "flags", or "both". See details.
+#' @param noloops (boolean). Should transfers within the same nodes (loops) be
+#'     kept or set to 0. Defaults to TRUE, removing loops (setting matrix
+#'     diagonal to 0).
+#' @param nmoves_threshold (numeric) A threshold for the minimum number of
+#'     patient transfer between two hospitals. Set to NULL to deactivate,
+#'     default to NULL.
+#' @param flag_vars (list) Additional variables that can help flag a transfer,
+#'     besides the dates of admission and discharge. Must be a named list of two
+#'     character vectors which are the names of the columns that can flag a
+#'     transfer: the column that can flag a potential origin, and the column
+#'     that can flag a potential target. The list must be named with "origin"
+#'     and "transfer". Eg: list("origin" = "var1", "target" = "var2"). See
+#'     details.
+#' @param flag_values (list) A named list of two character vectors which contain
+#'     the values of the variables in flag_var that are matched to flag a
+#'     potential transfer. The list must be named with "origin" and
+#'     "transfer". The character vectors might be of length greater than
+#'     one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2",
+#'     "value2")). The values in 'origin' and 'target' are the values that flag
+#'     a potential origin of a transfer, or a potential target,
+#'     respectively. See details.
 #' @param patientID (character)
 #' @param hospitalID (character)
 #' @param admDate (character)
-#' @param disDate (character)
-#'      Change the default names of the base columns.
+#' @param disDate (character) Change the default names of the base columns.
 #' @param verbose TRUE to print computation steps
 #' 
-#' @return A list of two data.tables, which are the edgelists. One in long format (el_long), and one aggregated by pair of nodes (el_aggr).
+#' @return A list of two data.tables, which are the edgelists. One in long
+#'     format (el_long), and one aggregated by pair of nodes (el_aggr).
 #'
 #' @details TODO
+#' @seealso \code{\link{matrix_from_edgelist}}, \code{\link{matrix_from_base}}
 #' @export
 #' 
 edgelist_from_base <- function(base,
