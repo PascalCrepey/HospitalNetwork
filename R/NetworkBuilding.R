@@ -99,9 +99,59 @@ matrix_from_edgelist <- function(edgelist,
 }
 
 
-#' Create an edge list from a patient database
-#' 
-#' This function creates the list of edges of the network from a database of stays of subjects in facilities. 
+#' Compute the adjacency matrix of a network from a database of movements records.
+#'
+#' This function computes the adjacency matrix of a network of facilities across
+#' which subjects can be transfered. The matrix is computed from a database that
+#' contains the records of the subjects' stays in the facilities. This function
+#' is a simple wrapper around the two functions
+#' \code{\link{edgelist_from_base}}, which computes the edgelist of the network
+#' from the database, and \code{\link{matrix_from_edgelist}}, which converts the
+#' edgelist into the adjacency matrix.
+#'
+#' @inheritParams edgelist_from_base
+#' @return A square matrix, the adjacency matrix of the network.
+#' @details TODO
+#' @seealso \code{\link{edgelist_from_base}}, \code{\link{matrix_from_edgelist}}
+#' @export
+matrix_from_base <- function(base,
+                             window_threshold,
+                             count_option,
+                             condition,
+                             noloops = TRUE,
+                             nmoves_threshold = NULL,
+                             flag_vars = NULL,
+                             flag_values = NULL,
+                             patientID = "pID",
+                             hospitalID = "hID",
+                             admDate = "Adate",
+                             disDate = "Ddate",
+                             verbose = FALSE)
+{
+    # First, compute edgelist from base
+    edgelists = edgelist_from_base(base = base,
+                                   window_threshold = window_threshold,
+                                   count_option = count_option,
+                                   condition = condition,
+                                   noloops = noloops,
+                                   nmoves_threshold = nmoves_threshold,
+                                   flag_vars = flag_vars,
+                                   flag_values = flag_values,
+                                   patientID = patientID,
+                                   hospitalID = hospitalID,
+                                   admDate = admDate,
+                                   disDate = disDate,
+                                   verbose = verbose)
+    # Second, compute matrix from edgelist
+    matrix = matrix_from_edgelist(edgelists$el_aggr,
+                                  origin_name = "origin",
+                                  target_name = "target",
+                                  count = "N",
+                                  format_long = F)
+
+    return(matrix)
+}
+
 #' 
 #' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:

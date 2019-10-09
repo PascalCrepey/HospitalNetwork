@@ -5,7 +5,7 @@
 \title{Compute the adjacency matrix of a network from its edgelist}
 \usage{
 matrix_from_edgelist(edgelist, origin_name = "origin",
-  target_name = "target", count = "N", format_long = F)
+  target_name = "target", count, format_long = F)
 }
 \arguments{
 \item{edgelist}{(data.table) A table containing the edges (or links) of the
