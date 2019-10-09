@@ -1,29 +1,68 @@
+###########################################################
+## MAIN FUNCTIONS THAT COMPUTE THE NETWORK FROM THE BASE ##
+###########################################################
 
-#' Create an adjacency matrix from an edgelist
+#' Compute the adjacency matrix of a network from its edgelist
 #'
-#' @param edgelist a list of edges corresponding to hospital transfers
-#' @param origin_name the name of the variable containing the origin hospital id
-#' @param target_name the name of the variable containing the target hospital id
-#' @param value.var the name of the variable containing the number of transfers
-#' @param format.long specify if the number of moves needs to be computed (TRUE) or is already present (FALSE)
+#' @param edgelist (data.table) A table containing the edges (or links) of the
+#'     network, i.e. representing the movements of subjects between
+#'     facilities. Either in long format with at least two columns (origin and
+#'     target facilities of a link), each row corresponding to a single
+#'     movement, or aggregated by unique pairs of origin/target, therefore with
+#'     an additional variable for movements count (default). See details.
+#' @param origin_name (character) Column of the origin facilities of the links.
+#' @param target_name (character) Column of the target facilities of the links.
+#' @param count (character) Column of the counts of movements by unique pair of
+#'     facilities.
+#' @param format_long (logical) Whether the edgelist is in long format, with
+#'     each row corresponding to a single movement. If TRUE, the edgelist will
+#'     be aggregated by unique pairs of facilities to compute the matrix.
+#' @return A square numeric matrix, the ajacency matrix of the network.
+#' @details The edgelist contains the information on the connections between
+#'     nodes of the network, that is the movements of subjects between
+#'     facilities. The edgelist can be in two different formats: long or
+#'     aggregated. In long format, each row corresponds to a single movement
+#'     between two facilities, therefore only two columns are needed, one
+#'     containing the origin facilities of a movement, the other containing the
+#'     target facilities. In aggregated format, the edgelist is aggregated by
+#'     unique pairs of origin-target facilities. Thus, each row corresponds to a
+#'     unique connection between two facilities, and the table contains an
+#'     additional variable which is the count of the number of movements
+#'     recorded for the pair. If the edgelist is provided in long format, it
+#'     will be aggregated to compute the matrix.
+#' @seealso \code{\link{edgelist_from_base}}, \code{\link{matrix_from_base}}
 #' @export
-#' 
 #' @import data.table
 #' 
 matrix_from_edgelist <- function(edgelist,
                                  origin_name = "origin",
                                  target_name = "target",
-                                 value.var = "N",
-                                 format.long = F)
+                                 count,
+                                 format_long = F)
 {
+    #--- Check arguments -----------------------------------------------------------
+    checks = makeAssertCollection()
+    cols = colnames(edgelist)
+    assertDataFrame(edgelist, add = checks)
+    assertTRUE(ncol(edgelist) >= 2, add = checks)
+    assertCharacter(origin_name, len = 1, add = checks)
+    assertChoice(origin_name, cols, add = checks)
+    assertCharacter(target_name, len = 1, add = checks)
+    assertChoice(target_name, cols, add = checks)
+    assertCharacter(count, len = 1, null.ok = T, add = checks)
+    assertChoice(count, cols, null.ok = T, add = checks)
+    assertLogical(format_long, add = checks)
+    reportAssertions(checks)
     if (!"data.table" %in% class(edgelist)) {
         setDT(edgelist)
     }
-    if (format.long) {
+    if (format_long) {
+        if (!is.null(count)) stop("The edgelist is said to be in long format, but a count variable was provived. Please verify the format of the edgelist, and either set 'count' to NULL (if long format) or 'format_long' to FALSE.")
+        if (ncol(edgelist) > 2) warning("The edgelist is said to be in long format, but it contains more than two columns. Please make sure that this is intended, and that you do need to aggregate it, or it could lead to incorrect results.")
         edgelist = edgelist[, .N, by = c(origin_name, target_name)] # group identical couples
     }
-    if (!format.long) {
-        setnames(edgelist, old = value.var, new = "N")
+    if (!format_long) {
+        setnames(edgelist, old = count, new = "N")
     }
     setnames(edgelist,
              old = c(origin_name, target_name),
@@ -51,7 +90,7 @@ matrix_from_edgelist <- function(edgelist,
                                             origin ~ target,
                                             drop = F,
                                             fill = 0,
-                                            value.var = 'N')
+                                            count = 'N')
     DT_trans[, origin := NULL]
     matrix = as.matrix(DT_trans)
     rownames(matrix) = colnames(matrix)

@@ -2,22 +2,50 @@
 % Please edit documentation in R/NetworkBuilding.R
 \name{matrix_from_edgelist}
 \alias{matrix_from_edgelist}
-\title{Create an adjacency matrix from an edgelist}
+\title{Compute the adjacency matrix of a network from its edgelist}
 \usage{
 matrix_from_edgelist(edgelist, origin_name = "origin",
-  target_name = "target", value.var = "N", format.long = F)
+  target_name = "target", count = "N", format_long = F)
 }
 \arguments{
-\item{edgelist}{a list of edges corresponding to hospital transfers}
+\item{edgelist}{(data.table) A table containing the edges (or links) of the
+network, i.e. representing the movements of subjects between
+facilities. Either in long format with at least two columns (origin and
+target facilities of a link), each row corresponding to a single
+movement, or aggregated by unique pairs of origin/target, therefore with
+an additional variable for movements count (default). See details.}
 
-\item{origin_name}{the name of the variable containing the origin hospital id}
+\item{origin_name}{(character) Column of the origin facilities of the links.}
 
-\item{target_name}{the name of the variable containing the target hospital id}
+\item{target_name}{(character) Column of the target facilities of the links.}
 
-\item{value.var}{the name of the variable containing the number of transfers}
+\item{count}{(character) Column of the counts of movements by unique pair of
+facilities.}
 
-\item{format.long}{specify if the number of moves needs to be computed (TRUE) or is already present (FALSE)}
+\item{format_long}{(logical) Whether the edgelist is in long format, with
+each row corresponding to a single movement. If TRUE, the edgelist will
+be aggregated by unique pairs of facilities to compute the matrix.}
+}
+\value{
+A square numeric matrix, the ajacency matrix of the network.
 }
 \description{
-Create an adjacency matrix from an edgelist
+Compute the adjacency matrix of a network from its edgelist
+}
+\details{
+The edgelist contains the information on the connections between
+    nodes of the network, that is the movements of subjects between
+    facilities. The edgelist can be in two different formats: long or
+    aggregated. In long format, each row corresponds to a single movement
+    between two facilities, therefore only two columns are needed, one
+    containing the origin facilities of a movement, the other containing the
+    target facilities. In aggregated format, the edgelist is aggregated by
+    unique pairs of origin-target facilities. Thus, each row corresponds to a
+    unique connection between two facilities, and the table contains an
+    additional variable which is the count of the number of movements
+    recorded for the pair. If the edgelist is provided in long format, it
+    will be aggregated to compute the matrix.
+}
+\seealso{
+\code{\link{edgelist_from_base}}, \code{\link{matrix_from_base}}
 }
