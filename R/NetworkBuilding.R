@@ -226,8 +226,6 @@ edgelist_from_base <- function(base,
     checks = makeAssertCollection()
     assertDataFrame(base, add = checks)
     assertTRUE(ncol(base) >= 4, add = checks)
-    assertPOSIXct(base[[admDate]], add = checks)
-    assertPOSIXct(base[[disDate]], add = checks)
     assertCount(window_threshold, add = checks)
     assertChoice(count_option, c("all", "successive"), add = checks)
     assertLogical(noloops, add = checks)
@@ -249,15 +247,28 @@ edgelist_from_base <- function(base,
         assertSubset(flag_values$origin, base[[flag_vars$origin]], add = checks)
         if (count_option == "all") message("Count option is all, therefore ignoring flags")
         if (!any(flag_values$origin %in% base[[flag_vars$origin]])) {
-            warning("None of the values provided for origin in flag_values was found in ", flag_vars$origin)
+            warning("None of the values provided for origin in flag_values was found in ",
+                    flag_vars$origin)
         }
         if (!any(flag_values$target %in% base[[flag_vars$target]])) {
-            warning("None of the values provided for target in flag_values was found in ", flag_vars$target)
+            warning("None of the values provided for target in flag_values was found in ",
+                    flag_vars$target)
         }
+    }
+    ## Checking base
+    message("Checking base...")
+    base = try({ checkBase(base) })
+    if (class(base)[[1]] == "try-error") {
+        stop("Cannot compute the network: the database is not correctly formated
+             or contains errors. The database must first be checked with the
+             function 'checkBase()'. See the vignettes for more details on the
+             workflow of the package.")
     }
     reportAssertions(checks)
     if (is.null(flag_vars) & is.null(flag_values) & condition %in% c("flags", "both")) {
-        stop("You want to compute connections using flag variables but you have not specified any. Please specify 'flag_vars' and 'flag_values', or set argument 'condition' to 'dates'")
+        stop("You want to compute connections using flag variables but you have
+             not specified any. Please specify 'flag_vars' and 'flag_values',
+             or set argument 'condition' to 'dates'")
     }
     # Messages
     if (condition == "flags") {
@@ -267,7 +278,9 @@ edgelist_from_base <- function(base,
         message("Window_threshold = 0 automatically sets count_option to 'successive'")
         count_option = "successive"
     }
-    
+
+
+
     #=== GET MOVEMENTS OF SUBJECTS =====================================================
     ## This will be computed differently depending on what is our definition
     ## of a connection

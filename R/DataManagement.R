@@ -46,7 +46,7 @@ checkBase <- function(base,
                       admDate = "Adate",
                       maxIteration = 25,
                       returnReport = FALSE,
-                      retainAuxData = FALSE,
+                      retainAuxData = TRUE,
                       verbose = TRUE,
                       ...)
 {
@@ -320,7 +320,7 @@ adjust_overlapping_stays = function(report,
                                     disDate = "Ddate",
                                     maxIteration =25,
                                     verbose = FALSE,
-                                    retainAuxData = FALSE,
+                                    retainAuxData = TRUE,
                                     ...)
 {
     base = report$base
