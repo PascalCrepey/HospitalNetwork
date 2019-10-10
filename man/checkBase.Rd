@@ -5,16 +5,16 @@
 \title{General check function}
 \usage{
 checkBase(base, convertDates = F, dateFormat = NULL,
-  deleteMissing = NULL, deleteErrors = NULL, patientID = "pID",
-  hospitalID = "hID", disDate = "Ddate", admDate = "Adate",
+  deleteMissing = NULL, deleteErrors = NULL, subjectID = "sID",
+  facilityID = "fID", disDate = "Ddate", admDate = "Adate",
   maxIteration = 25, returnReport = FALSE, retainAuxData = FALSE,
   verbose = TRUE, ...)
 }
 \arguments{
 \item{base}{(data.table).
 A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-    pID: patientID (character)
-    hID: hospitalID (character)
+    sID: patientID (character)
+    fID: facilityID (character)
     Adate: admission date (POSIXct, but character can be converted to POSIXct)
     Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 
@@ -31,9 +31,9 @@ NULL (default): do not delete. Stops the function with an error message.
 "record" deletes just the incorrect record
 "patient" deletes all records of each patient with one or more incorrect records.}
 
-\item{patientID}{(charachter) the columns name containing the patient ID. Default is "pID"}
+\item{subjectID}{(charachter) the columns name containing the subject ID. Default is "sID"}
 
-\item{hospitalID}{(charachter) the columns name containing the hospital ID. Default is "hID"}
+\item{facilityID}{(charachter) the columns name containing the facility ID. Default is "fID"}
 
 \item{disDate}{(charachter) the columns name containing the discharge date. Default is "Ddate"}
 

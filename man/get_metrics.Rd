@@ -20,7 +20,7 @@ get_metrics(network, mode = "directed", weighted = TRUE,
 
 \item{weighted}{TRUE if the network is weighted}
 
-\item{transfers}{TRUE if metrics specific to patient transfers must be computed}
+\item{transfers}{TRUE if metrics specific to subject transfers must be computed}
 
 \item{metrics}{list of the metrics to compute}
 

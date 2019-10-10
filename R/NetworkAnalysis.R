@@ -10,7 +10,7 @@
 #' @param network the network to analyse. Must be an igraph, HospiNet or a square adjacency matrix (n*n).
 #' @param mode either "directed" or "undirected" network measures
 #' @param weighted TRUE if the network is weighted
-#' @param transfers TRUE if metrics specific to patient transfers must be computed
+#' @param transfers TRUE if metrics specific to subject transfers must be computed
 #' @param metrics list of the metrics to compute
 #' @param clusters choose between cluster algorithm: cluster_fast_greedy or cluster_infomap
 #' @param hubs choose between getting hubs from "all_clusters" or "global"
@@ -79,14 +79,14 @@ get_metrics <-
     DT_list = list()
     ## transfers
     if (transfers) {
-        patients_sent<-as.data.table(igraph::strength(graph,mode = "out"), keep.rownames = T)
-        colnames(patients_sent)<-c("node","patients_sent")
-        setkey(patients_sent, node)
+        subjects_sent<-as.data.table(igraph::strength(graph,mode = "out"), keep.rownames = T)
+        colnames(subjects_sent)<-c("node","subjects_sent")
+        setkey(subjects_sent, node)
         
-        patients_received<-as.data.table(igraph::strength(graph,mode = "in"), keep.rownames = T)
-        colnames(patients_received)<-c("node","patients_received")
-        setkey(patients_received, node)
-        DT_list$transfers = merge(patients_received, patients_sent)
+        subjects_received<-as.data.table(igraph::strength(graph,mode = "in"), keep.rownames = T)
+        colnames(subjects_received)<-c("node","subjects_received")
+        setkey(subjects_received, node)
+        DT_list$transfers = merge(subjects_received, subjects_sent)
     }
     ## metrics   
     DT_list[metrics] = lapply(metrics, function(metric) {
@@ -162,7 +162,7 @@ get_degree <-
 
 #' Compute closeness
 #' 
-#' Compute one or several closeness measure for hospital networks.
+#' Compute one or several closeness measure for facility networks.
 #'
 #' @param graph an igraph object
 #' @param modes option passed on to igraph::closeness : "out", "in", "all", "total"

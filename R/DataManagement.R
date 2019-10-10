@@ -11,8 +11,8 @@
 #'
 #' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-#'         pID: patientID (character)
-#'         hID: hospitalID (character)
+#'         sID: patientID (character)
+#'         fID: facilityID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
 #' @param deleteMissing (character) How to handle records that contain a missing value in at least one of the four mandatory variables:
@@ -24,8 +24,8 @@
 #'                     "patient" deletes all records of each patient with one or more incorrect records.
 #' @param convertDates boolean indicating if dates need to be converted to POSIXct if they are not
 #' @param dateFormat character giving the input format of the date character string
-#' @param patientID (charachter) the columns name containing the patient ID. Default is "pID"
-#' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID"
+#' @param subjectID (charachter) the columns name containing the subject ID. Default is "sID"
+#' @param facilityID (charachter) the columns name containing the facility ID. Default is "fID"
 #' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
 #' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
@@ -40,8 +40,8 @@ checkBase <- function(base,
                       dateFormat = NULL,
                       deleteMissing = NULL,
                       deleteErrors = NULL,
-                      patientID = "pID",
-                      hospitalID = "hID",
+                      subjectID = "sID",
+                      facilityID = "fID",
                       disDate = "Ddate",
                       admDate = "Adate",
                       maxIteration = 25,
@@ -54,8 +54,8 @@ checkBase <- function(base,
     report$base = copy(base)
     # Check data format, column names, variable format, parse dates
     report = checkFormat(report = report,
-                         patientID = patientID,
-                         hospitalID = hospitalID,
+                         subjectID = subjectID,
+                         facilityID = facilityID,
                          admDate = admDate,
                          disDate = disDate,
                          convertDates = convertDates,
@@ -64,14 +64,18 @@ checkBase <- function(base,
     # Check for missing values, errors, and delete accordingly
     report = checkMissingErrors(report = report,
                                 deleteMissing = deleteMissing,
-                                deleteErrors = deleteErrors,                                
+                                deleteErrors = deleteErrors,
+                                subjectID = "sID",
+                                facilityID = "fID",
+                                admDate = "Adate",
+                                disDate = "Ddate",
                                 verbose = verbose)
     
     report = adjust_overlapping_stays(report = report,
-                                      patientID = patientID,
-                                      hospitalID = hospitalID,
-                                      admDate = admDate,
-                                      disDate = disDate,
+                                      subjectID = "sID",
+                                      facilityID = "fID",
+                                      admDate = "Adate",
+                                      disDate = "Ddate",
                                       maxIteration = maxIteration, 
                                       retainAuxData=retainAuxData,
                                       verbose = verbose,
@@ -90,8 +94,8 @@ checkBase <- function(base,
 #'
 #' @param base (data.table)
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-#'         pID: patientID (character)
-#'         hID: hospitalID (character)
+#'         sID: subjectID (character)
+#'         fID: facilityID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
 #' @param deleteMissing (character) How to handle records that contain a missing value in at least one of the four mandatory variables:
@@ -103,14 +107,15 @@ checkBase <- function(base,
 #' @return Returns either an error message, or the database (modified if need be).
 #' 
 checkFormat <- function(report,
-                        patientID = "pID",
-                        hospitalID = "hID",
+                        subjectID = "sID",
+                        facilityID = "fID",
                         admDate = "Adate",
                         disDate = "Ddate",
                         convertDates = FALSE,
                         dateFormat = NULL,
                         verbose = TRUE)
 {
+    assertDataTable(report$base)
     #--- Check data format -------------------------------------------------------------------------
     if (!"data.frame" %in% class(report$base)) {
         stop("The database must be either a data.frame or a data.table object")
@@ -121,7 +126,7 @@ checkFormat <- function(report,
     
     #--- Check columns names ------------------------------------------------------------------------
     tableCols = colnames(report$base)
-    inputCols = c(patientID, hospitalID, admDate, disDate)
+    inputCols = c(subjectID, facilityID, admDate, disDate)
     foundCols = intersect(tableCols, inputCols)
 
     if (length(foundCols) != 4) {
@@ -130,17 +135,17 @@ checkFormat <- function(report,
     }
     # Set column names to default
     setnames(report$base,
-             old = c(patientID, hospitalID, admDate, disDate),
-             new = c("pID", "hID", "Adate", "Ddate"))
+             old = c(subjectID, facilityID, admDate, disDate),
+             new = c("sID", "fID", "Adate", "Ddate"))
   
-    #--- Check format of "pID" and "hID" columns ----------------------------------------------------
-    charCols = c("pID", "hID")
+    #--- Check format of "sID" and "fID" columns ----------------------------------------------------
+    charCols = c("sID", "fID")
     types = sapply(charCols, function(x) typeof(report$base[[x]]))
     wrong = names(types[types != "character"])
     if (length(wrong)) {
         if (verbose) message("Converting column(s) ", paste(wrong, collapse = ", "), " to type character")
-        report$base[, `:=`(pID = as.character(pID),
-                    hID = as.character(hID))]
+        report$base[, `:=`(sID = as.character(sID),
+                    fID = as.character(fID))]
     }
 
     #--- Check dates format  ------------------------------------------------------------------------
@@ -181,9 +186,13 @@ checkFormat <- function(report,
 checkMissingErrors <- function(report,
                                deleteMissing = NULL,
                                deleteErrors = NULL,
+                               subjectID = "sID",
+                               facilityID = "fID",
+                               admDate = "Adate",
+                               disDate = "Ddate",
                                verbose = TRUE)
 {
-    cols = c("pID", "hID", "Adate", "Ddate")
+    cols = c(subjectID, facilityID, admDate, disDate)
 
     #=== Nested function to delete =======================================================
     delete <- function(base,
@@ -196,12 +205,12 @@ checkMissingErrors <- function(report,
                 message(paste0("Deleting records... \nDeleted ", length(to_remove), " records"))
             }
             return(base)
-        } else if (option == "patient") {
-            ids = base[to_remove, unique(pID)]
+        } else if (option == "subject") {
+            ids = base[to_remove, unique(sID)]
             oldLen = nrow(base)
-            base = base[!(pID %in% ids)]
+            base = base[!(sID %in% ids)]
             if (verbose) {
-                message(paste0("Removing patients that have at least one erroneous record... \nDeleted ",
+                message(paste0("Removing subjects that have at least one erroneous record... \nDeleted ",
                                oldLen - nrow(base),
                                " records "))
             }
@@ -230,7 +239,7 @@ checkMissingErrors <- function(report,
             message(paste0("The following column(s) contain(s) missing values: ", paste0(names_msng, collapse = ", ")))
             message("Found ", length(missing)," record(s) with missing values.")
             if (is.null(deleteMissing)) {
-                stop("\nPlease deal with these missing values or set option 'deleteMissing' to 'record' or 'patient'.")
+                stop("\nPlease deal with these missing values or set option 'deleteMissing' to 'record' or 'subject'.")
             }
         }
         # Delete
@@ -255,7 +264,7 @@ checkMissingErrors <- function(report,
         if (verbose) {
             message(paste0("Found ", len_wrong, " records with admission date posterior to discharge date."))
             if (is.null(deleteErrors)) {
-                stop("Please deal with these erroneous records or set option 'deleteErrors' to 'record' or 'patient'.")
+                stop("Please deal with these erroneous records or set option 'deleteErrors' to 'record' or 'subject'.")
             }
         }
         # Delete
@@ -289,13 +298,13 @@ checkMissingErrors <- function(report,
 #'
 #' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-#'         pID: patientID (character)
-#'         hID: hospitalID (character)
+#'         sID: subjectID (character)
+#'         fID: facilityID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
 #'         
-#' @param patientID (charachter) the columns name containing the patient ID. Default is "pID".
-#' @param hospitalID (charachter) the columns name containing the hospital ID. Default is "hID".
+#' @param subjectID (charachter) the columns name containing the subject ID. Default is "sID".
+#' @param facilityID (charachter) the columns name containing the facility ID. Default is "fID".
 #' @param admDate (charachter) the columns name containing the admission date. Default is "Adate".
 #' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate".
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions.
@@ -305,8 +314,8 @@ checkMissingErrors <- function(report,
 #' @return The corrected database as data.table.
 #' 
 adjust_overlapping_stays = function(report,                                          
-                                    patientID = "pID",#ID
-                                    hospitalID = "hID",#FINESS
+                                    subjectID = "sID",#ID
+                                    facilityID = "fID",#FINESS
                                     admDate = "Adate",
                                     disDate = "Ddate",
                                     maxIteration =25,
@@ -317,15 +326,15 @@ adjust_overlapping_stays = function(report,
     base = report$base
 
   #Currently only working with the required minimum variables... We might need to consider carrying any extra columns over.
-  useCols<-colnames(base) %in% c(patientID,hospitalID,admDate,disDate)
-  extraCols=colnames(base)[!(colnames(base) %in% c(patientID,hospitalID,admDate,disDate))]
+  useCols<-colnames(base) %in% c(subjectID,facilityID,admDate,disDate)
+  extraCols=colnames(base)[!(colnames(base) %in% c(subjectID,facilityID,admDate,disDate))]
   auxDataExists=(length(extraCols)>0)
   if(auxDataExists&verbose&retainAuxData){
     message("Found following auxiliary data fields: ")
     message(paste0(",",extraCols))
   }
   if(!retainAuxData) base=base[,.SD,.SDcols=useCols]
-  data.table::setkeyv(base, c(patientID,admDate,disDate))
+  data.table::setkeyv(base, c(subjectID,admDate,disDate))
   
   nbefore = nrow(base)
   if (verbose) message("Checking for duplicated records...")
@@ -336,68 +345,68 @@ adjust_overlapping_stays = function(report,
   startN = nrow(base)
   N = base[, .N]
   
-  C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
+  C1 = base[, get(subjectID)][-N] == base[, get(subjectID)][-1]
   C2 = ((base[, get(admDate)][-1]-base[, get(disDate)][-N])<0) 
-  probPatients=base[-1][(C1&C2),get(patientID)]
-  C1A=(base[,get(patientID)] %in% probPatients)
+  probSubjects=base[-1][(C1&C2),get(subjectID)]
+  C1A=(base[,get(subjectID)] %in% probSubjects)
   probBase=base[C1A,]
   nonProbBase=base[!C1A,]
 
   iterator=0
   while(iterator<maxIteration&sum(C1&C2)>0){
-    if (verbose) message(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping hospital stays\nSplitting database and correcting"))
+    if (verbose) message(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping facility stays\nSplitting database and correcting"))
 
     Nprob = probBase[, .N]
-    data.table::setkeyv(probBase, c(patientID,admDate,disDate))
+    data.table::setkeyv(probBase, c(subjectID,admDate,disDate))
 
-    C1 = probBase[, get(patientID)][-Nprob] == probBase[, get(patientID)][-1]
+    C1 = probBase[, get(subjectID)][-Nprob] == probBase[, get(subjectID)][-1]
     C2 = ((probBase[, get(admDate)][-1]-probBase[, get(disDate)][-Nprob])<0) 
     
     if(retainAuxData&auxDataExists){
       a=data.table(
-        pID=probBase[-Nprob][(C1&C2), get(patientID)],
-        hID=probBase[-Nprob][(C1&C2), get(hospitalID)],
+        sID=probBase[-Nprob][(C1&C2), get(subjectID)],
+        fID=probBase[-Nprob][(C1&C2), get(facilityID)],
         Adate=probBase[-Nprob][(C1&C2), get(admDate)],
         Ddate=probBase[-1][(C1&C2), get(admDate)],
         probBase[-Nprob][(C1&C2),..extraCols])
       b=data.table(
-        pID=probBase[-Nprob][(C1&C2), get(patientID)],
-        hID=probBase[-Nprob][(C1&C2), get(hospitalID)],
+        sID=probBase[-Nprob][(C1&C2), get(subjectID)],
+        fID=probBase[-Nprob][(C1&C2), get(facilityID)],
         Adate=probBase[-1][(C1&C2), get(disDate)],
         Ddate=probBase[-Nprob][(C1&C2), get(disDate)],
         probBase[-Nprob][(C1&C2),..extraCols])
-      c=data.table(pID=probBase[-Nprob][!(C1&C2), get(patientID)],
-                   hID=probBase[-Nprob][!(C1&C2), get(hospitalID)],
+      c=data.table(sID=probBase[-Nprob][!(C1&C2), get(subjectID)],
+                   fID=probBase[-Nprob][!(C1&C2), get(facilityID)],
                    Adate=probBase[-Nprob][!(C1&C2), get(admDate)],
                    Ddate=probBase[-Nprob][!(C1&C2), get(disDate)],
                    probBase[-Nprob][!(C1&C2),..extraCols])
-      d=data.table(pID=probBase[Nprob, get(patientID)],
-                   hID=probBase[Nprob, get(hospitalID)],
+      d=data.table(sID=probBase[Nprob, get(subjectID)],
+                   fID=probBase[Nprob, get(facilityID)],
                    Adate=probBase[Nprob, get(admDate)],
                    Ddate=probBase[Nprob, get(disDate)],
                    probBase[Nprob,..extraCols])
       probBase=rbind(a,b,c,d)
-      setnames(probBase,c(patientID,hospitalID,admDate,disDate,extraCols)) 
+      setnames(probBase,c(subjectID,facilityID,admDate,disDate,extraCols)) 
     }else{
-      a=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][(C1&C2), get(admDate)],Ddate=probBase[-1][(C1&C2), get(admDate)])
-      b=data.table(pID=probBase[-Nprob][(C1&C2), get(patientID)],hID=probBase[-Nprob][(C1&C2), get(hospitalID)],Adate=probBase[-1][(C1&C2), get(disDate)],Ddate=probBase[-Nprob][(C1&C2), get(disDate)])
-      c=data.table(pID=probBase[-Nprob][!(C1&C2), get(patientID)],hID=probBase[-Nprob][!(C1&C2), get(hospitalID)],Adate=probBase[-Nprob][!(C1&C2), get(admDate)],Ddate=probBase[-Nprob][!(C1&C2), get(disDate)])
-      d=data.table(pID=probBase[Nprob, get(patientID)],hID=probBase[Nprob, get(hospitalID)],Adate=probBase[Nprob, get(admDate)],Ddate=probBase[Nprob, get(disDate)])
+      a=data.table(sID=probBase[-Nprob][(C1&C2), get(subjectID)],fID=probBase[-Nprob][(C1&C2), get(facilityID)],Adate=probBase[-Nprob][(C1&C2), get(admDate)],Ddate=probBase[-1][(C1&C2), get(admDate)])
+      b=data.table(sID=probBase[-Nprob][(C1&C2), get(subjectID)],fID=probBase[-Nprob][(C1&C2), get(facilityID)],Adate=probBase[-1][(C1&C2), get(disDate)],Ddate=probBase[-Nprob][(C1&C2), get(disDate)])
+      c=data.table(sID=probBase[-Nprob][!(C1&C2), get(subjectID)],fID=probBase[-Nprob][!(C1&C2), get(facilityID)],Adate=probBase[-Nprob][!(C1&C2), get(admDate)],Ddate=probBase[-Nprob][!(C1&C2), get(disDate)])
+      d=data.table(sID=probBase[Nprob, get(subjectID)],fID=probBase[Nprob, get(facilityID)],Adate=probBase[Nprob, get(admDate)],Ddate=probBase[Nprob, get(disDate)])
       probBase=rbind(a,b,c,d)
-      setnames(probBase,c(patientID,hospitalID,admDate,disDate)) 
+      setnames(probBase,c(subjectID,facilityID,admDate,disDate)) 
     }
     if (verbose) message("Combining and sorting")
 
-    data.table::setkeyv(probBase, c(patientID,admDate,disDate))
+    data.table::setkeyv(probBase, c(subjectID,admDate,disDate))
 
     C3 = ((probBase[, get(disDate)]-probBase[, get(admDate)])<0)
     new_base<-probBase[!C3,]
     
     Nprob = new_base[, .N]
-    C1 = new_base[, get(patientID)][-Nprob] == new_base[, get(patientID)][-1]
+    C1 = new_base[, get(subjectID)][-Nprob] == new_base[, get(subjectID)][-1]
     C2 = ((new_base[, get(admDate)][-1]-new_base[, get(disDate)][-Nprob])<0) 
-    probPatients=new_base[-1][(C1&C2),get(patientID)]
-    C1A=(new_base[,get(patientID)] %in% probPatients)
+    probSubjects=new_base[-1][(C1&C2),get(subjectID)]
+    C1A=(new_base[,get(subjectID)] %in% probSubjects)
     
     probBase=new_base[C1A,]
     nonProbBase=rbind(nonProbBase,new_base[!C1A,])

@@ -68,7 +68,7 @@ matrix_from_edgelist <- function(edgelist,
              old = c(origin_name, target_name),
              new = c("origin", "target"))
 
-    ## Some hospitalID are origins but not target, and vice-versa.
+    ## Some facilityID are origins but not target, and vice-versa.
     ## They must be added in the respective columns to have a NxN matrix
     ## Filling with missing origins and targets (to make the matrix square)
     from = unique(edgelist[, origin])
@@ -122,8 +122,8 @@ matrix_from_base <- function(base,
                              nmoves_threshold = NULL,
                              flag_vars = NULL,
                              flag_values = NULL,
-                             patientID = "pID",
-                             hospitalID = "hID",
+                             subjectID = "sID",
+                             facilityID = "fID",
                              admDate = "Adate",
                              disDate = "Ddate",
                              verbose = FALSE)
@@ -137,8 +137,8 @@ matrix_from_base <- function(base,
                                    nmoves_threshold = nmoves_threshold,
                                    flag_vars = flag_vars,
                                    flag_values = flag_values,
-                                   patientID = patientID,
-                                   hospitalID = hospitalID,
+                                   subjectID = subjectID,
+                                   facilityID = facilityID,
                                    admDate = admDate,
                                    disDate = disDate,
                                    verbose = verbose)
@@ -161,8 +161,8 @@ matrix_from_base <- function(base,
 #' 
 #' @param base (data.table) A database of records of stays of subjects in
 #'     facilities. The table should have at least the following columns:
-#'     \itemize{ \item\bold{patientID} (character) unique subject identifier
-#'     \item\bold{hospitalID} (character) unique facility identifier
+#'     \itemize{ \item\bold{subjectID} (character) unique subject identifier
+#'     \item\bold{facilityID} (character) unique facility identifier
 #'     \item\bold{admDate} (POSIXct) date of admission in the facility
 #'     \item\bold{disDate} (POSIXct) date of discharge of the facility }
 #' @param window_threshold (integer) A number of days. If two stays of a subject
@@ -177,7 +177,7 @@ matrix_from_base <- function(base,
 #'     kept or set to 0. Defaults to TRUE, removing loops (setting matrix
 #'     diagonal to 0).
 #' @param nmoves_threshold (numeric) A threshold for the minimum number of
-#'     patient transfer between two hospitals. Set to NULL to deactivate,
+#'     subject transfer between two facilities. Set to NULL to deactivate,
 #'     default to NULL.
 #' @param flag_vars (list) Additional variables that can help flag a transfer,
 #'     besides the dates of admission and discharge. Must be a named list of two
@@ -194,8 +194,8 @@ matrix_from_base <- function(base,
 #'     "value2")). The values in 'origin' and 'target' are the values that flag
 #'     a potential origin of a transfer, or a potential target,
 #'     respectively. See details.
-#' @param patientID (character)
-#' @param hospitalID (character)
+#' @param subjectID (character)
+#' @param facilityID (character)
 #' @param admDate (character)
 #' @param disDate (character) Change the default names of the base columns.
 #' @param verbose TRUE to print computation steps
@@ -215,8 +215,8 @@ edgelist_from_base <- function(base,
                                nmoves_threshold = NULL,
                                flag_vars = NULL,
                                flag_values = NULL,
-                               patientID = "pID",
-                               hospitalID = "hID",
+                               subjectID = "sID",
+                               facilityID = "fID",
                                admDate = "Adate",
                                disDate = "Ddate",
                                verbose = FALSE
@@ -233,8 +233,8 @@ edgelist_from_base <- function(base,
     assertLogical(noloops, add = checks)
     assertCount(nmoves_threshold, null.ok = T, add = checks)    
     assertChoice(condition, c("dates", "flags", "both"), add = checks)
-    assertCharacter(patientID, len = 1, add = checks)
-    assertCharacter(hospitalID, len = 1, add = checks)
+    assertCharacter(subjectID, len = 1, add = checks)
+    assertCharacter(facilityID, len = 1, add = checks)
     assertCharacter(admDate, len = 1, add = checks)
     assertCharacter(disDate, len = 1, add = checks)
     assertLogical(verbose, add = checks)
@@ -268,7 +268,7 @@ edgelist_from_base <- function(base,
         count_option = "successive"
     }
     
-    #=== GET MOVEMENTS OF PATIENTS =====================================================
+    #=== GET MOVEMENTS OF SUBJECTS =====================================================
     ## This will be computed differently depending on what is our definition
     ## of a connection
     ## 1. if window_threshold = 0, this is by definition a direct transfer
@@ -279,15 +279,15 @@ edgelist_from_base <- function(base,
         setDT(base)
     }
     N = base[, .N]
-    data.table::setkeyv(base, c(patientID, admDate))
+    data.table::setkeyv(base, c(subjectID, admDate))
     
     #--- Count only for successive stays -------------------------------------------------
-    ## Condition 1: rows n and n+1 must have same patientID (C1)
+    ## Condition 1: rows n and n+1 must have same subjectID (C1)
     ## Condition 2: time between discharge of row n and admission of row n+1 needs to be
     ## less than or equal to window_threshold (C2)
     if (count_option == "successive") {
 
-        C1 = base[, get(patientID)][-N] == base[, get(patientID)][-1]
+        C1 = base[, get(subjectID)][-N] == base[, get(subjectID)][-1]
         diff = difftime(time1 = base[, get(admDate)][-1],
                         time2 = base[, get(disDate)][-N],
                         units = "days")
@@ -304,19 +304,19 @@ edgelist_from_base <- function(base,
         if (verbose) cat("Compute origins and targets...\n")
         ## Compute connections only using dates
         if (condition == "dates") {
-            origin = base[-N][C1 & C2, .("pID" = get(patientID),
-                                         "origin" = get(hospitalID))]
-            target = base[-1][C1 & C2, .("target" = get(hospitalID))]
+            origin = base[-N][C1 & C2, .("sID" = get(subjectID),
+                                         "origin" = get(facilityID))]
+            target = base[-1][C1 & C2, .("target" = get(facilityID))]
         } else if (condition == "flags") {
         ## Compute connections only using flags
-            origin = base[-N][C1 & C3, .("pID" = get(patientID),
-                                         "origin" = get(hospitalID))]
-            target = base[-1][C1 & C3, .("target" = get(hospitalID))]
+            origin = base[-N][C1 & C3, .("sID" = get(subjectID),
+                                         "origin" = get(facilityID))]
+            target = base[-1][C1 & C3, .("target" = get(facilityID))]
         } else if (condition == "both") {
         ## Compute connections using both dates and flags
-            origin = base[-N][C1 & C2 & C3, .("pID" = get(patientID),
-                                              "origin" = get(hospitalID))]
-            target = base[-1][C1 & C2 & C3, .("target" = get(hospitalID))]
+            origin = base[-N][C1 & C2 & C3, .("sID" = get(subjectID),
+                                              "origin" = get(facilityID))]
+            target = base[-1][C1 & C2 & C3, .("target" = get(facilityID))]
         } else { 
             stop("Argument 'condition' must be set to 'dates', 'flags', or 'both'")
         }
@@ -342,8 +342,8 @@ edgelist_from_base <- function(base,
                 vals$diff = difftime(time1 = x$Adate[N-i+1],
                                      time2 = x$Ddate[(N-i):1],
                                      units = "days")
-                vals$origin = x$hID[(N-i):1]
-                vals$target = x$hID[N-i+1]
+                vals$origin = x$fID[(N-i):1]
+                vals$target = x$fID[N-i+1]
                 return(vals)
             })
             tba = rbindlist(lapply(tba, as.data.table))
@@ -352,11 +352,11 @@ edgelist_from_base <- function(base,
 
         ## Compute the times between admissions, by individual
         if (verbose) cat("Compute frequencies...\n")
-        tba = base[, get_tba(.SD), by = pID]
+        tba = base[, get_tba(.SD), by = sID]
     
         ## Filter according to the window threshold
         ## this creates the edgelist, by individual connections
-        el_long = tba[between(diff, 0, window_threshold), .(pID, origin, target)]
+        el_long = tba[between(diff, 0, window_threshold), .(sID, origin, target)]
     }
     
     #--- Aggregate edgelist by node ----------------------------------------------------
@@ -381,19 +381,19 @@ edgelist_from_base <- function(base,
 }
 
 
-#' Create HospiNet object from patient database
+#' Create HospiNet object from subject database
 #' 
-#' This function creates a HospiNet object from the database containing patients stays.
+#' This function creates a HospiNet object from the database containing subjects stays.
 #'
 #' @param base (data.table).
-#'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+#'     A subject discharge database, in the form of a data.table. The data.table should have at least the following columns:
 #'     \itemize{
-#'        \item patientID (character)
-#'        \item hospitalID (character)
+#'        \item subjectID (character)
+#'        \item facilityID (character)
 #'        \item admDate (date)
 #'        \item disDate (date)
 #'        }
-#' @param patientID,hospitalID,admDate,disDate (character)
+#' @param subjectID,facilityID,admDate,disDate (character)
 #'      Change the default names of the base columns.
 #'      
 #' @param noloops (boolean).
@@ -401,7 +401,7 @@ edgelist_from_base <- function(base,
 #' @param window_threshold (numeric)
 #'     A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.
 #' @param nmoves_threshold (numeric)
-#'     A threshold for the minimum number of patient transfer between two hospitals. Set to NULL to deactivate, default to NULL.
+#'     A threshold for the minimum number of subject transfer between two facilities. Set to NULL to deactivate, default to NULL.
 #' @param create_MetricsTable (boolean)
 #'     Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.
 #' @param verbose TRUE to print computation steps
@@ -411,11 +411,9 @@ edgelist_from_base <- function(base,
 #' @return The function returns a HospiNet object.
 #' @export
 #' @examples
-#' mydb = create_fake_patientDB(n_patients = 100, n_hospital = 5)
-#' mat = hospinet_from_patient_database(base = mydb)
-#' mat
+#' #TODO
 #' 
-hospinet_from_patient_database <- function(base,
+hospinet_from_subject_database <- function(base,
                                            window_threshold,
                                            count_option,
                                            condition,
@@ -423,8 +421,8 @@ hospinet_from_patient_database <- function(base,
                                            nmoves_threshold = NULL,
                                            flag_vars = NULL,
                                            flag_values = NULL,
-                                           patientID = "pID",
-                                           hospitalID = "hID",
+                                           subjectID = "sID",
+                                           facilityID = "fID",
                                            admDate = "Adate",
                                            disDate = "Ddate",
                                            create_MetricsTable = TRUE,
@@ -438,22 +436,22 @@ hospinet_from_patient_database <- function(base,
                                    nmoves_threshold = nmoves_threshold,
                                    flag_vars = flag_vars,
                                    flag_values = flag_values,
-                                   patientID = patientID,
-                                   hospitalID = hospitalID,
+                                   subjectID = subjectID,
+                                   facilityID = facilityID,
                                    admDate = admDate,
                                    disDate = disDate,
                                    verbose = verbose)
                                
   
   dataSummary = all_admissions_summary(base,
-                                     patientID = patientID,
-                                     hospitalID = hospitalID,
+                                     subjectID = subjectID,
+                                     facilityID = facilityID,
                                      admDate = admDate,
                                      disDate = disDate)
   
-  hospitalSummary = per_hospital_summary(base,
-                                         patientID = patientID,
-                                         hospitalID = hospitalID,
+  facilitySummary = per_facility_summary(base,
+                                         subjectID = subjectID,
+                                         facilityID = facilityID,
                                          admDate = admDate,
                                          disDate = disDate)
 
@@ -461,7 +459,7 @@ hospinet_from_patient_database <- function(base,
                window_threshold = window_threshold, 
                nmoves_threshold = nmoves_threshold, 
                noloops = noloops,
-               hsummary = hospitalSummary,
+               fsummary = facilitySummary,
                dsummary = dataSummary,
                create_MetricsTable=create_MetricsTable)
 }

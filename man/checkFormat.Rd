@@ -4,7 +4,7 @@
 \alias{checkFormat}
 \title{Check database format}
 \usage{
-checkFormat(report, patientID = "pID", hospitalID = "hID",
+checkFormat(report, subjectID = "sID", facilityID = "fID",
   admDate = "Adate", disDate = "Ddate", convertDates = FALSE,
   dateFormat = NULL, verbose = TRUE)
 }
@@ -13,8 +13,8 @@ checkFormat(report, patientID = "pID", hospitalID = "hID",
 
 \item{base}{(data.table)
 A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-    pID: patientID (character)
-    hID: hospitalID (character)
+    sID: subjectID (character)
+    fID: facilityID (character)
     Adate: admission date (POSIXct, but character can be converted to POSIXct)
     Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 

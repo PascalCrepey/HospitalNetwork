@@ -4,14 +4,14 @@
 \alias{adjust_overlapping_stays}
 \title{Check and fix overlapping admissions.}
 \usage{
-adjust_overlapping_stays(report, patientID = "pID", hospitalID = "hID",
+adjust_overlapping_stays(report, subjectID = "sID", facilityID = "fID",
   admDate = "Adate", disDate = "Ddate", maxIteration = 25,
   verbose = FALSE, retainAuxData = FALSE, ...)
 }
 \arguments{
-\item{patientID}{(charachter) the columns name containing the patient ID. Default is "pID".}
+\item{subjectID}{(charachter) the columns name containing the subject ID. Default is "sID".}
 
-\item{hospitalID}{(charachter) the columns name containing the hospital ID. Default is "hID".}
+\item{facilityID}{(charachter) the columns name containing the facility ID. Default is "fID".}
 
 \item{admDate}{(charachter) the columns name containing the admission date. Default is "Adate".}
 
@@ -25,8 +25,8 @@ adjust_overlapping_stays(report, patientID = "pID", hospitalID = "hID",
 
 \item{base}{(data.table).
 A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-    pID: patientID (character)
-    hID: hospitalID (character)
+    sID: subjectID (character)
+    fID: facilityID (character)
     Adate: admission date (POSIXct, but character can be converted to POSIXct)
     Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 }
