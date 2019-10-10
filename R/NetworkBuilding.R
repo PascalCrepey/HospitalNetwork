@@ -441,6 +441,7 @@ hospinet_from_subject_database <- function(base,
                                            create_MetricsTable = TRUE,
                                            verbose = FALSE)
 {
+    ## Compute the edgelists (long and aggregated format)
     edgelists = edgelist_from_base(base = base,
                                    window_threshold = window_threshold,
                                    count_option = count_option,
@@ -454,8 +455,12 @@ hospinet_from_subject_database <- function(base,
                                    admDate = admDate,
                                    disDate = disDate,
                                    verbose = verbose)
-                               
-  
+    ## Abort if the edgelist is empty
+    if (nrow(edgelists$el_aggr) == 0) {
+        message("No connections satisfying the conditions were found in the database. Aborting.")
+        return(NULL)
+    }
+      
   dataSummary = all_admissions_summary(base,
                                      subjectID = subjectID,
                                      facilityID = facilityID,
