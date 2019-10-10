@@ -293,23 +293,37 @@ get_hubs_global <-
 #' 
 #' @seealso \code{\link[igraph]{hub_score}}
 #' 
-get_hubs_bycluster <-
-    function(graphs, name, ...)
+get_hubs_bycluster <- function(graphs, name, ...)
 {
-    ## MAIN
-    ## Get hub scores for each graph
-    hubs = lapply(graphs, function(x) igraph::hub_score(x, ...))
-   
-    ## Create data tables and then merge
-    tmp = lapply(hubs, function(x) as.data.table(x$vector, keep.rownames = T))
-    
-    DT_hubs = lapply(tmp, function(x) {
-        colnames(x) = c("node", paste0("hub_score_by_", name))
-        setkey(x, node)
+    ## Warning if some clusters have only one member
+    vcounts = lapply(graphs, function(g) {
+        igraph::vcount(g)
     })
+    names(vcounts) = names(graphs)
+    lonely = names(vcounts[vcounts == 1])
+    if (length(lonely)) {
+        warning("Cluster(s) ", paste(lonely, collapse = ", "), " have only one member")
+    }
+    
+    ## Get hub scores for each graph
+    hubs = lapply(graphs, function(x) {
+        igraph::hub_score(x, ...)
+    })   
+    ## Create data tables
+    tmp = lapply(hubs, function(x) {
+        as.data.table(x$vector, keep.rownames = T)
+    })
+    ## Add clusters names
+    DT_hubs = lapply(1:length(tmp), function(x) {
+        tmp[[x]][, cluster := names(tmp[x])]
+    })
+    ## Merge
     DT_merged = rbindlist(DT_hubs)
+    setnames(DT_merged,
+             old = c("V1","V2"),
+             new = c("node", paste0("hub_score_by_", name)))
     setkey(DT_merged, node)
-    ## END OF MAIN
+
     return(DT_merged)
 }
 
@@ -339,25 +353,22 @@ get_matrix_bycluster <-
     return(mat_byclust)        
 }
 
-get_graph_bycluster <-
-  function(graph, DT, clusters)
-  {
-    ## MAIN
+get_graph_bycluster <- function(graph, DT, clusters)
+{
     ## Get list of members of each clusters
-    n = 1:length(unique(DT[[clusters]]))
-    members = list()
-    members[n] = lapply(n, function(x) {
-      bool = DT[[clusters]] == x
-      return(DT[bool, node])
+    n = DT[, unique(get(clusters))]
+    members = lapply(n, function(x) {
+        DT[get(clusters) == x, node]
     })
-    ##Select groups of more than one member
-    members=members[lapply(members,length)>1]
-    
-    ## Get matrices by cluster
-    graph_byclust = lapply(members, function(x) igraph::induced_subgraph(graph, x,impl = "copy_and_delete"))
-    ## END OF MAIN
+    names(members) = paste0('clust_', n)
+
+    ## Get graphs by cluster
+    graph_byclust = lapply(members, function(x) {
+        igraph::induced_subgraph(graph, x,impl = "copy_and_delete")
+    })
     return(graph_byclust)        
-  }
+}
+
 
 # getAuthorities <-
 #     function()
