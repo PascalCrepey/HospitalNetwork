@@ -422,3 +422,49 @@ adjust_overlapping_stays = function(report,
   report$base = nonProbBase
   return(report)
 }
+
+
+adjust_overlaps <- function(report,
+                            leading = "admission")
+{
+    base = report$base
+    ## For each subject, get the difference between the adm date of stay N+1 and the
+    ## dis date of stay N (left). And the difference between the dis date of stay
+    ## N+1 and dis date of stay N (right). This allows us to type the overlaps.
+    ## Column I in 'over' is the index in 'base' of stay N+1
+    over = base[, list("left" = .SD[, adm][-1] - .SD[, dis][-.N],
+                       "right" = .SD[, dis][-1] - .SD[, dis][-.N],
+                       "I" = .I[-1]),
+                by = sID]
+    ## This is a partial overlap: adm date of stay N+1 is prior to the dis date of
+    ## stay N (left < 0), but the dis date of N+1 is posterior to the dis date of N
+    ## (right > 0).
+    over[left < 0 & right >= 0, type := 'p']
+    ## This is a full overlap: adm date of stay N+1 is prior to the dis date of stay
+    ## N (left < 0), and the dis date of N+1 is prior to the dis date of stay N
+    ## (right < 0).
+    over[left < 0 & right < 0, type := 'f']
+    ## Adjust overlaps by the right (admission leading)
+    if (leading == "admission") {
+        ## Dis date of stay N (i.e. I-1) becomes the adm date of stay N+1 (i.e. I)
+        base[over[type == 'p', I-1], dis := base[over[type == 'p', I], adm]]
+    }
+    ## Adjust by the left (discharge leading)
+    if (leading == "discharge") {
+        ## Adm date of stay N+1 (i.e. I) becomes the dis date of stay N (i.e. I-1)
+        base[over[type == 'p', I], adm := base[over[type == 'p', I-1], dis]]
+    }    
+    ## Adjust for 'inclusions'
+    ## Dis date of stay N (i.e. I-1) becomes the adm date of stay N+1 (i.e. I)
+    additional_stays = data.table("sID" = over[type == 'f', sID],
+                                  "fID" = base[over[type == 'f', I-1], fID],
+                                  "adm" = base[over[type == 'f', I], dis],
+                                  "dis" = base[over[type == 'f', I-1], dis])
+    base[over[type == 'f', I-1], dis := base[over[type == 'f', I], adm]]
+    base = rbind(base, additional_stays)
+    setkey(base, sID, adm)
+
+    report$base = base
+    report$addedAOS = nrow(additional_stays)
+    return(report)
+}
