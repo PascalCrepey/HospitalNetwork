@@ -115,7 +115,7 @@ checkFormat <- function(report,
                         dateFormat = NULL,
                         verbose = TRUE)
 {
-    assertDataTable(report$base)
+    #assertDataTable(report$base)
     #--- Check data format -------------------------------------------------------------------------
     if (!"data.frame" %in% class(report$base)) {
         stop("The database must be either a data.frame or a data.table object")
@@ -216,7 +216,7 @@ checkMissingErrors <- function(report,
             }
             return(base)
         } else {
-            stop("Argument", paste0("delete", option), "not or incorrectly specified")
+            stop("Argument ", paste0("delete ", option), " not or incorrectly specified")
         }
     }
     #=====================================================================================
@@ -268,12 +268,13 @@ checkMissingErrors <- function(report,
             }
         }
         # Delete
+        startN = report$base[, .N]
         report$base = delete(base = report$base,
                              to_remove = wrong_order,
                              option = deleteErrors)
         # Report
         report$negativeLOS = len_wrong
-        report$removedErrors = newN - report$base[, .N]
+        report$removedErrors = startN - report$base[, .N]
     }
 
     ## # Delete single day cases if only overnight patients are defined
