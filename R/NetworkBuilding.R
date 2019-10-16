@@ -33,7 +33,7 @@
 #' @seealso \code{\link{edgelist_from_base}}, \code{\link{matrix_from_base}}
 #' @export
 #' @import data.table
-#' 
+#'
 matrix_from_edgelist <- function(edgelist,
                                  origin_name = "origin",
                                  target_name = "target",
@@ -85,7 +85,7 @@ matrix_from_edgelist <- function(edgelist,
       #if nothing is missing
         complete = edgelist
     }
-    
+
     DT_trans = data.table::dcast.data.table(complete,
                                             origin ~ target,
                                             drop = F,
@@ -158,7 +158,7 @@ matrix_from_base <- function(base,
 #' This function computes the edgelist of a network of facilities across
 #' which subjects can be transfered. The edgelist is computed from a database that
 #' contains the records of the subjects' stays in the facilities.
-#' 
+#'
 #' @param base (data.table) A database of records of stays of subjects in
 #'     facilities. The table should have at least the following columns:
 #'     \itemize{ \item\bold{subjectID} (character) unique subject identifier
@@ -199,14 +199,14 @@ matrix_from_base <- function(base,
 #' @param admDate (character)
 #' @param disDate (character) Change the default names of the base columns.
 #' @param verbose TRUE to print computation steps
-#' 
+#'
 #' @return A list of two data.tables, which are the edgelists. One in long
 #'     format (el_long), and one aggregated by pair of nodes (el_aggr).
 #'
 #' @details TODO
 #' @seealso \code{\link{matrix_from_edgelist}}, \code{\link{matrix_from_base}}
 #' @export
-#' 
+#'
 edgelist_from_base <- function(base,
                                window_threshold=365,
                                count_option="successive",
@@ -229,7 +229,7 @@ edgelist_from_base <- function(base,
     assertCount(window_threshold, add = checks)
     assertChoice(count_option, c("all", "successive"), add = checks)
     assertLogical(noloops, add = checks)
-    assertCount(nmoves_threshold, null.ok = T, add = checks)    
+    assertCount(nmoves_threshold, null.ok = T, add = checks)
     assertChoice(condition, c("dates", "flags", "both"), add = checks)
     assertCharacter(subjectID, len = 1, add = checks)
     assertCharacter(facilityID, len = 1, add = checks)
@@ -257,8 +257,7 @@ edgelist_from_base <- function(base,
     }
     ## Checking base
     message("Checking base...")
-    base = try({ checkBase(base) })
-    if (class(base)[[1]] == "try-error") {
+    if (!inherits(base, "hospinet.base")) {
         stop("Cannot compute the network: the database is not correctly formated
              or contains errors. The database must first be checked with the
              function 'checkBase()'. See the vignettes for more details on the
@@ -293,7 +292,7 @@ edgelist_from_base <- function(base,
     }
     N = base[, .N]
     data.table::setkeyv(base, c(subjectID, admDate))
-    
+
     #--- Count only for successive stays -------------------------------------------------
     ## Condition 1: rows n and n+1 must have same subjectID (C1)
     ## Condition 2: time between discharge of row n and admission of row n+1 needs to be
@@ -330,15 +329,15 @@ edgelist_from_base <- function(base,
             origin = base[-N][C1 & C2 & C3, .("sID" = get(subjectID),
                                               "origin" = get(facilityID))]
             target = base[-1][C1 & C2 & C3, .("target" = get(facilityID))]
-        } else { 
+        } else {
             stop("Argument 'condition' must be set to 'dates', 'flags', or 'both'")
         }
-                    
+
         ## Create DT with each row representing a movement from "origin" to "target"
         ## this is the edgelist, by individual connections
         if (verbose) cat("Compute frequencies...\n")
-        el_long = data.table(cbind(origin, target)) 
-        
+        el_long = data.table(cbind(origin, target))
+
     } else if (count_option == "all") {
         #--- Count for all stays ---------------------------------------------------------
         ## Compute time between admissions between EACH PAIR of facilities, for one
@@ -366,12 +365,12 @@ edgelist_from_base <- function(base,
         ## Compute the times between admissions, by individual
         if (verbose) cat("Compute frequencies...\n")
         tba = base[, get_tba(.SD), by = sID]
-    
+
         ## Filter according to the window threshold
         ## this creates the edgelist, by individual connections
         el_long = tba[between(diff, 0, window_threshold), .(sID, origin, target)]
     }
-    
+
     #--- Aggregate edgelist by node ----------------------------------------------------
     if (verbose) cat("Compute edgelist...\n")
     data.table::setkey(el_long, origin, target)
@@ -383,7 +382,7 @@ edgelist_from_base <- function(base,
         el_long = subset(el_long, origin != target)
         el_aggr = subset(el_aggr, origin != target)
     }
-    
+
     if (!is.null(nmoves_threshold)) {
         if (verbose) cat("Removing connections below nmoves_threshold...\n")
         el_aggr = subset(el_aggr, N >= nmoves_threshold)
@@ -395,20 +394,14 @@ edgelist_from_base <- function(base,
 
 
 #' Create HospiNet object from subject database
-#' 
+#'
 #' This function creates a HospiNet object from the database containing subjects stays.
 #'
-#' @param base (data.table).
-#'     A subject discharge database, in the form of a data.table. The data.table should have at least the following columns:
-#'     \itemize{
-#'        \item subjectID (character)
-#'        \item facilityID (character)
-#'        \item admDate (date)
-#'        \item disDate (date)
-#'        }
+#' @param base (hospinet.base) A database of records of stays of subjects in
+#'     facilities. This can be obtained using the function \code{\link{checkBase}}.
 #' @param subjectID,facilityID,admDate,disDate (character)
 #'      Change the default names of the base columns.
-#'      
+#'
 #' @param noloops (boolean).
 #'     Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).
 #' @param window_threshold (numeric)
@@ -418,14 +411,14 @@ edgelist_from_base <- function(base,
 #' @param create_MetricsTable (boolean)
 #'     Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.
 #' @param verbose TRUE to print computation steps
-#'     
+#'
 #' @seealso \code{\link{HospiNet}}
-#' 
+#'
 #' @return The function returns a HospiNet object.
 #' @export
 #' @examples
 #' #TODO
-#' 
+#'
 hospinet_from_subject_database <- function(base,
                                            window_threshold=365,
                                            count_option="successive",
@@ -460,13 +453,13 @@ hospinet_from_subject_database <- function(base,
         message("No connections satisfying the conditions were found in the database. Aborting.")
         return(NULL)
     }
-      
+
   dataSummary = all_admissions_summary(base,
                                      subjectID = subjectID,
                                      facilityID = facilityID,
                                      admDate = admDate,
                                      disDate = disDate)
-  
+
   facilitySummary = per_facility_summary(base,
                                          subjectID = subjectID,
                                          facilityID = facilityID,
@@ -474,8 +467,8 @@ hospinet_from_subject_database <- function(base,
                                          disDate = disDate)
 
   HospiNet$new(edgelists$el_aggr,
-               window_threshold = window_threshold, 
-               nmoves_threshold = nmoves_threshold, 
+               window_threshold = window_threshold,
+               nmoves_threshold = nmoves_threshold,
                noloops = noloops,
                fsummary = facilitySummary,
                dsummary = dataSummary,

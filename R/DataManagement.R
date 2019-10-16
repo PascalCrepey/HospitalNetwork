@@ -19,7 +19,7 @@
 #' NULL (default): do not delete. Stops the function with an error message.
 #' "record": deletes just the incorrect record.
 #' "patient": deletes all records of each patient with one or more incorrect records.
-#' @param deleteErrors (character) How incorrect records should be deleted: 
+#' @param deleteErrors (character) How incorrect records should be deleted:
 #'                     "record" deletes just the incorrect record
 #'                     "patient" deletes all records of each patient with one or more incorrect records.
 #' @param convertDates boolean indicating if dates need to be converted to POSIXct if they are not
@@ -31,10 +31,10 @@
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
 #' @param verbose (boolean) print diagnostic messages. Default is TRUE.
 #' @param ... other parameters passed on to internal functions
-#' 
+#'
 #' @return The adjusted database as a data.table
 #' @export
-#' 
+#'
 checkBase <- function(base,
                       convertDates = F,
                       dateFormat = NULL,
@@ -70,22 +70,33 @@ checkBase <- function(base,
                                 admDate = "Adate",
                                 disDate = "Ddate",
                                 verbose = verbose)
-    
+
     report = adjust_overlapping_stays(report = report,
                                       subjectID = "sID",
                                       facilityID = "fID",
                                       admDate = "Adate",
                                       disDate = "Ddate",
-                                      maxIteration = maxIteration, 
+                                      maxIteration = maxIteration,
                                       retainAuxData=retainAuxData,
                                       verbose = verbose,
                                       ...)
     if (verbose) message("Done.")
-    if (returnReport) {
-        return(report)
-    } else {
-        return(report$base)
-    }
+    attr(report$base, "report") <- list(
+      failedParse = report$failedParse,
+      removedMissing = report$removedMissing,
+      missing = report$missing,
+      negativeLOS = report$negativeLOS,
+      removedErrors = report$removedErrors,
+      removedDuplicates = report$removedDuplicates,
+      neededIterations = report$neededIterations,
+      allIterations = report$allIterations,
+      addedAOS = report$addedAOS)
+
+    #add the class "hospinet.base" to the list of class so that we can easily
+    #identify whether the base has been checked or not.
+    if(!inherits(report$base, "hospinet.base")) class(report$base) <- c("hospinet.base", class(report$base))
+
+    return(report$base)
 }
 
 #' Check database format
@@ -103,9 +114,9 @@ checkBase <- function(base,
 #' "record": deletes just the incorrect record.
 #' "patient": deletes all records of each patient with one or more incorrect records.
 #' @param verbose (boolean) print diagnostic messages. Default is FALSE.
-#' 
+#'
 #' @return Returns either an error message, or the database (modified if need be).
-#' 
+#'
 checkFormat <- function(report,
                         subjectID = "sID",
                         facilityID = "fID",
@@ -123,7 +134,7 @@ checkFormat <- function(report,
         setDT(report$base)
         if (verbose) message("Converting database to a data.table object")
     }
-    
+
     #--- Check columns names ------------------------------------------------------------------------
     tableCols = colnames(report$base)
     inputCols = c(subjectID, facilityID, admDate, disDate)
@@ -137,7 +148,7 @@ checkFormat <- function(report,
     setnames(report$base,
              old = c(subjectID, facilityID, admDate, disDate),
              new = c("sID", "fID", "Adate", "Ddate"))
-  
+
     #--- Check format of "sID" and "fID" columns ----------------------------------------------------
     charCols = c("sID", "fID")
     types = sapply(charCols, function(x) typeof(report$base[[x]]))
@@ -151,7 +162,7 @@ checkFormat <- function(report,
     #--- Check dates format  ------------------------------------------------------------------------
     dateCols = c("Adate", "Ddate")
     report$failedParse = 0
-        
+
     notDate = report$base[, lapply(.SD, lubridate::is.instant) == FALSE, .SDcols = dateCols]
     needsConverting = names(which(notDate))
 
@@ -164,7 +175,7 @@ checkFormat <- function(report,
     if (length(needsConverting) & convertDates) {
         if (verbose) message(paste0("Converting ", paste0(needsConverting, collapse = ", "), " to Date format"))
 
-        # Parsing dates using lubridate function "parse_date_time" 
+        # Parsing dates using lubridate function "parse_date_time"
         report$base[, `:=`(Adate_new = lubridate::parse_date_time(Adate, orders = dateFormat),
                            Ddate_new = lubridate::parse_date_time(Ddate, orders = dateFormat)
                            )]
@@ -220,7 +231,7 @@ checkMissingErrors <- function(report,
         }
     }
     #=====================================================================================
-    
+
     #--- Check missing values ------------------------------------------------------------
     if (verbose) message("Checking for missing values...")
     missingDT = report$base[, lapply(.SD, function(x) {
@@ -257,7 +268,7 @@ checkMissingErrors <- function(report,
 
     #--- Check errors -------------------------------------------------------------------
     # Check if there are records with discharge before admission,
-    # and delete them as given in function options  
+    # and delete them as given in function options
     wrong_order = report$base[Adate > Ddate, , which = T]
     len_wrong = length(wrong_order)
     if (len_wrong) {
@@ -287,14 +298,14 @@ checkMissingErrors <- function(report,
 
     # also return the number of deleted records, the number of NAs (not always the same)
     return(report)
-} 
-                      
-#' Check and fix overlapping admissions. 
-#' 
+}
+
+#' Check and fix overlapping admissions.
+#'
 #' This function checks if a discharge (n) is not later than the next (n+1) admission.
 #' If this is the case, it sets the date of discharge n to date of discharge n+1, and creates an extra record running from discharge n+1 to discharge n.
 #' If the length of stay of this record is negative, it removes it.
-#' It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found. 
+#' It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found.
 #' Returns the corrected database.
 #'
 #' @param base (data.table).
@@ -303,7 +314,7 @@ checkMissingErrors <- function(report,
 #'         fID: facilityID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
-#'         
+#'
 #' @param subjectID (charachter) the columns name containing the subject ID. Default is "sID".
 #' @param facilityID (charachter) the columns name containing the facility ID. Default is "fID".
 #' @param admDate (charachter) the columns name containing the admission date. Default is "Adate".
@@ -311,10 +322,10 @@ checkMissingErrors <- function(report,
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions.
 #' @param verbose (boolean) print diagnostic messages. Default is FALSE.
 #' @param ... other parameters passed on to internal functions
-#' 
+#'
 #' @return The corrected database as data.table.
-#' 
-adjust_overlapping_stays = function(report,                                          
+#'
+adjust_overlapping_stays = function(report,
                                     subjectID = "sID",#ID
                                     facilityID = "fID",#FINESS
                                     admDate = "Adate",
@@ -336,18 +347,18 @@ adjust_overlapping_stays = function(report,
   }
   if(!retainAuxData) base=base[,.SD,.SDcols=useCols]
   data.table::setkeyv(base, c(subjectID,admDate,disDate))
-  
+
   nbefore = nrow(base)
   if (verbose) message("Checking for duplicated records...")
   base = unique(base)
   if (verbose) message(paste0("Removed ", nbefore-nrow(base), " duplicates"))
   report$removedDuplicates=nbefore-nrow(base)
-  
+
   startN = nrow(base)
   N = base[, .N]
-  
+
   C1 = base[, get(subjectID)][-N] == base[, get(subjectID)][-1]
-  C2 = ((base[, get(admDate)][-1]-base[, get(disDate)][-N])<0) 
+  C2 = ((base[, get(admDate)][-1]-base[, get(disDate)][-N])<0)
   probSubjects=base[-1][(C1&C2),get(subjectID)]
   C1A=(base[,get(subjectID)] %in% probSubjects)
   probBase=base[C1A,]
@@ -361,8 +372,8 @@ adjust_overlapping_stays = function(report,
     data.table::setkeyv(probBase, c(subjectID,admDate,disDate))
 
     C1 = probBase[, get(subjectID)][-Nprob] == probBase[, get(subjectID)][-1]
-    C2 = ((probBase[, get(admDate)][-1]-probBase[, get(disDate)][-Nprob])<0) 
-    
+    C2 = ((probBase[, get(admDate)][-1]-probBase[, get(disDate)][-Nprob])<0)
+
     if(retainAuxData&auxDataExists){
       a=data.table(
         sID=probBase[-Nprob][(C1&C2), get(subjectID)],
@@ -387,14 +398,14 @@ adjust_overlapping_stays = function(report,
                    Ddate=probBase[Nprob, get(disDate)],
                    probBase[Nprob,..extraCols])
       probBase=rbind(a,b,c,d)
-      setnames(probBase,c(subjectID,facilityID,admDate,disDate,extraCols)) 
+      setnames(probBase,c(subjectID,facilityID,admDate,disDate,extraCols))
     }else{
       a=data.table(sID=probBase[-Nprob][(C1&C2), get(subjectID)],fID=probBase[-Nprob][(C1&C2), get(facilityID)],Adate=probBase[-Nprob][(C1&C2), get(admDate)],Ddate=probBase[-1][(C1&C2), get(admDate)])
       b=data.table(sID=probBase[-Nprob][(C1&C2), get(subjectID)],fID=probBase[-Nprob][(C1&C2), get(facilityID)],Adate=probBase[-1][(C1&C2), get(disDate)],Ddate=probBase[-Nprob][(C1&C2), get(disDate)])
       c=data.table(sID=probBase[-Nprob][!(C1&C2), get(subjectID)],fID=probBase[-Nprob][!(C1&C2), get(facilityID)],Adate=probBase[-Nprob][!(C1&C2), get(admDate)],Ddate=probBase[-Nprob][!(C1&C2), get(disDate)])
       d=data.table(sID=probBase[Nprob, get(subjectID)],fID=probBase[Nprob, get(facilityID)],Adate=probBase[Nprob, get(admDate)],Ddate=probBase[Nprob, get(disDate)])
       probBase=rbind(a,b,c,d)
-      setnames(probBase,c(subjectID,facilityID,admDate,disDate)) 
+      setnames(probBase,c(subjectID,facilityID,admDate,disDate))
     }
     if (verbose) message("Combining and sorting")
 
@@ -402,16 +413,16 @@ adjust_overlapping_stays = function(report,
 
     C3 = ((probBase[, get(disDate)]-probBase[, get(admDate)])<0)
     new_base<-probBase[!C3,]
-    
+
     Nprob = new_base[, .N]
     C1 = new_base[, get(subjectID)][-Nprob] == new_base[, get(subjectID)][-1]
-    C2 = ((new_base[, get(admDate)][-1]-new_base[, get(disDate)][-Nprob])<0) 
+    C2 = ((new_base[, get(admDate)][-1]-new_base[, get(disDate)][-Nprob])<0)
     probSubjects=new_base[-1][(C1&C2),get(subjectID)]
     C1A=(new_base[,get(subjectID)] %in% probSubjects)
-    
+
     probBase=new_base[C1A,]
     nonProbBase=rbind(nonProbBase,new_base[!C1A,])
-    
+
     iterator<-iterator+1
   }
   endN = nrow(nonProbBase)
@@ -454,7 +465,7 @@ adjust_overlaps <- function(report,
     if (leading == "discharge") {
         ## Adm date of stay N+1 (i.e. I) becomes the dis date of stay N (i.e. I-1)
         base[over[type == 'p', I], adm := base[over[type == 'p', I-1], dis]]
-    }    
+    }
     ## Adjust for 'inclusions'
     ## Dis date of stay N (i.e. I-1) becomes the adm date of stay N+1 (i.e. I)
     additional_stays = data.table("sID" = over[type == 'f', sID],
