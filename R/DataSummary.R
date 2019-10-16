@@ -19,10 +19,6 @@
 #'         fID: facilityID (character)
 #'         Adate: admission date (date)
 #'         Ddate: discharge date (date)
-#' @param subjectID (charachter) the columns name containing the subject ID. Default is "sID"
-#' @param facilityID (charachter) the columns name containing the facility ID. Default is "fID"
-#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
-#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
 #' @param verbose (boolean) print diagnostic messages. Default is TRUE.
 #' @param ... other parameters passed on to internal functions
 #' 
@@ -38,25 +34,21 @@
 #' @export
 #' 
 all_admissions_summary<-function(base,
-                                 subjectID = "sID",
-                                 facilityID = "fID",
-                                 disDate = "Ddate",
-                                 admDate = "Adate",
                                  verbose = FALSE,
                                  ...){
   sumStats<-list()
   
-  LOS = difftime(base[[disDate]], base[[admDate]], units = "days")
+  LOS = difftime(base[,Ddate], base[,Adate], units = "days")
 
   N = base[, .N]
-  C1 = base[, ..subjectID][-N] == base[, ..subjectID][-1]
-  TBA = (base[[admDate]][-1]-base[[disDate]][-N])[C1]
+  C1 = base[, sID][-N] == base[, sID][-1]
+  TBA = (base[,Adate][-1]-base[,Ddate][-N])[C1]
   
   sumStats$meanLOS <- mean(LOS)
   sumStats$meanTBA <- mean(TBA)
   sumStats$totalAdmissions <- nrow(base)
-  sumStats$numSubjects <- nrow(unique(base[,..subjectID]))
-  sumStats$numFacilities <- nrow(unique(base[,..facilityID]))
+  sumStats$numSubjects <- nrow(unique(base[,sID]))
+  sumStats$numFacilities <- nrow(unique(base[,fID]))
   sumStats$LOSdistribution <- table(LOS)
   sumStats$TBAdistribution <- table(TBA)
 
@@ -74,10 +66,6 @@ all_admissions_summary<-function(base,
 #'         fID: facilityID (character)
 #'         Adate: admission date (date)
 #'         Ddate: discharge date (date)
-#' @param subjectID (charachter) the columns name containing the subject ID. Default is "sID"
-#' @param facilityID (charachter) the columns name containing the facility ID. Default is "fID"
-#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
-#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
 #' @param verbose (boolean) print diagnostic messages. Default is TRUE.
 #' @param ... other parameters passed on to internal functions
 #' 
@@ -86,23 +74,19 @@ all_admissions_summary<-function(base,
 #' @export
 
 per_facility_summary<-function(base,
-                               subjectID = "sID",
-                               facilityID = "fID",
-                               disDate = "Ddate",
-                               admDate = "Adate",
                                verbose = FALSE,
                                ...){
-  losPerHosp<-(base[, .(mean(difftime(get(disDate),get(admDate),units="days"))), by = facilityID])
+  losPerHosp<-(base[, .(mean(difftime(Ddate,Adate,units="days"))), by = fID])
   #losPerHosp<-as.numeric(losPerHosp,units="days")
   
   setnames(losPerHosp,c("node","LOS"))
   data.table::setkey(losPerHosp,node)
   
-  subjectsPerHosp<- base[,uniqueN(.SD), .SDcols=subjectID, by = facilityID]
+  subjectsPerHosp<- base[,uniqueN(.SD), .SDcols="sID", by = fID]
   setnames(subjectsPerHosp,c("node","subjects"))
   data.table::setkey(subjectsPerHosp,node)
   
-  admissionsPerHosp<-(base[, .N, by = facilityID])
+  admissionsPerHosp<-(base[, .N, by = fID])
   setnames(admissionsPerHosp,c("node","admissions"))
   data.table::setkey(admissionsPerHosp,node)
 

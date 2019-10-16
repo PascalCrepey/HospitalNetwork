@@ -122,10 +122,6 @@ matrix_from_base <- function(base,
                              nmoves_threshold = NULL,
                              flag_vars = NULL,
                              flag_values = NULL,
-                             subjectID = "sID",
-                             facilityID = "fID",
-                             admDate = "Adate",
-                             disDate = "Ddate",
                              verbose = FALSE)
 {
     # First, compute edgelist from base
@@ -137,10 +133,6 @@ matrix_from_base <- function(base,
                                    nmoves_threshold = nmoves_threshold,
                                    flag_vars = flag_vars,
                                    flag_values = flag_values,
-                                   subjectID = subjectID,
-                                   facilityID = facilityID,
-                                   admDate = admDate,
-                                   disDate = disDate,
                                    verbose = verbose)
     # Second, compute matrix from edgelist
     matrix = matrix_from_edgelist(edgelists$el_aggr,
@@ -215,10 +207,6 @@ edgelist_from_base <- function(base,
                                nmoves_threshold = NULL,
                                flag_vars = NULL,
                                flag_values = NULL,
-                               subjectID = "sID",
-                               facilityID = "fID",
-                               admDate = "Adate",
-                               disDate = "Ddate",
                                verbose = FALSE
                                )
 {
@@ -231,10 +219,6 @@ edgelist_from_base <- function(base,
     assertLogical(noloops, add = checks)
     assertCount(nmoves_threshold, null.ok = T, add = checks)
     assertChoice(condition, c("dates", "flags", "both"), add = checks)
-    assertCharacter(subjectID, len = 1, add = checks)
-    assertCharacter(facilityID, len = 1, add = checks)
-    assertCharacter(admDate, len = 1, add = checks)
-    assertCharacter(disDate, len = 1, add = checks)
     assertLogical(verbose, add = checks)
     if (any(!is.null(flag_vars), !is.null(flag_values))) {
         if (is.null(flag_vars)) stop("If flag_values is provided, flag_vars must be provided too.")
@@ -255,7 +239,8 @@ edgelist_from_base <- function(base,
                     flag_vars$target)
         }
     }
-    ## Checking base
+    ## Checking base 
+    ## NOTE: in the current workflow, this check might not be needed, as it's checked previously, however, double check doesn't hurt
     if (!inherits(base, "hospinet.base")) {
         stop("Cannot compute the network: the database must first be checked with the
              function 'checkBase()'. See the vignettes for more details on the
@@ -289,7 +274,7 @@ edgelist_from_base <- function(base,
         setDT(base)
     }
     N = base[, .N]
-    data.table::setkeyv(base, c(subjectID, admDate))
+    data.table::setkeyv(base, c("sID", "Adate"))
 
     #--- Count only for successive stays -------------------------------------------------
     ## Condition 1: rows n and n+1 must have same subjectID (C1)
@@ -297,9 +282,9 @@ edgelist_from_base <- function(base,
     ## less than or equal to window_threshold (C2)
     if (count_option == "successive") {
 
-        C1 = base[, get(subjectID)][-N] == base[, get(subjectID)][-1]
-        diff = difftime(time1 = base[, get(admDate)][-1],
-                        time2 = base[, get(disDate)][-N],
+        C1 = base[, sID][-N] == base[, sID][-1]
+        diff = difftime(time1 = base[, Adate][-1],
+                        time2 = base[, Ddate][-N],
                         units = "days")
         C2 = between(diff, 0, window_threshold)
 
@@ -314,19 +299,19 @@ edgelist_from_base <- function(base,
         if (verbose) cat("Compute origins and targets...\n")
         ## Compute connections only using dates
         if (condition == "dates") {
-            origin = base[-N][C1 & C2, .("sID" = get(subjectID),
-                                         "origin" = get(facilityID))]
-            target = base[-1][C1 & C2, .("target" = get(facilityID))]
+            origin = base[-N][C1 & C2, .("sID" = sID,
+                                         "origin" = fID)]
+            target = base[-1][C1 & C2, .("target" = fID)]
         } else if (condition == "flags") {
         ## Compute connections only using flags
-            origin = base[-N][C1 & C3, .("sID" = get(subjectID),
-                                         "origin" = get(facilityID))]
-            target = base[-1][C1 & C3, .("target" = get(facilityID))]
+            origin = base[-N][C1 & C3, .("sID" = sID,
+                                         "origin" = fID)]
+            target = base[-1][C1 & C3, .("target" = fID)]
         } else if (condition == "both") {
         ## Compute connections using both dates and flags
-            origin = base[-N][C1 & C2 & C3, .("sID" = get(subjectID),
-                                              "origin" = get(facilityID))]
-            target = base[-1][C1 & C2 & C3, .("target" = get(facilityID))]
+            origin = base[-N][C1 & C2 & C3, .("sID" = sID,
+                                              "origin" = fID)]
+            target = base[-1][C1 & C2 & C3, .("target" = fID)]
         } else {
             stop("Argument 'condition' must be set to 'dates', 'flags', or 'both'")
         }
@@ -432,6 +417,11 @@ hospinet_from_subject_database <- function(base,
                                            create_MetricsTable = TRUE,
                                            verbose = FALSE)
 {
+    if (!inherits(base, "hospinet.base")) {
+      stop("Cannot compute the network: the database must first be checked with the
+             function 'checkBase()'. See the vignettes for more details on the
+             workflow of the package.")
+    }
     ## Compute the edgelists (long and aggregated format)
     edgelists = edgelist_from_base(base = base,
                                    window_threshold = window_threshold,
@@ -441,10 +431,6 @@ hospinet_from_subject_database <- function(base,
                                    nmoves_threshold = nmoves_threshold,
                                    flag_vars = flag_vars,
                                    flag_values = flag_values,
-                                   subjectID = subjectID,
-                                   facilityID = facilityID,
-                                   admDate = admDate,
-                                   disDate = disDate,
                                    verbose = verbose)
     ## Abort if the edgelist is empty
     if (nrow(edgelists$el_aggr) == 0) {
@@ -452,17 +438,9 @@ hospinet_from_subject_database <- function(base,
         return(NULL)
     }
 
-  dataSummary = all_admissions_summary(base,
-                                     subjectID = subjectID,
-                                     facilityID = facilityID,
-                                     admDate = admDate,
-                                     disDate = disDate)
+  dataSummary = all_admissions_summary(base)
 
-  facilitySummary = per_facility_summary(base,
-                                         subjectID = subjectID,
-                                         facilityID = facilityID,
-                                         admDate = admDate,
-                                         disDate = disDate)
+  facilitySummary = per_facility_summary(base)
 
   HospiNet$new(edgelist = edgelists$el_aggr,
                edgelist_long = edgelists$el_long,
