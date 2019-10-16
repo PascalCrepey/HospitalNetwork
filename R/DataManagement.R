@@ -175,9 +175,9 @@ checkFormat <- function(report,
     if (length(needsConverting) & convertDates) {
         if (verbose) message(paste0("Converting ", paste0(needsConverting, collapse = ", "), " to Date format"))
 
-        # Parsing dates using lubridate function "parse_date_time"
-        report$base[, `:=`(Adate_new = lubridate::parse_date_time(Adate, orders = dateFormat),
-                           Ddate_new = lubridate::parse_date_time(Ddate, orders = dateFormat)
+        # Parsing dates using lubridate function "parse_date_time" 
+        report$base[, `:=`(Adate_new = lubridate::parse_date_time(Adate, orders = dateFormat, truncated = 3),
+                           Ddate_new = lubridate::parse_date_time(Ddate, orders = dateFormat, truncated = 3)
                            )]
         # If some have failed to parse, throw a warning and return the lines that have failed
         failed = report$base[is.na(Adate_new) | is.na(Ddate_new), , which = T]
