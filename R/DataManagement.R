@@ -330,6 +330,8 @@ adjust_overlapping_stays = function(report,
   if (verbose) message(paste0("Removed ", nbefore-nrow(base), " duplicates"))
   report$removedDuplicates=nbefore-nrow(base)
 
+  data.table::setkeyv(base, c("sID", "Adate", "Ddate"))
+  
   startN = nrow(base)
   N = base[, .N]
 
