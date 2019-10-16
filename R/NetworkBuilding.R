@@ -256,10 +256,8 @@ edgelist_from_base <- function(base,
         }
     }
     ## Checking base
-    message("Checking base...")
     if (!inherits(base, "hospinet.base")) {
-        stop("Cannot compute the network: the database is not correctly formated
-             or contains errors. The database must first be checked with the
+        stop("Cannot compute the network: the database must first be checked with the
              function 'checkBase()'. See the vignettes for more details on the
              workflow of the package.")
     }
@@ -466,9 +464,10 @@ hospinet_from_subject_database <- function(base,
                                          admDate = admDate,
                                          disDate = disDate)
 
-  HospiNet$new(edgelists$el_aggr,
-               window_threshold = window_threshold,
-               nmoves_threshold = nmoves_threshold,
+  HospiNet$new(edgelist = edgelists$el_aggr,
+               edgelist_long = edgelists$el_long,
+               window_threshold = window_threshold, 
+               nmoves_threshold = nmoves_threshold, 
                noloops = noloops,
                fsummary = facilitySummary,
                dsummary = dataSummary,

@@ -74,6 +74,7 @@ HospiNet <- R6::R6Class("HospiNet",
   private = list(
     .matrix = NULL,
     .edgelist = NULL,
+    .edgelist_long = NULL,
     .n_facilities = NULL,
     .numFacilities = NULL, # Same as n_facilities, but with a different source, maybe useful as double-check
     .n_movements = NULL,
@@ -210,7 +211,8 @@ HospiNet <- R6::R6Class("HospiNet",
     }
   ),
   public = list(
-    initialize = function(edgelist, 
+    initialize = function(edgelist,
+                          edgelist_long,
                           window_threshold,
                           nmoves_threshold,
                           noloops,
@@ -219,6 +221,7 @@ HospiNet <- R6::R6Class("HospiNet",
                           create_MetricsTable=FALSE
                           ){
       private$.edgelist = edgelist
+      private$.edgelist_long = edgelist_long
       private$.window_threshold = window_threshold
       private$.nmoves_threshold = nmoves_threshold
       private$.noloops = noloops
@@ -277,6 +280,13 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.edgelist
       } else {
         stop("`$edgelist` is read only", call. = FALSE)
+      }
+    },
+    edgelist_long = function(value) {
+      if (missing(value)) {
+          private$.edgelist_long
+      } else {
+        stop("`$edgelist_long` is read only", call. = FALSE)
       }
     },
     igraph = function(value) {
