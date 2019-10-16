@@ -4,10 +4,11 @@
 \alias{matrix_from_base}
 \title{Compute the adjacency matrix of a network from a database of movements records.}
 \usage{
-matrix_from_base(base, window_threshold, count_option, condition,
-  noloops = TRUE, nmoves_threshold = NULL, flag_vars = NULL,
-  flag_values = NULL, subjectID = "sID", facilityID = "fID",
-  admDate = "Adate", disDate = "Ddate", verbose = FALSE)
+matrix_from_base(base, window_threshold = 365,
+  count_option = "successive", condition = "dates", noloops = TRUE,
+  nmoves_threshold = NULL, flag_vars = NULL, flag_values = NULL,
+  subjectID = "sID", facilityID = "fID", admDate = "Adate",
+  disDate = "Ddate", verbose = FALSE)
 }
 \arguments{
 \item{base}{(data.table) A database of records of stays of subjects in

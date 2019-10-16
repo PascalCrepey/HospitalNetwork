@@ -4,21 +4,15 @@
 \alias{hospinet_from_subject_database}
 \title{Create HospiNet object from subject database}
 \usage{
-hospinet_from_subject_database(base, window_threshold, count_option,
-  condition, noloops = TRUE, nmoves_threshold = NULL,
-  flag_vars = NULL, flag_values = NULL, subjectID = "sID",
-  facilityID = "fID", admDate = "Adate", disDate = "Ddate",
-  create_MetricsTable = TRUE, verbose = FALSE)
+hospinet_from_subject_database(base, window_threshold = 365,
+  count_option = "successive", condition = "dates", noloops = TRUE,
+  nmoves_threshold = NULL, flag_vars = NULL, flag_values = NULL,
+  subjectID = "sID", facilityID = "fID", admDate = "Adate",
+  disDate = "Ddate", create_MetricsTable = TRUE, verbose = FALSE)
 }
 \arguments{
-\item{base}{(data.table).
-A subject discharge database, in the form of a data.table. The data.table should have at least the following columns:
-\itemize{
-   \item subjectID (character)
-   \item facilityID (character)
-   \item admDate (date)
-   \item disDate (date)
-   }}
+\item{base}{(hospinet.base) A database of records of stays of subjects in
+facilities. This can be obtained using the function \code{\link{checkBase}}.}
 
 \item{window_threshold}{(numeric)
 A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.}

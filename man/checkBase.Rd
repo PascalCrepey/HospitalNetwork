@@ -7,7 +7,7 @@
 checkBase(base, convertDates = F, dateFormat = NULL,
   deleteMissing = NULL, deleteErrors = NULL, subjectID = "sID",
   facilityID = "fID", disDate = "Ddate", admDate = "Adate",
-  maxIteration = 25, returnReport = FALSE, retainAuxData = FALSE,
+  maxIteration = 25, returnReport = FALSE, retainAuxData = TRUE,
   verbose = TRUE, ...)
 }
 \arguments{
@@ -27,7 +27,7 @@ NULL (default): do not delete. Stops the function with an error message.
 "record": deletes just the incorrect record.
 "patient": deletes all records of each patient with one or more incorrect records.}
 
-\item{deleteErrors}{(character) How incorrect records should be deleted: 
+\item{deleteErrors}{(character) How incorrect records should be deleted:
 "record" deletes just the incorrect record
 "patient" deletes all records of each patient with one or more incorrect records.}
 
