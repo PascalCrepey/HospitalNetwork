@@ -4,8 +4,7 @@
 \alias{all_admissions_summary}
 \title{Summary statistics on entire database}
 \usage{
-all_admissions_summary(base, subjectID = "sID", facilityID = "fID",
-  disDate = "Ddate", admDate = "Adate", verbose = FALSE, ...)
+all_admissions_summary(base, verbose = FALSE, ...)
 }
 \arguments{
 \item{base}{(data.table).
@@ -14,14 +13,6 @@ A subject discharge database, in the form of a data.table. The data.table should
     fID: facilityID (character)
     Adate: admission date (date)
     Ddate: discharge date (date)}
-
-\item{subjectID}{(charachter) the columns name containing the subject ID. Default is "sID"}
-
-\item{facilityID}{(charachter) the columns name containing the facility ID. Default is "fID"}
-
-\item{disDate}{(charachter) the columns name containing the discharge date. Default is "Ddate"}
-
-\item{admDate}{(charachter) the columns name containing the admission date. Default is "Adate"}
 
 \item{verbose}{(boolean) print diagnostic messages. Default is TRUE.}
 

@@ -224,7 +224,7 @@ get_betweenness <-
 #' Compute the clusters
 #'
 #' @param graph an igraph object
-#' @param algo the type of algorithm, single argument describing a cluster function from the igraph package
+#' @param algos the type of algorithm, single argument describing a cluster function from the igraph package
 #' @param undirected either "mutual" or "arbitrary"
 #' @param ... other arguments to be passed on to the algorithm
 #'

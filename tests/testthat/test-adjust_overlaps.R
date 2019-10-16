@@ -205,6 +205,9 @@ baseCorrDis[, `:=`(adm = as.Date(adm),
                 dis = as.Date(dis))]
 setkey(baseCorrDis, sID, adm)
 
+setnames(baseCorrDis, c("adm", "dis"), c("Adate", "Ddate"))
+setnames(baseOver, c("adm", "dis"), c("Adate", "Ddate"))
+setnames(baseCorrAdm, c("adm", "dis"), c("Adate", "Ddate"))
 
 #=== TESTS ==========================================================
 report = list()
@@ -221,10 +224,8 @@ test_that("adjust_overlaps() works ok with discharge leading", {
 })
 report$base = copy(baseOver)
 test_that("adjust_overlapping_stays() works ok with admission leading", {
-    baseOut = adjust_overlapping_stays(report,
-                                       admDate = "adm",
-                                       disDate = "dis")$base
-    setkey(baseOut, sID, adm)
+    baseOut = HospitalNetwork:::adjust_overlapping_stays(report)$base
+    setkey(baseOut, sID, Adate)
     expect_identical(baseCorrAdm, baseOut[!.N])
 })
 

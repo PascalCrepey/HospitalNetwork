@@ -4,24 +4,23 @@
 \alias{checkFormat}
 \title{Check database format}
 \usage{
-checkFormat(report, subjectID = "sID", facilityID = "fID",
-  admDate = "Adate", disDate = "Ddate", convertDates = FALSE,
-  dateFormat = NULL, verbose = TRUE)
+checkFormat(report, convertDates = FALSE, dateFormat = NULL,
+  verbose = TRUE)
 }
 \arguments{
-\item{verbose}{(boolean) print diagnostic messages. Default is FALSE.}
-
-\item{base}{(data.table)
-A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+\item{report}{(list).
+A list containing the base and in which will be stored reporting variables.
+The base is a patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
     sID: subjectID (character)
     fID: facilityID (character)
     Adate: admission date (POSIXct, but character can be converted to POSIXct)
     Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 
-\item{deleteMissing}{(character) How to handle records that contain a missing value in at least one of the four mandatory variables:
-NULL (default): do not delete. Stops the function with an error message.
-"record": deletes just the incorrect record.
-"patient": deletes all records of each patient with one or more incorrect records.}
+\item{convertDates}{(boolean) TRUE/FALSE: whether the dates should converted. Default is TRUE.}
+
+\item{dateFormat}{(boolean) The format of date as a character string (e.g. \%y\%m\%d for 20190524, or \%d-\%m-\%y for 24-05-2019).}
+
+\item{verbose}{(boolean) print diagnostic messages. Default is FALSE.}
 }
 \value{
 Returns either an error message, or the database (modified if need be).

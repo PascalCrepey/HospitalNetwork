@@ -29,6 +29,7 @@
 #' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
 #' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
+#' @param retainAuxData (boolean) allow retaining additional data provided in the database. Default is TRUE.
 #' @param verbose (boolean) print diagnostic messages. Default is TRUE.
 #' @param ... other parameters passed on to internal functions
 #'
@@ -45,7 +46,6 @@ checkBase <- function(base,
                       disDate = "Ddate",
                       admDate = "Adate",
                       maxIteration = 25,
-                      returnReport = FALSE,
                       retainAuxData = TRUE,
                       verbose = TRUE,
                       ...)
@@ -97,7 +97,7 @@ checkBase <- function(base,
 
     #add the class "hospinet.base" to the list of class so that we can easily
     #identify whether the base has been checked or not.
-    if(!inherits(report$base, "hospinet.base")) class(report$base) <- c("hospinet.base", class(report$base))
+    if (!inherits(report$base, "hospinet.base")) class(report$base) <- c("hospinet.base", class(report$base))
 
     return(report$base)
 }
@@ -106,16 +106,15 @@ checkBase <- function(base,
 #'
 #' Function that performs various generic checks to ensure that the database has the correct format
 #'
-#' @param base (data.table)
-#'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+#' @param report (list).
+#'     A list containing the base and in which will be stored reporting variables.
+#'     The base is a patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
 #'         sID: subjectID (character)
 #'         fID: facilityID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
-#' @param deleteMissing (character) How to handle records that contain a missing value in at least one of the four mandatory variables:
-#' NULL (default): do not delete. Stops the function with an error message.
-#' "record": deletes just the incorrect record.
-#' "patient": deletes all records of each patient with one or more incorrect records.
+#' @param convertDates (boolean) TRUE/FALSE: whether the dates should converted. Default is TRUE.
+#' @param dateFormat (boolean) The format of date as a character string (e.g. \%y\%m\%d for 20190524, or \%d-\%m-\%y for 24-05-2019).
 #' @param verbose (boolean) print diagnostic messages. Default is FALSE.
 #'
 #' @return Returns either an error message, or the database (modified if need be).
@@ -292,14 +291,16 @@ checkMissingErrors <- function(report,
 #' It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found.
 #' Returns the corrected database.
 #'
-#' @param base (data.table).
-#'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+#' @param report (list).
+#'     A list containing the base and in which will be stored reporting variables.
+#'     The base is a patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
 #'         sID: subjectID (character)
 #'         fID: facilityID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
 #'
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions.
+#' @param retainAuxData (boolean) allow retaining additional data provided in the database. Default is TRUE.
 #' @param verbose (boolean) print diagnostic messages. Default is FALSE.
 #' @param ... other parameters passed on to internal functions
 #'
@@ -414,41 +415,41 @@ adjust_overlaps <- function(report,
                             leading = "admission")
 {
     base = report$base
-    ## For each subject, get the difference between the adm date of stay N+1 and the
-    ## dis date of stay N (left). And the difference between the dis date of stay
-    ## N+1 and dis date of stay N (right). This allows us to type the overlaps.
+    ## For each subject, get the difference between the Adate date of stay N+1 and the
+    ## Ddate date of stay N (left). And the difference between the Ddate date of stay
+    ## N+1 and Ddate date of stay N (right). This allows us to type the overlaps.
     ## Column I in 'over' is the index in 'base' of stay N+1
-    over = base[, list("left" = .SD[, adm][-1] - .SD[, dis][-.N],
-                       "right" = .SD[, dis][-1] - .SD[, dis][-.N],
+    over = base[, list("left" = .SD[, Adate][-1] - .SD[, Ddate][-.N],
+                       "right" = .SD[, Ddate][-1] - .SD[, Ddate][-.N],
                        "I" = .I[-1]),
                 by = sID]
-    ## This is a partial overlap: adm date of stay N+1 is prior to the dis date of
-    ## stay N (left < 0), but the dis date of N+1 is posterior to the dis date of N
+    ## This is a partial overlap: Adate date of stay N+1 is prior to the Ddate date of
+    ## stay N (left < 0), but the Ddate date of N+1 is posterior to the Ddate date of N
     ## (right > 0).
     over[left < 0 & right >= 0, type := 'p']
-    ## This is a full overlap: adm date of stay N+1 is prior to the dis date of stay
-    ## N (left < 0), and the dis date of N+1 is prior to the dis date of stay N
+    ## This is a full overlap: Adate date of stay N+1 is prior to the Ddate date of stay
+    ## N (left < 0), and the Ddate date of N+1 is prior to the Ddate date of stay N
     ## (right < 0).
     over[left < 0 & right < 0, type := 'f']
     ## Adjust overlaps by the right (admission leading)
     if (leading == "admission") {
-        ## Dis date of stay N (i.e. I-1) becomes the adm date of stay N+1 (i.e. I)
-        base[over[type == 'p', I-1], dis := base[over[type == 'p', I], adm]]
+        ## Ddate date of stay N (i.e. I-1) becomes the Adate date of stay N+1 (i.e. I)
+        base[over[type == 'p', I-1], Ddate := base[over[type == 'p', I], Adate]]
     }
     ## Adjust by the left (discharge leading)
     if (leading == "discharge") {
-        ## Adm date of stay N+1 (i.e. I) becomes the dis date of stay N (i.e. I-1)
-        base[over[type == 'p', I], adm := base[over[type == 'p', I-1], dis]]
+        ## Adate date of stay N+1 (i.e. I) becomes the Ddate date of stay N (i.e. I-1)
+        base[over[type == 'p', I], Adate := base[over[type == 'p', I-1], Ddate]]
     }
     ## Adjust for 'inclusions'
-    ## Dis date of stay N (i.e. I-1) becomes the adm date of stay N+1 (i.e. I)
+    ## Ddate date of stay N (i.e. I-1) becomes the Adate date of stay N+1 (i.e. I)
     additional_stays = data.table("sID" = over[type == 'f', sID],
                                   "fID" = base[over[type == 'f', I-1], fID],
-                                  "adm" = base[over[type == 'f', I], dis],
-                                  "dis" = base[over[type == 'f', I-1], dis])
-    base[over[type == 'f', I-1], dis := base[over[type == 'f', I], adm]]
+                                  "Adate" = base[over[type == 'f', I], Ddate],
+                                  "Ddate" = base[over[type == 'f', I-1], Ddate])
+    base[over[type == 'f', I-1], Ddate := base[over[type == 'f', I], Adate]]
     base = rbind(base, additional_stays)
-    setkey(base, sID, adm)
+    setkey(base, sID, Adate)
     
     report$base = base
     report$addedAOS = nrow(additional_stays)

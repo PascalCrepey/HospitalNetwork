@@ -7,8 +7,7 @@
 checkBase(base, convertDates = F, dateFormat = NULL,
   deleteMissing = NULL, deleteErrors = NULL, subjectID = "sID",
   facilityID = "fID", disDate = "Ddate", admDate = "Adate",
-  maxIteration = 25, returnReport = FALSE, retainAuxData = TRUE,
-  verbose = TRUE, ...)
+  maxIteration = 25, retainAuxData = TRUE, verbose = TRUE, ...)
 }
 \arguments{
 \item{base}{(data.table).
@@ -40,6 +39,8 @@ NULL (default): do not delete. Stops the function with an error message.
 \item{admDate}{(charachter) the columns name containing the admission date. Default is "Adate"}
 
 \item{maxIteration}{(integer) the maximum number of times the function will try and remove overlapping admissions}
+
+\item{retainAuxData}{(boolean) allow retaining additional data provided in the database. Default is TRUE.}
 
 \item{verbose}{(boolean) print diagnostic messages. Default is TRUE.}
 

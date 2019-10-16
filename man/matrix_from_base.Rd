@@ -7,8 +7,7 @@
 matrix_from_base(base, window_threshold = 365,
   count_option = "successive", condition = "dates", noloops = TRUE,
   nmoves_threshold = NULL, flag_vars = NULL, flag_values = NULL,
-  subjectID = "sID", facilityID = "fID", admDate = "Adate",
-  disDate = "Ddate", verbose = FALSE)
+  verbose = FALSE)
 }
 \arguments{
 \item{base}{(data.table) A database of records of stays of subjects in
@@ -53,14 +52,6 @@ one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2",
 "value2")). The values in 'origin' and 'target' are the values that flag
 a potential origin of a transfer, or a potential target,
 respectively. See details.}
-
-\item{subjectID}{(character)}
-
-\item{facilityID}{(character)}
-
-\item{admDate}{(character)}
-
-\item{disDate}{(character) Change the default names of the base columns.}
 
 \item{verbose}{TRUE to print computation steps}
 }

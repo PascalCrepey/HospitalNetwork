@@ -34,7 +34,7 @@ The minimal way of running this is: `checkBase(base)` where base is the patient 
 (default values are indicated in bold characters)
 
 * deleteErrors = 	“subject” or **“record”**: how to take care of missing or erroneous records. Delete just the record with an error, or delete all records of the patient with one or more erroneous records.
-* convertDates = 	**TRUE**/FALSE: if dates should converted,
+* convertDates = 	**TRUE**/FALSE: whether the dates should converted,
 * dateFormat = 	The format of date as a character string (e.g. %y%m%d for 20190524, or %d-%m-%y for 24-05-2019)
 * subjectID = 	the name of the column/variable containing the subject (i.e. patient) identifier
 * facilityID = 		as above, for facility (i.e. hospital) identifier

@@ -1,7 +1,6 @@
-###########################################################
+##
 ## MAIN FUNCTIONS THAT COMPUTE THE NETWORK FROM THE BASE ##
-###########################################################
-
+##
 #' Compute the adjacency matrix of a network from its edgelist
 #'
 #' @param edgelist (data.table) A table containing the edges (or links) of the
@@ -186,10 +185,6 @@ matrix_from_base <- function(base,
 #'     "value2")). The values in 'origin' and 'target' are the values that flag
 #'     a potential origin of a transfer, or a potential target,
 #'     respectively. See details.
-#' @param subjectID (character)
-#' @param facilityID (character)
-#' @param admDate (character)
-#' @param disDate (character) Change the default names of the base columns.
 #' @param verbose TRUE to print computation steps
 #'
 #' @return A list of two data.tables, which are the edgelists. One in long
@@ -382,17 +377,32 @@ edgelist_from_base <- function(base,
 #'
 #' @param base (hospinet.base) A database of records of stays of subjects in
 #'     facilities. This can be obtained using the function \code{\link{checkBase}}.
-#' @param subjectID,facilityID,admDate,disDate (character)
-#'      Change the default names of the base columns.
-#'
 #' @param noloops (boolean).
 #'     Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).
 #' @param window_threshold (numeric)
 #'     A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.
+#' @param count_option (character) TODO. Default is "successive".
+#' @param condition (character) TODO. Default is "dates".
 #' @param nmoves_threshold (numeric)
 #'     A threshold for the minimum number of subject transfer between two facilities. Set to NULL to deactivate, default to NULL.
+#' @param flag_vars (list) Additional variables that can help flag a transfer,
+#'     besides the dates of admission and discharge. Must be a named list of two
+#'     character vectors which are the names of the columns that can flag a
+#'     transfer: the column that can flag a potential origin, and the column
+#'     that can flag a potential target. The list must be named with "origin"
+#'     and "transfer". Eg: list("origin" = "var1", "target" = "var2"). See
+#'     details.
+#' @param flag_values (list) A named list of two character vectors which contain
+#'     the values of the variables in flag_var that are matched to flag a
+#'     potential transfer. The list must be named with "origin" and
+#'     "transfer". The character vectors might be of length greater than
+#'     one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2",
+#'     "value2")). The values in 'origin' and 'target' are the values that flag
+#'     a potential origin of a transfer, or a potential target,
+#'     respectively. See details.
 #' @param create_MetricsTable (boolean)
 #'     Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.
+#' @param ... Additional parameters to be sent to checkBase in case the database has not been checked yet.
 #' @param verbose TRUE to print computation steps
 #'
 #' @seealso \code{\link{HospiNet}}
@@ -418,8 +428,8 @@ hospinet_from_subject_database <- function(base,
       message("Input database was not checked yet, which is required for network reconstruction.
               Running 'checkBase()' with default parameters. 
               If this doesn't work, please run checkBase() separatelty with custom parameters first.")
-      base=checkBase(base,
-                    verbose=verbose,
+      base = checkBase(base,
+                    verbose = verbose,
                     ...
                     )
     }

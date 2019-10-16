@@ -4,31 +4,25 @@
 \alias{adjust_overlapping_stays}
 \title{Check and fix overlapping admissions.}
 \usage{
-adjust_overlapping_stays(report, subjectID = "sID", facilityID = "fID",
-  admDate = "Adate", disDate = "Ddate", maxIteration = 25,
-  verbose = FALSE, retainAuxData = TRUE, ...)
+adjust_overlapping_stays(report, maxIteration = 25, verbose = FALSE,
+  retainAuxData = TRUE, ...)
 }
 \arguments{
-\item{subjectID}{(charachter) the columns name containing the subject ID. Default is "sID".}
-
-\item{facilityID}{(charachter) the columns name containing the facility ID. Default is "fID".}
-
-\item{admDate}{(charachter) the columns name containing the admission date. Default is "Adate".}
-
-\item{disDate}{(charachter) the columns name containing the discharge date. Default is "Ddate".}
+\item{report}{(list).
+A list containing the base and in which will be stored reporting variables.
+The base is a patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+    sID: subjectID (character)
+    fID: facilityID (character)
+    Adate: admission date (POSIXct, but character can be converted to POSIXct)
+    Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 
 \item{maxIteration}{(integer) the maximum number of times the function will try and remove overlapping admissions.}
 
 \item{verbose}{(boolean) print diagnostic messages. Default is FALSE.}
 
-\item{...}{other parameters passed on to internal functions}
+\item{retainAuxData}{(boolean) allow retaining additional data provided in the database. Default is TRUE.}
 
-\item{base}{(data.table).
-A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-    sID: subjectID (character)
-    fID: facilityID (character)
-    Adate: admission date (POSIXct, but character can be converted to POSIXct)
-    Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
+\item{...}{other parameters passed on to internal functions}
 }
 \value{
 The corrected database as data.table.

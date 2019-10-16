@@ -9,11 +9,11 @@ get_clusters(graph, algos, undirected, ...)
 \arguments{
 \item{graph}{an igraph object}
 
+\item{algos}{the type of algorithm, single argument describing a cluster function from the igraph package}
+
 \item{undirected}{either "mutual" or "arbitrary"}
 
 \item{...}{other arguments to be passed on to the algorithm}
-
-\item{algo}{the type of algorithm, single argument describing a cluster function from the igraph package}
 }
 \value{
 a data.table
