@@ -36,6 +36,12 @@
 all_admissions_summary<-function(base,
                                  verbose = FALSE,
                                  ...){
+  if (!inherits(base, "hospinet.base")) {
+    stop("Cannot compute admission summary: the database must first be checked with the
+             function 'checkBase()'. See the vignettes for more details on the
+             workflow of the package.")
+  }
+  
   sumStats<-list()
   
   LOS = difftime(base[,Ddate], base[,Adate], units = "days")
@@ -76,6 +82,12 @@ all_admissions_summary<-function(base,
 per_facility_summary<-function(base,
                                verbose = FALSE,
                                ...){
+  if (!inherits(base, "hospinet.base")) {
+    stop("Cannot compute facility summary: the database must first be checked with the
+             function 'checkBase()'. See the vignettes for more details on the
+             workflow of the package.")
+  }
+  
   losPerHosp<-(base[, .(mean(difftime(Ddate,Adate,units="days"))), by = fID])
   #losPerHosp<-as.numeric(losPerHosp,units="days")
   

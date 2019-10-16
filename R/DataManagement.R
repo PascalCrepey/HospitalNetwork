@@ -231,10 +231,11 @@ checkMissingErrors <- function(report,
         if (verbose) {
             message(paste0("The following column(s) contain(s) missing values: ", paste0(names_msng, collapse = ", ")))
             message("Found ", length(missing)," record(s) with missing values.")
-            if (is.null(deleteMissing)) {
-                stop("\nPlease deal with these missing values or set option 'deleteMissing' to 'record' or 'subject'.")
-            }
         }
+        if (is.null(deleteMissing)) {
+                stop("\nPlease deal with these missing values or set option 'deleteMissing' to 'record' or 'subject'.")
+        }
+        
         # Delete
         startN = report$base[, .N]
         report$base = delete(base = report$base,
@@ -256,10 +257,11 @@ checkMissingErrors <- function(report,
     if (len_wrong) {
         if (verbose) {
             message(paste0("Found ", len_wrong, " records with admission date posterior to discharge date."))
-            if (is.null(deleteErrors)) {
-                stop("Please deal with these erroneous records or set option 'deleteErrors' to 'record' or 'subject'.")
-            }
         }
+        if (is.null(deleteErrors)) {
+            stop("Please deal with these erroneous records or set option 'deleteErrors' to 'record' or 'subject'.")
+        }
+        
         # Delete
         startN = report$base[, .N]
         report$base = delete(base = report$base,
@@ -343,8 +345,7 @@ adjust_overlapping_stays = function(report,
 
     Nprob = probBase[, .N]
     data.table::setkeyv(probBase, c("sID","Adate","Ddate"))
-    message("Past stage 2")
-    
+
     C1 = probBase[, sID][-Nprob] == probBase[, sID][-1]
     C2 = ((probBase[, Adate][-1]-probBase[, Ddate][-Nprob])<0)
 
@@ -384,8 +385,7 @@ adjust_overlapping_stays = function(report,
     if (verbose) message("Combining and sorting")
 
     data.table::setkeyv(probBase, c("sID","Adate","Ddate"))
-    message("Past stage 3")
-    
+
     C3 = ((probBase[, Ddate]-probBase[, Adate])<0)
     new_base<-probBase[!C3,]
 

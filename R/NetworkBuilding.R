@@ -410,17 +410,18 @@ hospinet_from_subject_database <- function(base,
                                            nmoves_threshold = NULL,
                                            flag_vars = NULL,
                                            flag_values = NULL,
-                                           subjectID = "sID",
-                                           facilityID = "fID",
-                                           admDate = "Adate",
-                                           disDate = "Ddate",
                                            create_MetricsTable = TRUE,
-                                           verbose = FALSE)
+                                           verbose = FALSE,
+                                           ...)
 {
     if (!inherits(base, "hospinet.base")) {
-      stop("Cannot compute the network: the database must first be checked with the
-             function 'checkBase()'. See the vignettes for more details on the
-             workflow of the package.")
+      message("Input database was not checked yet, which is required for network reconstruction.
+              Running 'checkBase()' with default parameters. 
+              If this doesn't work, please run checkBase() separatelty with custom parameters first.")
+      base=checkBase(base,
+                    verbose=verbose,
+                    ...
+                    )
     }
     ## Compute the edgelists (long and aggregated format)
     edgelists = edgelist_from_base(base = base,
