@@ -52,12 +52,23 @@ checkBase <- function(base,
 {
     report = list()
     report$base = copy(base)
+    
+    #--- Check columns names ------------------------------------------------------------------------
+    tableCols = colnames(report$base)
+    inputCols = c(subjectID, facilityID, admDate, disDate)
+    foundCols = intersect(tableCols, inputCols)
+    
+    if (length(foundCols) != 4) {
+      notfound = setdiff(inputCols, foundCols)
+      stop("Column(s) ", paste(notfound, collapse = ", "), " provided as argument were not found in the database.")
+    }
+    # Set column names to default
+    setnames(report$base,
+             old = c(subjectID, facilityID, admDate, disDate),
+             new = c("sID", "fID", "Adate", "Ddate"))
+    
     # Check data format, column names, variable format, parse dates
     report = checkFormat(report = report,
-                         subjectID = subjectID,
-                         facilityID = facilityID,
-                         admDate = admDate,
-                         disDate = disDate,
                          convertDates = convertDates,
                          dateFormat = dateFormat,
                          verbose = verbose)
@@ -65,17 +76,9 @@ checkBase <- function(base,
     report = checkMissingErrors(report = report,
                                 deleteMissing = deleteMissing,
                                 deleteErrors = deleteErrors,
-                                subjectID = "sID",
-                                facilityID = "fID",
-                                admDate = "Adate",
-                                disDate = "Ddate",
                                 verbose = verbose)
 
     report = adjust_overlapping_stays(report = report,
-                                      subjectID = "sID",
-                                      facilityID = "fID",
-                                      admDate = "Adate",
-                                      disDate = "Ddate",
                                       maxIteration = maxIteration,
                                       retainAuxData=retainAuxData,
                                       verbose = verbose,
@@ -118,10 +121,6 @@ checkBase <- function(base,
 #' @return Returns either an error message, or the database (modified if need be).
 #'
 checkFormat <- function(report,
-                        subjectID = "sID",
-                        facilityID = "fID",
-                        admDate = "Adate",
-                        disDate = "Ddate",
                         convertDates = FALSE,
                         dateFormat = NULL,
                         verbose = TRUE)
@@ -135,19 +134,6 @@ checkFormat <- function(report,
         if (verbose) message("Converting database to a data.table object")
     }
 
-    #--- Check columns names ------------------------------------------------------------------------
-    tableCols = colnames(report$base)
-    inputCols = c(subjectID, facilityID, admDate, disDate)
-    foundCols = intersect(tableCols, inputCols)
-
-    if (length(foundCols) != 4) {
-        notfound = setdiff(inputCols, foundCols)
-        stop("Column(s) ", paste(notfound, collapse = ", "), " provided as argument were not found in the database.")
-    }
-    # Set column names to default
-    setnames(report$base,
-             old = c(subjectID, facilityID, admDate, disDate),
-             new = c("sID", "fID", "Adate", "Ddate"))
 
     #--- Check format of "sID" and "fID" columns ----------------------------------------------------
     charCols = c("sID", "fID")
@@ -197,13 +183,9 @@ checkFormat <- function(report,
 checkMissingErrors <- function(report,
                                deleteMissing = NULL,
                                deleteErrors = NULL,
-                               subjectID = "sID",
-                               facilityID = "fID",
-                               admDate = "Adate",
-                               disDate = "Ddate",
                                verbose = TRUE)
 {
-    cols = c(subjectID, facilityID, admDate, disDate)
+    cols = c("sID", "fID", "Adate", "Ddate")
 
     #=== Nested function to delete =======================================================
     delete <- function(base,
@@ -315,10 +297,6 @@ checkMissingErrors <- function(report,
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
 #'
-#' @param subjectID (charachter) the columns name containing the subject ID. Default is "sID".
-#' @param facilityID (charachter) the columns name containing the facility ID. Default is "fID".
-#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate".
-#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate".
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions.
 #' @param verbose (boolean) print diagnostic messages. Default is FALSE.
 #' @param ... other parameters passed on to internal functions
@@ -326,27 +304,22 @@ checkMissingErrors <- function(report,
 #' @return The corrected database as data.table.
 #'
 adjust_overlapping_stays = function(report,
-                                    subjectID = "sID",#ID
-                                    facilityID = "fID",#FINESS
-                                    admDate = "Adate",
-                                    disDate = "Ddate",
                                     maxIteration =25,
                                     verbose = FALSE,
                                     retainAuxData = TRUE,
                                     ...)
 {
-    base = report$base
+  base = report$base
 
-  #Currently only working with the required minimum variables... We might need to consider carrying any extra columns over.
-  useCols<-colnames(base) %in% c(subjectID,facilityID,admDate,disDate)
-  extraCols=colnames(base)[!(colnames(base) %in% c(subjectID,facilityID,admDate,disDate))]
+  useCols<-colnames(base) %in% c("sID","fID","Adate","Ddate")
+  extraCols=colnames(base)[!(colnames(base) %in% c("sID","fID","Adate","Ddate"))]
   auxDataExists=(length(extraCols)>0)
   if(auxDataExists&verbose&retainAuxData){
     message("Found following auxiliary data fields: ")
     message(paste0(",",extraCols))
   }
   if(!retainAuxData) base=base[,.SD,.SDcols=useCols]
-  data.table::setkeyv(base, c(subjectID,admDate,disDate))
+  data.table::setkeyv(base, c("sID", "fID", "Adate", "Ddate"))
 
   nbefore = nrow(base)
   if (verbose) message("Checking for duplicated records...")
@@ -357,10 +330,10 @@ adjust_overlapping_stays = function(report,
   startN = nrow(base)
   N = base[, .N]
 
-  C1 = base[, get(subjectID)][-N] == base[, get(subjectID)][-1]
-  C2 = ((base[, get(admDate)][-1]-base[, get(disDate)][-N])<0)
-  probSubjects=base[-1][(C1&C2),get(subjectID)]
-  C1A=(base[,get(subjectID)] %in% probSubjects)
+  C1 = base[, sID][-N] == base[, sID][-1]
+  C2 = ((base[, Adate][-1]-base[, Ddate][-N])<0)
+  probSubjects=base[-1][(C1&C2),sID]
+  C1A=(base[,sID] %in% probSubjects)
   probBase=base[C1A,]
   nonProbBase=base[!C1A,]
 
@@ -369,56 +342,58 @@ adjust_overlapping_stays = function(report,
     if (verbose) message(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping facility stays\nSplitting database and correcting"))
 
     Nprob = probBase[, .N]
-    data.table::setkeyv(probBase, c(subjectID,admDate,disDate))
-
-    C1 = probBase[, get(subjectID)][-Nprob] == probBase[, get(subjectID)][-1]
-    C2 = ((probBase[, get(admDate)][-1]-probBase[, get(disDate)][-Nprob])<0)
+    data.table::setkeyv(probBase, c("sID","Adate","Ddate"))
+    message("Past stage 2")
+    
+    C1 = probBase[, sID][-Nprob] == probBase[, sID][-1]
+    C2 = ((probBase[, Adate][-1]-probBase[, Ddate][-Nprob])<0)
 
     if(retainAuxData&auxDataExists){
       a=data.table(
-        sID=probBase[-Nprob][(C1&C2), get(subjectID)],
-        fID=probBase[-Nprob][(C1&C2), get(facilityID)],
-        Adate=probBase[-Nprob][(C1&C2), get(admDate)],
-        Ddate=probBase[-1][(C1&C2), get(admDate)],
+        sID=probBase[-Nprob][(C1&C2), sID],
+        fID=probBase[-Nprob][(C1&C2), fID],
+        Adate=probBase[-Nprob][(C1&C2), Adate],
+        Ddate=probBase[-1][(C1&C2), Adate],
         probBase[-Nprob][(C1&C2),..extraCols])
       b=data.table(
-        sID=probBase[-Nprob][(C1&C2), get(subjectID)],
-        fID=probBase[-Nprob][(C1&C2), get(facilityID)],
-        Adate=probBase[-1][(C1&C2), get(disDate)],
-        Ddate=probBase[-Nprob][(C1&C2), get(disDate)],
+        sID=probBase[-Nprob][(C1&C2), sID],
+        fID=probBase[-Nprob][(C1&C2), fID],
+        Adate=probBase[-1][(C1&C2), Ddate],
+        Ddate=probBase[-Nprob][(C1&C2), Ddate],
         probBase[-Nprob][(C1&C2),..extraCols])
-      c=data.table(sID=probBase[-Nprob][!(C1&C2), get(subjectID)],
-                   fID=probBase[-Nprob][!(C1&C2), get(facilityID)],
-                   Adate=probBase[-Nprob][!(C1&C2), get(admDate)],
-                   Ddate=probBase[-Nprob][!(C1&C2), get(disDate)],
+      c=data.table(sID=probBase[-Nprob][!(C1&C2), sID],
+                   fID=probBase[-Nprob][!(C1&C2), fID],
+                   Adate=probBase[-Nprob][!(C1&C2), Adate],
+                   Ddate=probBase[-Nprob][!(C1&C2), Ddate],
                    probBase[-Nprob][!(C1&C2),..extraCols])
-      d=data.table(sID=probBase[Nprob, get(subjectID)],
-                   fID=probBase[Nprob, get(facilityID)],
-                   Adate=probBase[Nprob, get(admDate)],
-                   Ddate=probBase[Nprob, get(disDate)],
+      d=data.table(sID=probBase[Nprob, sID],
+                   fID=probBase[Nprob, fID],
+                   Adate=probBase[Nprob, Adate],
+                   Ddate=probBase[Nprob, Ddate],
                    probBase[Nprob,..extraCols])
       probBase=rbind(a,b,c,d)
-      setnames(probBase,c(subjectID,facilityID,admDate,disDate,extraCols))
+      setnames(probBase,c("sID","fID","Adate","Ddate",extraCols)) #might not be needed here
     }else{
-      a=data.table(sID=probBase[-Nprob][(C1&C2), get(subjectID)],fID=probBase[-Nprob][(C1&C2), get(facilityID)],Adate=probBase[-Nprob][(C1&C2), get(admDate)],Ddate=probBase[-1][(C1&C2), get(admDate)])
-      b=data.table(sID=probBase[-Nprob][(C1&C2), get(subjectID)],fID=probBase[-Nprob][(C1&C2), get(facilityID)],Adate=probBase[-1][(C1&C2), get(disDate)],Ddate=probBase[-Nprob][(C1&C2), get(disDate)])
-      c=data.table(sID=probBase[-Nprob][!(C1&C2), get(subjectID)],fID=probBase[-Nprob][!(C1&C2), get(facilityID)],Adate=probBase[-Nprob][!(C1&C2), get(admDate)],Ddate=probBase[-Nprob][!(C1&C2), get(disDate)])
-      d=data.table(sID=probBase[Nprob, get(subjectID)],fID=probBase[Nprob, get(facilityID)],Adate=probBase[Nprob, get(admDate)],Ddate=probBase[Nprob, get(disDate)])
+      a=data.table(sID=probBase[-Nprob][(C1&C2), sID],fID=probBase[-Nprob][(C1&C2), fID],Adate=probBase[-Nprob][(C1&C2), Adate],Ddate=probBase[-1][(C1&C2), Adate])
+      b=data.table(sID=probBase[-Nprob][(C1&C2), sID],fID=probBase[-Nprob][(C1&C2), fID],Adate=probBase[-1][(C1&C2), Ddate],Ddate=probBase[-Nprob][(C1&C2), Ddate])
+      c=data.table(sID=probBase[-Nprob][!(C1&C2), sID],fID=probBase[-Nprob][!(C1&C2), fID],Adate=probBase[-Nprob][!(C1&C2), Adate],Ddate=probBase[-Nprob][!(C1&C2), Ddate])
+      d=data.table(sID=probBase[Nprob, sID],fID=probBase[Nprob, fID],Adate=probBase[Nprob, Adate],Ddate=probBase[Nprob, Ddate])
       probBase=rbind(a,b,c,d)
-      setnames(probBase,c(subjectID,facilityID,admDate,disDate))
+      setnames(probBase,c("sID","fID","Adate","Ddate")) #might not be needed here
     }
     if (verbose) message("Combining and sorting")
 
-    data.table::setkeyv(probBase, c(subjectID,admDate,disDate))
-
-    C3 = ((probBase[, get(disDate)]-probBase[, get(admDate)])<0)
+    data.table::setkeyv(probBase, c("sID","Adate","Ddate"))
+    message("Past stage 3")
+    
+    C3 = ((probBase[, Ddate]-probBase[, Adate])<0)
     new_base<-probBase[!C3,]
 
     Nprob = new_base[, .N]
-    C1 = new_base[, get(subjectID)][-Nprob] == new_base[, get(subjectID)][-1]
-    C2 = ((new_base[, get(admDate)][-1]-new_base[, get(disDate)][-Nprob])<0)
-    probSubjects=new_base[-1][(C1&C2),get(subjectID)]
-    C1A=(new_base[,get(subjectID)] %in% probSubjects)
+    C1 = new_base[, sID][-Nprob] == new_base[, sID][-1]
+    C2 = ((new_base[, Adate][-1]-new_base[, Ddate][-Nprob])<0)
+    probSubjects=new_base[-1][(C1&C2),sID]
+    C1A=(new_base[,sID] %in% probSubjects)
 
     probBase=new_base[C1A,]
     nonProbBase=rbind(nonProbBase,new_base[!C1A,])
@@ -426,7 +401,6 @@ adjust_overlapping_stays = function(report,
     iterator<-iterator+1
   }
   endN = nrow(nonProbBase)
-
 
   report$neededIterations=iterator
   report$allIterations= (iterator>=maxIteration)
@@ -475,7 +449,7 @@ adjust_overlaps <- function(report,
     base[over[type == 'f', I-1], dis := base[over[type == 'f', I], adm]]
     base = rbind(base, additional_stays)
     setkey(base, sID, adm)
-
+    
     report$base = base
     report$addedAOS = nrow(additional_stays)
     return(report)
