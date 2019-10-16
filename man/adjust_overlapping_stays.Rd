@@ -4,31 +4,25 @@
 \alias{adjust_overlapping_stays}
 \title{Check and fix overlapping admissions.}
 \usage{
-adjust_overlapping_stays(report, patientID = "pID", hospitalID = "hID",
-  admDate = "Adate", disDate = "Ddate", maxIteration = 25,
-  verbose = FALSE, retainAuxData = FALSE, ...)
+adjust_overlapping_stays(report, maxIteration = 25, verbose = FALSE,
+  retainAuxData = TRUE, ...)
 }
 \arguments{
-\item{patientID}{(charachter) the columns name containing the patient ID. Default is "pID".}
-
-\item{hospitalID}{(charachter) the columns name containing the hospital ID. Default is "hID".}
-
-\item{admDate}{(charachter) the columns name containing the admission date. Default is "Adate".}
-
-\item{disDate}{(charachter) the columns name containing the discharge date. Default is "Ddate".}
+\item{report}{(list).
+A list containing the base and in which will be stored reporting variables.
+The base is a patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
+    sID: subjectID (character)
+    fID: facilityID (character)
+    Adate: admission date (POSIXct, but character can be converted to POSIXct)
+    Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 
 \item{maxIteration}{(integer) the maximum number of times the function will try and remove overlapping admissions.}
 
 \item{verbose}{(boolean) print diagnostic messages. Default is FALSE.}
 
-\item{...}{other parameters passed on to internal functions}
+\item{retainAuxData}{(boolean) allow retaining additional data provided in the database. Default is TRUE.}
 
-\item{base}{(data.table).
-A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-    pID: patientID (character)
-    hID: hospitalID (character)
-    Adate: admission date (POSIXct, but character can be converted to POSIXct)
-    Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
+\item{...}{other parameters passed on to internal functions}
 }
 \value{
 The corrected database as data.table.
@@ -37,6 +31,6 @@ The corrected database as data.table.
 This function checks if a discharge (n) is not later than the next (n+1) admission.
 If this is the case, it sets the date of discharge n to date of discharge n+1, and creates an extra record running from discharge n+1 to discharge n.
 If the length of stay of this record is negative, it removes it.
-It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found. 
+It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found.
 Returns the corrected database.
 }

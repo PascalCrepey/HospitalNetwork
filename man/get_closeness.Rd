@@ -15,7 +15,7 @@ get_closeness(graph, modes = "total")
 a data.table containing the closeness measure
 }
 \description{
-Compute one or several closeness measure for hospital networks.
+Compute one or several closeness measure for facility networks.
 }
 \seealso{
 \code{\link[igraph]{closeness}}

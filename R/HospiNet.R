@@ -6,12 +6,15 @@
 #' @import ggplot2
 #' @export
 #' @keywords data
-#' @return Object of \code{\link{R6Class}} with methods for accessing hospital networks.
+#' @return Object of \code{\link{R6Class}} with methods for accessing facility networks.
 #' @format \code{\link{R6Class}} object.
 #' @examples
-#' mydbsmall = create_fake_patientDB(n_patients = 1000, n_hospital = 10)
+#' mydbsmall = create_fake_subjectDB(n_subjects = 1000, n_facilities = 10)
 #'   
-#' hn = hospinet_from_patient_database(base = mydbsmall)
+#' hn = hospinet_from_subject_database(base = mydbsmall,
+#'                                     window_threshold = 10,
+#'                                     count_option = "successive",
+#'                                     condition = "dates")
 #' 
 #' hn
 #' 
@@ -21,33 +24,33 @@
 #' @field edgelist (data.table) the list of edges (origin, target) and their associated number of movements (N) (read-only)
 #' @field matrix (matrix) the transfer matrix (active binding, read-only)
 #' @field igraph (igraph) the igraph object corresponding to the network (active binding, read-only)
-#' @field n_hospitals the number of hospitals in the network (read-only)
-#' @field n_movements the total number of patient movements in the network (read-only)
+#' @field n_facilities the number of facilities in the network (read-only)
+#' @field n_movements the total number of subject movements in the network (read-only)
 #' @field window_threshold the window threshold used to compute the network (read-only)
 #' @field nmoves_threshold the nmoves threshold used to compute the network (read-only)
 #' @field noloops TRUE if loops have been removed (read-only)
 
-#' @field hist_degrees histogram data of the number of connections per hospital 
-#' @field numHospitals the number of hospitals in the network (read-only). Same as n_hospitals, but with a different source (base instead of igraph), maybe useful as double-check
+#' @field hist_degrees histogram data of the number of connections per facility 
+#' @field numFacilities the number of facilities in the network (read-only). Same as n_facilities, but with a different source (base instead of igraph), maybe useful as double-check
 #' @field TBAmean the mean time between admissions (read-only)
 #' @field TBAdistribution the distribution of time between admissions (read-only)
 #' @field LOSmean= the mean length of stay (read-only)
 #' @field LOSdistribution the distribution of length of stay (read-only)
-#' @field LOSPerHosp the mean length of stay for each hospital (read-only)
+#' @field LOSPerHosp the mean length of stay for each facility (read-only)
 #' @field admissions the number of admissions in the entire data base (read-only)
-#' @field admissionsPerHosp the number of admissions to each hospital (read-only)
-#' @field patients the number of unique patients in the data base (read-only)
-#' @field patientsPerHosp the number of unique patients admitted to each hospital (read-only)
+#' @field admissionsPerHosp the number of admissions to each facility (read-only)
+#' @field subjects the number of unique subjects in the data base (read-only)
+#' @field subjectsPerHosp the number of unique subjects admitted to each facility (read-only)
 
-#' @field degrees number of connections for each hospitals (total, in, and out)(read-only)
-#' @field closenesss the closeness centrality of each hospital (read-only)
-#' @field betweennesss the betweenness centrality of each hospital (read-only)
-#' @field cluster_infomap the assigned community for each hospital, based on the infomap algorithm (read-only)
-#' @field cluster_fast_greedy the assigned community for each hospital, based on the greedy modularity optimisation algorithm (read-only)
+#' @field degrees number of connections for each facilities (total, in, and out)(read-only)
+#' @field closenesss the closeness centrality of each facility (read-only)
+#' @field betweennesss the betweenness centrality of each facility (read-only)
+#' @field cluster_infomap the assigned community for each facility, based on the infomap algorithm (read-only)
+#' @field cluster_fast_greedy the assigned community for each facility, based on the greedy modularity optimisation algorithm (read-only)
 #' @field hubs_global Kleinberg's hub centrality scores, based on the entire network (read-only)
 #' @field hubs_infomap same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)
 #' @field hubs_fast_greedy same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)
-#' @field metricsTable (data.table) all of the above metrics for each hospital (read-only)
+#' @field metricsTable (data.table) all of the above metrics for each facility (read-only)
 #' 
 #' @section Methods:
 #' \describe{
@@ -56,7 +59,7 @@
 #' nmoves_threshold,
 #' noloops)}}{This method is used to create an object of this class with \code{edgelist} as the necessary information to create the network.
 #' The other arguments \code{window_threshold}, \code{nmoves_threshold}, and \code{noloops} are specific to the \code{edgelist} and need to be provided.
-#' For ease of use, it is preferable to use the function \code{\link{hospinet_from_patient_database}}}
+#' For ease of use, it is preferable to use the function \code{\link{hospinet_from_subject_database}}}
 #'   \item{\code{print()}}{This method prints basic information about the object.}
 #'   \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default. 
 #'   The argument \code{type} can take the following values: 
@@ -71,8 +74,9 @@ HospiNet <- R6::R6Class("HospiNet",
   private = list(
     .matrix = NULL,
     .edgelist = NULL,
-    .n_hospitals = NULL,
-    .numHospitals = NULL, # Same as n_hospitals, but with a different source, maybe useful as double-check
+    .edgelist_long = NULL,
+    .n_facilities = NULL,
+    .numFacilities = NULL, # Same as n_facilities, but with a different source, maybe useful as double-check
     .n_movements = NULL,
     .window_threshold = NULL,
     .nmoves_threshold = NULL,
@@ -85,8 +89,8 @@ HospiNet <- R6::R6Class("HospiNet",
     .LOSPerHosp = NULL,
     .admissions= NULL, 
     .admissionsPerHosp = NULL,
-    .patients= NULL, 
-    .patientsPerHosp = NULL,
+    .subjects= NULL, 
+    .subjectsPerHosp = NULL,
     .metricsTable=NULL,
     .degrees = NULL,
     .hist_degrees = NULL,
@@ -104,13 +108,13 @@ HospiNet <- R6::R6Class("HospiNet",
         geom_col(position = "dodge") +
         scale_fill_discrete(name = NULL) +
         scale_x_continuous(name = "Degree", limits = c(min(self$degrees[,-1]) - 1, NA)) +
-        scale_y_continuous(name = "Number of hospitals") +
+        scale_y_continuous(name = "Number of facilities") +
         theme_bw() +
         theme(legend.position = "bottom")
       p
     }, 
     plot_matrix = function(){
-      n_h = self$n_hospitals
+      n_h = self$n_facilities
       ggplot(self$edgelist, aes(x = target, y = origin)) + 
         geom_raster(aes(fill = N)) + 
         scale_fill_gradient(low = "grey90", high = "red") +
@@ -190,7 +194,7 @@ HospiNet <- R6::R6Class("HospiNet",
       el$origin = factor(el$origin, levels = unique(el[order(origin_c), origin])) 
       el$target = factor(el$target, levels = unique(el[order(target_c), target])) 
       
-      n_h = self$n_hospitals
+      n_h = self$n_facilities
       #plot it
       ggplot(el, aes(x = origin, y = target)) + 
         geom_raster(aes(fill = col)) + 
@@ -207,15 +211,17 @@ HospiNet <- R6::R6Class("HospiNet",
     }
   ),
   public = list(
-    initialize = function(edgelist, 
+    initialize = function(edgelist,
+                          edgelist_long,
                           window_threshold,
                           nmoves_threshold,
                           noloops,
-                          hsummary=NULL,
+                          fsummary=NULL,
                           dsummary=NULL,
                           create_MetricsTable=FALSE
                           ){
       private$.edgelist = edgelist
+      private$.edgelist_long = edgelist_long
       private$.window_threshold = window_threshold
       private$.nmoves_threshold = nmoves_threshold
       private$.noloops = noloops
@@ -223,24 +229,24 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.LOSmean = dsummary$meanLOS
         private$.TBAmean = dsummary$meanTBA
         private$.admissions = dsummary$totalAdmissions
-        private$.patients = dsummary$numPatients
-        private$.numHospitals = dsummary$numHospitals # Same as n_hospitals, but with a different source, maybe useful as double-check
+        private$.subjects = dsummary$numSubjects
+        private$.numFacilities = dsummary$numFacilities # Same as n_facilities, but with a different source, maybe useful as double-check
         private$.LOSdistribution = dsummary$LOSdistribution
         private$.TBAdistribution = dsummary$TBAdistribution
       }
-      if (!is.null(hsummary)){
-        private$.LOSPerHosp = hsummary[,.(node,LOS)]
-        private$.patientsPerHosp = hsummary[,.(node,patients)]
-        private$.admissionsPerHosp = hsummary[,.(node,admissions)]
+      if (!is.null(fsummary)){
+        private$.LOSPerHosp = fsummary[,.(node,LOS)]
+        private$.subjectsPerHosp = fsummary[,.(node,subjects)]
+        private$.admissionsPerHosp = fsummary[,.(node,admissions)]
       }
       if(create_MetricsTable){
         private$.metricsTable=self$metricsTable
       }
     },
     print = function() {
-      cat(paste0(self$n_hospitals, " hospitals and ", self$n_movements, " movements.\n"))
+      cat(paste0(self$n_facilities, " facilities and ", self$n_movements, " movements.\n"))
       cat(paste0("Movement window is ", self$window_threshold, " days. \n"))
-      if (self$n_hospitals <= 10) {
+      if (self$n_facilities <= 10) {
         print(self$matrix)
       }else{
         cat("Matrix too big to be printed on screen.")
@@ -260,7 +266,7 @@ HospiNet <- R6::R6Class("HospiNet",
       if (missing(value)) {
         if (is.null(private$.matrix)){
           message("Constructing full matrix")
-          private$.matrix = matrix_from_edgelist(edgelist = private$.edgelist)
+          private$.matrix = matrix_from_edgelist(edgelist = private$.edgelist, count = "N")
           private$.matrix
         }else {
           private$.matrix
@@ -274,6 +280,13 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.edgelist
       } else {
         stop("`$edgelist` is read only", call. = FALSE)
+      }
+    },
+    edgelist_long = function(value) {
+      if (missing(value)) {
+          private$.edgelist_long
+      } else {
+        stop("`$edgelist_long` is read only", call. = FALSE)
       }
     },
     igraph = function(value) {
@@ -335,18 +348,18 @@ HospiNet <- R6::R6Class("HospiNet",
         stop("`$admissions` is read only", call. = FALSE)
       }
     },
-    patients = function(value) {
+    subjects = function(value) {
       if (missing(value)) {
-        private$.patients
+        private$.subjects
       } else {
-        stop("`$patients` is read only", call. = FALSE)
+        stop("`$subjects` is read only", call. = FALSE)
       }
     },
-    numHospitals = function(value) {
+    numFacilities = function(value) {
       if (missing(value)) {
-        private$.numHospitals
+        private$.numFacilities
       } else {
-        stop("`$numHospitals` is read only", call. = FALSE)
+        stop("`$numFacilities` is read only", call. = FALSE)
       }
     },
     LOSdistribution = function(value) {
@@ -372,11 +385,11 @@ HospiNet <- R6::R6Class("HospiNet",
         stop("`$LOSPerHosp` is read only", call. = FALSE)
       }
     },
-    patientsPerHosp = function(value) {
+    subjectsPerHosp = function(value) {
       if (missing(value)) {
-        private$.patientsPerHosp
+        private$.subjectsPerHosp
       } else {
-        stop("`$patientsPerHosp` is read only", call. = FALSE)
+        stop("`$subjectsPerHosp` is read only", call. = FALSE)
       }
     },
     admissionsPerHosp = function(value) {
@@ -387,15 +400,15 @@ HospiNet <- R6::R6Class("HospiNet",
       }
     },
     
-    n_hospitals = function(value) {
+    n_facilities = function(value) {
       if (missing(value)) {
-        if (is.null(private$.n_hospitals)){
-          private$.n_hospitals = vcount(self$igraph)
+        if (is.null(private$.n_facilities)){
+          private$.n_facilities = vcount(self$igraph)
         } else {
-          private$.n_hospitals
+          private$.n_facilities
         }
       } else {
-        stop("`$n_hospitals` is read only", call. = FALSE)
+        stop("`$n_facilities` is read only", call. = FALSE)
       }
     },
     n_movements = function(value) {
@@ -501,7 +514,7 @@ HospiNet <- R6::R6Class("HospiNet",
      if (missing(value)) {
        if (is.null(private$.metricsTable)){
          private$.metricsTable = Reduce(function(x,y) merge(x = x, y = y, all=TRUE),list(
-           self$patientsPerHosp,
+           self$subjectsPerHosp,
            self$admissionsPerHosp,
            self$LOSPerHosp,
            self$betweennesss,

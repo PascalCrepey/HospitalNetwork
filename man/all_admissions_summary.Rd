@@ -4,24 +4,15 @@
 \alias{all_admissions_summary}
 \title{Summary statistics on entire database}
 \usage{
-all_admissions_summary(base, patientID = "pID", hospitalID = "hID",
-  disDate = "Ddate", admDate = "Adate", verbose = FALSE, ...)
+all_admissions_summary(base, verbose = FALSE, ...)
 }
 \arguments{
 \item{base}{(data.table).
-A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
-    pID: patientID (character)
-    hID: hospitalID (character)
+A subject discharge database, in the form of a data.table. The data.table should have at least the following columns:
+    sID: subjectID (character)
+    fID: facilityID (character)
     Adate: admission date (date)
     Ddate: discharge date (date)}
-
-\item{patientID}{(charachter) the columns name containing the patient ID. Default is "pID"}
-
-\item{hospitalID}{(charachter) the columns name containing the hospital ID. Default is "hID"}
-
-\item{disDate}{(charachter) the columns name containing the discharge date. Default is "Ddate"}
-
-\item{admDate}{(charachter) the columns name containing the admission date. Default is "Adate"}
 
 \item{verbose}{(boolean) print diagnostic messages. Default is TRUE.}
 
@@ -32,8 +23,8 @@ a list of summary statistics:
         -   meanLOS: The mean length of stay, in days
         -   meanTBA: The mean time between admissions, in days
         -   totalAdmissions: Total number of admissions (i.e. number of records in the database)
-        -   numPatients: Number of unique patients
-        -   numHospitals: Number of unique hospitals
+        -   numSubjects: Number of unique subjects
+        -   numFacilities: Number of unique facilities
         -   LOSdistribution: Distribution of length of stay
         -   TBAdistribution: Distribution of time between admissions
 }

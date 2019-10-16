@@ -10,7 +10,7 @@
 #' @param network the network to analyse. Must be an igraph, HospiNet or a square adjacency matrix (n*n).
 #' @param mode either "directed" or "undirected" network measures
 #' @param weighted TRUE if the network is weighted
-#' @param transfers TRUE if metrics specific to patient transfers must be computed
+#' @param transfers TRUE if metrics specific to subject transfers must be computed
 #' @param metrics list of the metrics to compute
 #' @param clusters choose between cluster algorithm: cluster_fast_greedy or cluster_infomap
 #' @param hubs choose between getting hubs from "all_clusters" or "global"
@@ -79,14 +79,14 @@ get_metrics <-
     DT_list = list()
     ## transfers
     if (transfers) {
-        patients_sent<-as.data.table(igraph::strength(graph,mode = "out"), keep.rownames = T)
-        colnames(patients_sent)<-c("node","patients_sent")
-        setkey(patients_sent, node)
+        subjects_sent<-as.data.table(igraph::strength(graph,mode = "out"), keep.rownames = T)
+        colnames(subjects_sent)<-c("node","subjects_sent")
+        setkey(subjects_sent, node)
         
-        patients_received<-as.data.table(igraph::strength(graph,mode = "in"), keep.rownames = T)
-        colnames(patients_received)<-c("node","patients_received")
-        setkey(patients_received, node)
-        DT_list$transfers = merge(patients_received, patients_sent)
+        subjects_received<-as.data.table(igraph::strength(graph,mode = "in"), keep.rownames = T)
+        colnames(subjects_received)<-c("node","subjects_received")
+        setkey(subjects_received, node)
+        DT_list$transfers = merge(subjects_received, subjects_sent)
     }
     ## metrics   
     DT_list[metrics] = lapply(metrics, function(metric) {
@@ -162,7 +162,7 @@ get_degree <-
 
 #' Compute closeness
 #' 
-#' Compute one or several closeness measure for hospital networks.
+#' Compute one or several closeness measure for facility networks.
 #'
 #' @param graph an igraph object
 #' @param modes option passed on to igraph::closeness : "out", "in", "all", "total"
@@ -224,7 +224,7 @@ get_betweenness <-
 #' Compute the clusters
 #'
 #' @param graph an igraph object
-#' @param algo the type of algorithm, single argument describing a cluster function from the igraph package
+#' @param algos the type of algorithm, single argument describing a cluster function from the igraph package
 #' @param undirected either "mutual" or "arbitrary"
 #' @param ... other arguments to be passed on to the algorithm
 #'
@@ -293,23 +293,37 @@ get_hubs_global <-
 #' 
 #' @seealso \code{\link[igraph]{hub_score}}
 #' 
-get_hubs_bycluster <-
-    function(graphs, name, ...)
+get_hubs_bycluster <- function(graphs, name, ...)
 {
-    ## MAIN
-    ## Get hub scores for each graph
-    hubs = lapply(graphs, function(x) igraph::hub_score(x, ...))
-   
-    ## Create data tables and then merge
-    tmp = lapply(hubs, function(x) as.data.table(x$vector, keep.rownames = T))
-    
-    DT_hubs = lapply(tmp, function(x) {
-        colnames(x) = c("node", paste0("hub_score_by_", name))
-        setkey(x, node)
+    ## Warning if some clusters have only one member
+    vcounts = lapply(graphs, function(g) {
+        igraph::vcount(g)
     })
+    names(vcounts) = names(graphs)
+    lonely = names(vcounts[vcounts == 1])
+    if (length(lonely)) {
+        warning("Cluster(s) ", paste(lonely, collapse = ", "), " have only one member")
+    }
+    
+    ## Get hub scores for each graph
+    hubs = lapply(graphs, function(x) {
+        igraph::hub_score(x, ...)
+    })   
+    ## Create data tables
+    tmp = lapply(hubs, function(x) {
+        as.data.table(x$vector, keep.rownames = T)
+    })
+    ## Add clusters names
+    DT_hubs = lapply(1:length(tmp), function(x) {
+        tmp[[x]][, cluster := names(tmp[x])]
+    })
+    ## Merge
     DT_merged = rbindlist(DT_hubs)
+    setnames(DT_merged,
+             old = c("V1","V2"),
+             new = c("node", paste0("hub_score_by_", name)))
     setkey(DT_merged, node)
-    ## END OF MAIN
+
     return(DT_merged)
 }
 
@@ -339,25 +353,22 @@ get_matrix_bycluster <-
     return(mat_byclust)        
 }
 
-get_graph_bycluster <-
-  function(graph, DT, clusters)
-  {
-    ## MAIN
+get_graph_bycluster <- function(graph, DT, clusters)
+{
     ## Get list of members of each clusters
-    n = 1:length(unique(DT[[clusters]]))
-    members = list()
-    members[n] = lapply(n, function(x) {
-      bool = DT[[clusters]] == x
-      return(DT[bool, node])
+    n = DT[, unique(get(clusters))]
+    members = lapply(n, function(x) {
+        DT[get(clusters) == x, node]
     })
-    ##Select groups of more than one member
-    members=members[lapply(members,length)>1]
-    
-    ## Get matrices by cluster
-    graph_byclust = lapply(members, function(x) igraph::induced_subgraph(graph, x,impl = "copy_and_delete"))
-    ## END OF MAIN
+    names(members) = paste0('clust_', n)
+
+    ## Get graphs by cluster
+    graph_byclust = lapply(members, function(x) {
+        igraph::induced_subgraph(graph, x,impl = "copy_and_delete")
+    })
     return(graph_byclust)        
-  }
+}
+
 
 # getAuthorities <-
 #     function()

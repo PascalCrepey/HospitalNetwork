@@ -9,7 +9,7 @@
 HospiNet
 }
 \value{
-Object of \code{\link{R6Class}} with methods for accessing hospital networks.
+Object of \code{\link{R6Class}} with methods for accessing facility networks.
 }
 \description{
 Class providing the HospiNet object with its methods
@@ -23,9 +23,9 @@ Class providing the HospiNet object with its methods
 
 \item{\code{igraph}}{(igraph) the igraph object corresponding to the network (active binding, read-only)}
 
-\item{\code{n_hospitals}}{the number of hospitals in the network (read-only)}
+\item{\code{n_facilities}}{the number of facilities in the network (read-only)}
 
-\item{\code{n_movements}}{the total number of patient movements in the network (read-only)}
+\item{\code{n_movements}}{the total number of subject movements in the network (read-only)}
 
 \item{\code{window_threshold}}{the window threshold used to compute the network (read-only)}
 
@@ -33,9 +33,9 @@ Class providing the HospiNet object with its methods
 
 \item{\code{noloops}}{TRUE if loops have been removed (read-only)}
 
-\item{\code{hist_degrees}}{histogram data of the number of connections per hospital}
+\item{\code{hist_degrees}}{histogram data of the number of connections per facility}
 
-\item{\code{numHospitals}}{the number of hospitals in the network (read-only). Same as n_hospitals, but with a different source (base instead of igraph), maybe useful as double-check}
+\item{\code{numFacilities}}{the number of facilities in the network (read-only). Same as n_facilities, but with a different source (base instead of igraph), maybe useful as double-check}
 
 \item{\code{TBAmean}}{the mean time between admissions (read-only)}
 
@@ -45,25 +45,25 @@ Class providing the HospiNet object with its methods
 
 \item{\code{LOSdistribution}}{the distribution of length of stay (read-only)}
 
-\item{\code{LOSPerHosp}}{the mean length of stay for each hospital (read-only)}
+\item{\code{LOSPerHosp}}{the mean length of stay for each facility (read-only)}
 
 \item{\code{admissions}}{the number of admissions in the entire data base (read-only)}
 
-\item{\code{admissionsPerHosp}}{the number of admissions to each hospital (read-only)}
+\item{\code{admissionsPerHosp}}{the number of admissions to each facility (read-only)}
 
-\item{\code{patients}}{the number of unique patients in the data base (read-only)}
+\item{\code{subjects}}{the number of unique subjects in the data base (read-only)}
 
-\item{\code{patientsPerHosp}}{the number of unique patients admitted to each hospital (read-only)}
+\item{\code{subjectsPerHosp}}{the number of unique subjects admitted to each facility (read-only)}
 
-\item{\code{degrees}}{number of connections for each hospitals (total, in, and out)(read-only)}
+\item{\code{degrees}}{number of connections for each facilities (total, in, and out)(read-only)}
 
-\item{\code{closenesss}}{the closeness centrality of each hospital (read-only)}
+\item{\code{closenesss}}{the closeness centrality of each facility (read-only)}
 
-\item{\code{betweennesss}}{the betweenness centrality of each hospital (read-only)}
+\item{\code{betweennesss}}{the betweenness centrality of each facility (read-only)}
 
-\item{\code{cluster_infomap}}{the assigned community for each hospital, based on the infomap algorithm (read-only)}
+\item{\code{cluster_infomap}}{the assigned community for each facility, based on the infomap algorithm (read-only)}
 
-\item{\code{cluster_fast_greedy}}{the assigned community for each hospital, based on the greedy modularity optimisation algorithm (read-only)}
+\item{\code{cluster_fast_greedy}}{the assigned community for each facility, based on the greedy modularity optimisation algorithm (read-only)}
 
 \item{\code{hubs_global}}{Kleinberg's hub centrality scores, based on the entire network (read-only)}
 
@@ -71,7 +71,7 @@ Class providing the HospiNet object with its methods
 
 \item{\code{hubs_fast_greedy}}{same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)}
 
-\item{\code{metricsTable}}{(data.table) all of the above metrics for each hospital (read-only)}
+\item{\code{metricsTable}}{(data.table) all of the above metrics for each facility (read-only)}
 }}
 
 \section{Methods}{
@@ -82,7 +82,7 @@ window_threshold,
 nmoves_threshold,
 noloops)}}{This method is used to create an object of this class with \code{edgelist} as the necessary information to create the network.
 The other arguments \code{window_threshold}, \code{nmoves_threshold}, and \code{noloops} are specific to the \code{edgelist} and need to be provided.
-For ease of use, it is preferable to use the function \code{\link{hospinet_from_patient_database}}}
+For ease of use, it is preferable to use the function \code{\link{hospinet_from_subject_database}}}
   \item{\code{print()}}{This method prints basic information about the object.}
   \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default. 
   The argument \code{type} can take the following values: 
@@ -95,9 +95,12 @@ For ease of use, it is preferable to use the function \code{\link{hospinet_from_
 }
 
 \examples{
-mydbsmall = create_fake_patientDB(n_patients = 1000, n_hospital = 10)
+mydbsmall = create_fake_subjectDB(n_subjects = 1000, n_facilities = 10)
   
-hn = hospinet_from_patient_database(base = mydbsmall)
+hn = hospinet_from_subject_database(base = mydbsmall,
+                                    window_threshold = 10,
+                                    count_option = "successive",
+                                    condition = "dates")
 
 hn
 
