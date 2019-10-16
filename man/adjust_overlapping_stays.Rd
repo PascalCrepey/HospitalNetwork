@@ -6,7 +6,7 @@
 \usage{
 adjust_overlapping_stays(report, subjectID = "sID", facilityID = "fID",
   admDate = "Adate", disDate = "Ddate", maxIteration = 25,
-  verbose = FALSE, retainAuxData = FALSE, ...)
+  verbose = FALSE, retainAuxData = TRUE, ...)
 }
 \arguments{
 \item{subjectID}{(charachter) the columns name containing the subject ID. Default is "sID".}
@@ -37,6 +37,6 @@ The corrected database as data.table.
 This function checks if a discharge (n) is not later than the next (n+1) admission.
 If this is the case, it sets the date of discharge n to date of discharge n+1, and creates an extra record running from discharge n+1 to discharge n.
 If the length of stay of this record is negative, it removes it.
-It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found. 
+It is possible that one pass of this algorithm doesn't clear all overlapping admissions (e.g. when one admission overlaps with more than one other admission), it is therefore iterated until no overlapping admissions are found.
 Returns the corrected database.
 }

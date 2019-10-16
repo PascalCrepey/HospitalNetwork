@@ -70,11 +70,11 @@ base[, `:=`(Adate = lubridate::parse_date_time(Adate, orders = "ymd"),
 ## Case H. If window = 42 -> 10 (C + s08*2)
 ## Case I. If window = 365 -> 13 (E + s08*3)
 
-elA = edgelist_from_base(base,
+elA = edgelist_from_base(checkBase(base),
                          window_threshold = 0,
                          count_option = "successive",
                          condition = "dates")
-elB = edgelist_from_base(base,
+elB = edgelist_from_base(checkBase(base),
                          window_threshold = 0,
                          count_option = "successive",
                          condition = "both",
@@ -82,11 +82,11 @@ elB = edgelist_from_base(base,
                                           "target" = "modeIN"),
                          flag_values = list("origin" = c("transfer", "mutation"),
                                             "target" = c("transfer", "mutation")))
-elC = edgelist_from_base(base,
+elC = edgelist_from_base(checkBase(base),
                          window_threshold = 42,
                          count_option = "successive",
                          condition = "dates")
-elD = edgelist_from_base(base,
+elD = edgelist_from_base(checkBase(base),
                          window_threshold = 42,
                          count_option = "successive",
                          condition = "both",
@@ -94,11 +94,11 @@ elD = edgelist_from_base(base,
                                           "target" = "modeIN"),
                          flag_values = list("origin" = c("transfer", "mutation"),
                                             "target" = c("transfer", "mutation")))
-elE = edgelist_from_base(base,
+elE = edgelist_from_base(checkBase(base),
                          window_threshold = 365,
                          count_option = "successive",
                          condition = "dates")
-elF = edgelist_from_base(base,
+elF = edgelist_from_base(checkBase(base),
                          window_threshold = 365,
                          count_option = "successive",
                          condition = "both",
@@ -106,7 +106,7 @@ elF = edgelist_from_base(base,
                                           "target" = "modeIN"),
                          flag_values = list("origin" = c("transfer", "mutation"),
                                             "target" = c("transfer", "mutation")))
-elG = edgelist_from_base(base,
+elG = edgelist_from_base(checkBase(base),
                          window_threshold = 0,
                          count_option = "successive",
                          condition = "flags",
@@ -114,11 +114,11 @@ elG = edgelist_from_base(base,
                                           "target" = "modeIN"),
                          flag_values = list("origin" = c("transfer", "mutation"),
                                             "target" = c("transfer", "mutation")))
-elH = edgelist_from_base(base,
+elH = edgelist_from_base(checkBase(base),
                          window_threshold = 42,
                          count_option = "all",
                          condition = "dates")
-elI = edgelist_from_base(base,
+elI = edgelist_from_base(checkBase(base),
                          window_threshold = 365,
                          count_option = "all",
                          condition = "dates")
@@ -202,39 +202,10 @@ test_that("matrix_from_edgelist() computed the right matrix", {
 
 test_that("matrix_from_base() computes the right matrix", {
     # only one test because this is a simple wrapper function of the two others
-    mC = matrix_from_base(base,
+    mC = matrix_from_base(checkBase(base),
                           window_threshold = 42,
                           count_option = "successive",
                           condition = "dates")
     expect_equal(c(mC["f1", "f2"], mC["f2", "f3"], mC["f3", "f4"]), c(6, 1, 1))
 })
 
-
-
-## # Test hospinet
-## hnet = hospinet_from_subject_database(base = base,
-##                                       window_threshold = 0,
-##                                       count_option = "all",
-##                                       condition = "dates",
-##                                       noloops = FALSE)
-## test_that("the network contains the right number of facilities", {
-##     expect_equal(nrow(hnet$matrix), 4)
-## })
-
-## test_that("the network contains the right number of movements", {
-##   expect_equal(sum(mydb[, .N - 1, by = sID]$V1), sum(hnet$matrix))
-## })
-
-## test_that("elements of the matrix are consistant with the edgelist", {
-##   mydb = create_fake_subjectDB(n_subjects = 100, n_facility = 11)
-##   hnet = hospinet_from_subject_database(base = mydb, noloops = FALSE)
-##   hnetDT = as.data.table(hnet$matrix)
-##   hnetDT[, origin := row.names(hnet$matrix)]
-##   hnetDT = melt(hnetDT, id.vars = "origin", variable.name = "target", value.name = "N")
-##   hnetDT[, target := as.character(target)]
-
-##   setkey(hnetDT, origin, target)
-##   hnetDT = hnetDT[N > 0]
-  
-##   expect_equivalent(hnetDT, hnet$edgelist)
-## })
