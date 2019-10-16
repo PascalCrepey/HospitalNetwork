@@ -15,8 +15,10 @@ library(“devtools”)
 ```
 - Then install the package from GitHub. Update or install all the required packages.
 ```R
-install_github("PascalCrepey/HospitalNetwork")
+install_github("PascalCrepey/HospitalNetwork@*release")
 ```
+This command will install the latest "released" version of the package.
+
 ### Step 1: Checking the consistency of the database 
 
 The function `checkBase()`should be run first, and the resulting checked/repaired database should be used in the following step. The function checks if :
@@ -74,7 +76,7 @@ install.packages("devtools") 	# install.packages only need to be run once
 library(devtools)		# load the library allowing the HospitalNetwork package 
 # download and installation
 
-install_github("PascalCrepey/HospitalNetwork") # can be commented once it is installed
+install_github("PascalCrepey/HospitalNetwork@*release") # can be commented once it is installed
 
 library(HospitalNetwork)	# load the HospitalNetwork library
 
