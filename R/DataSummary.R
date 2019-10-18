@@ -48,13 +48,13 @@ all_admissions_summary<-function(base,
 
   N = base[, .N]
   C1 = base[, sID][-N] == base[, sID][-1]
-  TBA = (base[,Adate][-1]-base[,Ddate][-N])[C1]
+  TBA = difftime(base[,Adate][-1], base[,Ddate][-N], units = "days")[C1]
   
   sumStats$meanLOS <- mean(LOS)
   sumStats$meanTBA <- mean(TBA)
   sumStats$totalAdmissions <- nrow(base)
-  sumStats$numSubjects <- nrow(unique(base[,sID]))
-  sumStats$numFacilities <- nrow(unique(base[,fID]))
+  sumStats$numSubjects <- length(base[, unique(sID)])
+  sumStats$numFacilities <- length(base[, unique(fID)])
   sumStats$LOSdistribution <- table(LOS)
   sumStats$TBAdistribution <- table(TBA)
 
