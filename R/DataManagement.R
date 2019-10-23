@@ -84,21 +84,36 @@ checkBase <- function(base,
                                       verbose = verbose,
                                       ...)
     if (verbose) message("Done.")
+    
+    #add the class "hospinet.base" to the list of class so that we can easily
+    #identify whether the base has been checked or not.
+    if (!inherits(report$base, "hospinet.base")) class(report$base) <- c("hospinet.base", class(report$base))
+    
+    #Get the summary statistics of the dataset
+    dataSummary = all_admissions_summary(report$base)
+    
+    #export the "quality report"
     attr(report$base, "report") <- list(
       failedParse = report$failedParse,
       removedMissing = report$removedMissing,
       missing = report$missing,
       negativeLOS = report$negativeLOS,
-      removedErrors = report$removedErrors,
+      removedNegativeLOS = report$removedNegativeLOS,
       removedDuplicates = report$removedDuplicates,
       neededIterations = report$neededIterations,
       allIterations = report$allIterations,
-      addedAOS = report$addedAOS)
-
-    #add the class "hospinet.base" to the list of class so that we can easily
-    #identify whether the base has been checked or not.
-    if (!inherits(report$base, "hospinet.base")) class(report$base) <- c("hospinet.base", class(report$base))
-
+      addedAOS = report$addedAOS,
+      originalSize = report$originalSize,
+      finalSize = report$base[,.N],
+      
+      LOSmean = dataSummary$meanLOS,
+      TBAmean = dataSummary$meanTBA,
+      admissions = dataSummary$totalAdmissions,
+      subjects = dataSummary$numSubjects,
+      numFacilities = dataSummary$numFacilities, # Same as n_facilities, but with a different source, maybe useful as double-check
+      LOSdistribution = dataSummary$LOSdistribution,
+      TBAdistribution = dataSummary$TBAdistribution
+    )
     return(report$base)
 }
 
@@ -132,7 +147,8 @@ checkFormat <- function(report,
         setDT(report$base)
         if (verbose) message("Converting database to a data.table object")
     }
-
+    #--- Register the original size of the dataset --------------------------------------------------
+    report$originalSize = report$base[,.N]
 
     #--- Check format of "sID" and "fID" columns ----------------------------------------------------
     charCols = c("sID", "fID")
@@ -246,6 +262,7 @@ checkMissingErrors <- function(report,
         report$missing = length(missing)
     } else {
         report$missing = 0
+        report$removedMissing = 0
     }
 
     #--- Check errors -------------------------------------------------------------------
@@ -268,7 +285,10 @@ checkMissingErrors <- function(report,
                              option = deleteErrors)
         # Report
         report$negativeLOS = len_wrong
-        report$removedErrors = startN - report$base[, .N]
+        report$removedNegativeLOS = startN - report$base[, .N]
+    } else {
+      report$negativeLOS=0
+      report$removedNegativeLOS=0
     }
 
     ## # Delete single day cases if only overnight patients are defined

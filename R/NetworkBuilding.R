@@ -449,8 +449,6 @@ hospinet_from_subject_database <- function(base,
         return(NULL)
     }
 
-  dataSummary = all_admissions_summary(base)
-
   facilitySummary = per_facility_summary(base)
 
   HospiNet$new(edgelist = edgelists$el_aggr,
@@ -459,6 +457,5 @@ hospinet_from_subject_database <- function(base,
                nmoves_threshold = nmoves_threshold, 
                noloops = noloops,
                fsummary = facilitySummary,
-               dsummary = dataSummary,
                create_MetricsTable=create_MetricsTable)
 }
