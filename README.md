@@ -83,15 +83,15 @@ library(HospitalNetwork)	# load the HospitalNetwork library
 
 # Here, we create a dummy database for testing purposes,
 # final users can directly use their own database. This one looks like: 
-#       pID hID      Adate      Ddate
-#  1: p001 h09 2019-02-19 2019-02-26
-#  2: p001 h10 2019-03-27 2019-03-31
-#  3: p001 h09 2019-04-22 2019-04-25
-#  4: p002 h08 2019-01-15 2019-01-20
-#  5: p003 h11 2019-02-14 2019-02-19
+#       sID fID      Adate      Ddate
+#  1: s001 f09 2019-02-19 2019-02-26
+#  2: s001 f10 2019-03-27 2019-03-31
+#  3: s001 f09 2019-04-22 2019-04-25
+#  4: s002 f08 2019-01-15 2019-01-20
+#  5: s003 f11 2019-02-14 2019-02-19
 #  ---                               
-# 228: p098 h01 2019-02-08 2019-02-12
-mydb = create_fake_patientDB(n_patients = 1000, n_hospital = 100)
+# 228: s098 f01 2019-02-08 2019-02-12
+mydb = create_fake_subjectDB(n_subjects = 1000, n_facilities = 100)
 
 # checking the database
 mydb_checked = checkBase(mydb)
