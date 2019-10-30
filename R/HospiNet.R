@@ -76,20 +76,13 @@ HospiNet <- R6::R6Class("HospiNet",
     .edgelist = NULL,
     .edgelist_long = NULL,
     .n_facilities = NULL,
-    .numFacilities = NULL, # Same as n_facilities, but with a different source, maybe useful as double-check
     .n_movements = NULL,
     .window_threshold = NULL,
     .nmoves_threshold = NULL,
     .noloops = NULL,
     .igraph = NULL,
-    .LOSmean= NULL,
-    .TBAmean = NULL,
-    .LOSdistribution = NULL,
-    .TBAdistribution = NULL,
     .LOSPerHosp = NULL,
-    .admissions= NULL, 
     .admissionsPerHosp = NULL,
-    .subjects= NULL, 
     .subjectsPerHosp = NULL,
     .metricsTable=NULL,
     .degrees = NULL,
@@ -217,7 +210,6 @@ HospiNet <- R6::R6Class("HospiNet",
                           nmoves_threshold,
                           noloops,
                           fsummary=NULL,
-                          dsummary=NULL,
                           create_MetricsTable=FALSE
                           ){
       private$.edgelist = edgelist
@@ -225,15 +217,6 @@ HospiNet <- R6::R6Class("HospiNet",
       private$.window_threshold = window_threshold
       private$.nmoves_threshold = nmoves_threshold
       private$.noloops = noloops
-      if (!is.null(dsummary)){
-        private$.LOSmean = dsummary$meanLOS
-        private$.TBAmean = dsummary$meanTBA
-        private$.admissions = dsummary$totalAdmissions
-        private$.subjects = dsummary$numSubjects
-        private$.numFacilities = dsummary$numFacilities # Same as n_facilities, but with a different source, maybe useful as double-check
-        private$.LOSdistribution = dsummary$LOSdistribution
-        private$.TBAdistribution = dsummary$TBAdistribution
-      }
       if (!is.null(fsummary)){
         private$.LOSPerHosp = fsummary[,.(node,LOS)]
         private$.subjectsPerHosp = fsummary[,.(node,subjects)]
@@ -326,58 +309,6 @@ HospiNet <- R6::R6Class("HospiNet",
         stop("`$noloops` is read only", call. = FALSE)
       }
     },
-    
-    LOSmean = function(value) {
-      if (missing(value)) {
-        private$.LOSmean
-      } else {
-        stop("`$LOSmean` is read only", call. = FALSE)
-      }
-    },
-    TBAmean = function(value) {
-      if (missing(value)) {
-        private$.TBAmean
-      } else {
-        stop("`$TBAmean` is read only", call. = FALSE)
-      }
-    },
-    admissions = function(value) {
-      if (missing(value)) {
-        private$.admissions
-      } else {
-        stop("`$admissions` is read only", call. = FALSE)
-      }
-    },
-    subjects = function(value) {
-      if (missing(value)) {
-        private$.subjects
-      } else {
-        stop("`$subjects` is read only", call. = FALSE)
-      }
-    },
-    numFacilities = function(value) {
-      if (missing(value)) {
-        private$.numFacilities
-      } else {
-        stop("`$numFacilities` is read only", call. = FALSE)
-      }
-    },
-    LOSdistribution = function(value) {
-      if (missing(value)) {
-        private$.LOSdistribution
-      } else {
-        stop("`$LOSdistribution` is read only", call. = FALSE)
-      }
-    },
-    
-    TBAdistribution = function(value) {
-      if (missing(value)) {
-        private$.TBAdistribution
-      } else {
-        stop("`$noloops` is read only", call. = FALSE)
-      }
-    },
-
     LOSPerHosp = function(value) {
       if (missing(value)) {
         private$.LOSPerHosp

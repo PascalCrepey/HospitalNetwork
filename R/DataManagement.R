@@ -77,28 +77,43 @@ checkBase <- function(base,
                                 deleteMissing = deleteMissing,
                                 deleteErrors = deleteErrors,
                                 verbose = verbose)
-
+    
     report = adjust_overlapping_stays(report = report,
                                       maxIteration = maxIteration,
                                       retainAuxData=retainAuxData,
                                       verbose = verbose,
                                       ...)
     if (verbose) message("Done.")
+    
+    #add the class "hospinet.base" to the list of class so that we can easily
+    #identify whether the base has been checked or not.
+    if (!inherits(report$base, "hospinet.base")) class(report$base) <- c("hospinet.base", class(report$base))
+    
+    #Get the summary statistics of the dataset
+    dataSummary = all_admissions_summary(report$base)
+    
+    #export the "quality report"
     attr(report$base, "report") <- list(
       failedParse = report$failedParse,
       removedMissing = report$removedMissing,
       missing = report$missing,
       negativeLOS = report$negativeLOS,
-      removedErrors = report$removedErrors,
+      removedNegativeLOS = report$removedNegativeLOS,
       removedDuplicates = report$removedDuplicates,
       neededIterations = report$neededIterations,
       allIterations = report$allIterations,
-      addedAOS = report$addedAOS)
-
-    #add the class "hospinet.base" to the list of class so that we can easily
-    #identify whether the base has been checked or not.
-    if (!inherits(report$base, "hospinet.base")) class(report$base) <- c("hospinet.base", class(report$base))
-
+      addedAOS = report$addedAOS,
+      originalSize = report$originalSize,
+      finalSize = report$base[,.N],
+      
+      LOSmean = dataSummary$meanLOS,
+      TBAmean = dataSummary$meanTBA,
+      admissions = dataSummary$totalAdmissions,
+      subjects = dataSummary$numSubjects,
+      numFacilities = dataSummary$numFacilities, # Same as n_facilities, but with a different source, maybe useful as double-check
+      LOSdistribution = dataSummary$LOSdistribution,
+      TBAdistribution = dataSummary$TBAdistribution
+    )
     return(report$base)
 }
 
@@ -132,7 +147,8 @@ checkFormat <- function(report,
         setDT(report$base)
         if (verbose) message("Converting database to a data.table object")
     }
-
+    #--- Register the original size of the dataset --------------------------------------------------
+    report$originalSize = report$base[,.N]
 
     #--- Check format of "sID" and "fID" columns ----------------------------------------------------
     charCols = c("sID", "fID")
@@ -246,6 +262,7 @@ checkMissingErrors <- function(report,
         report$missing = length(missing)
     } else {
         report$missing = 0
+        report$removedMissing = 0
     }
 
     #--- Check errors -------------------------------------------------------------------
@@ -268,7 +285,10 @@ checkMissingErrors <- function(report,
                              option = deleteErrors)
         # Report
         report$negativeLOS = len_wrong
-        report$removedErrors = startN - report$base[, .N]
+        report$removedNegativeLOS = startN - report$base[, .N]
+    } else {
+      report$negativeLOS=0
+      report$removedNegativeLOS=0
     }
 
     ## # Delete single day cases if only overnight patients are defined
@@ -341,7 +361,7 @@ adjust_overlapping_stays = function(report,
   C1A=(base[,sID] %in% probSubjects)
   probBase=base[C1A,]
   nonProbBase=base[!C1A,]
-
+  
   iterator=0
   while(iterator<maxIteration&sum(C1&C2)>0){
     if (verbose) message(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping facility stays\nSplitting database and correcting"))
@@ -375,6 +395,7 @@ adjust_overlapping_stays = function(report,
                    Adate=probBase[Nprob, Adate],
                    Ddate=probBase[Nprob, Ddate],
                    probBase[Nprob,..extraCols])
+      b=b[(b[, Adate] < b[, Ddate]),]
       probBase=rbind(a,b,c,d)
       setnames(probBase,c("sID","fID","Adate","Ddate",extraCols)) #might not be needed here
     }else{
@@ -382,6 +403,7 @@ adjust_overlapping_stays = function(report,
       b=data.table(sID=probBase[-Nprob][(C1&C2), sID],fID=probBase[-Nprob][(C1&C2), fID],Adate=probBase[-1][(C1&C2), Ddate],Ddate=probBase[-Nprob][(C1&C2), Ddate])
       c=data.table(sID=probBase[-Nprob][!(C1&C2), sID],fID=probBase[-Nprob][!(C1&C2), fID],Adate=probBase[-Nprob][!(C1&C2), Adate],Ddate=probBase[-Nprob][!(C1&C2), Ddate])
       d=data.table(sID=probBase[Nprob, sID],fID=probBase[Nprob, fID],Adate=probBase[Nprob, Adate],Ddate=probBase[Nprob, Ddate])
+      b=b[(b[, Adate] < b[, Ddate]),]
       probBase=rbind(a,b,c,d)
       setnames(probBase,c("sID","fID","Adate","Ddate")) #might not be needed here
     }
@@ -452,7 +474,7 @@ adjust_overlaps <- function(report,
     base[over[type == 'f', I-1], Ddate := base[over[type == 'f', I], Adate]]
     base = rbind(base, additional_stays)
     setkey(base, sID, Adate)
-    
+
     report$base = base
     report$addedAOS = nrow(additional_stays)
     return(report)

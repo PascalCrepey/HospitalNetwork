@@ -281,7 +281,7 @@ edgelist_from_base <- function(base,
         diff = difftime(time1 = base[, Adate][-1],
                         time2 = base[, Ddate][-N],
                         units = "days")
-        C2 = between(diff, 0, window_threshold)
+        C2 = between(diff, 0, window_threshold, incbounds = TRUE)
 
         if (!is.null(flag_vars)) {
             # Use additional variables to flag direct transfer
@@ -346,7 +346,7 @@ edgelist_from_base <- function(base,
 
         ## Filter according to the window threshold
         ## this creates the edgelist, by individual connections
-        el_long = tba[between(diff, 0, window_threshold), .(sID, origin, target)]
+        el_long = tba[between(diff, 0, window_threshold, incbounds = TRUE), .(sID, origin, target)]
     }
 
     #--- Aggregate edgelist by node ----------------------------------------------------
@@ -449,8 +449,6 @@ hospinet_from_subject_database <- function(base,
         return(NULL)
     }
 
-  dataSummary = all_admissions_summary(base)
-
   facilitySummary = per_facility_summary(base)
 
   HospiNet$new(edgelist = edgelists$el_aggr,
@@ -459,6 +457,5 @@ hospinet_from_subject_database <- function(base,
                nmoves_threshold = nmoves_threshold, 
                noloops = noloops,
                fsummary = facilitySummary,
-               dsummary = dataSummary,
                create_MetricsTable=create_MetricsTable)
 }
