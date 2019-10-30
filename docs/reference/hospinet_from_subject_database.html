@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute the adjacency matrix of a network from its edgelist — matrix_from_edgelist • HospitalNetwork</title>
+<title>Create HospiNet object from subject database — hospinet_from_subject_database • HospitalNetwork</title>
 
 
 <!-- jquery -->
@@ -35,8 +35,8 @@
 
 
 
-<meta property="og:title" content="Compute the adjacency matrix of a network from its edgelist — matrix_from_edgelist" />
-<meta property="og:description" content="Compute the adjacency matrix of a network from its edgelist" />
+<meta property="og:title" content="Create HospiNet object from subject database — hospinet_from_subject_database" />
+<meta property="og:description" content="This function creates a HospiNet object from the database containing subjects stays." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -112,80 +112,106 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute the adjacency matrix of a network from its edgelist</h1>
+    <h1>Create HospiNet object from subject database</h1>
     
-    <div class="hidden name"><code>matrix_from_edgelist.Rd</code></div>
+    <div class="hidden name"><code>hospinet_from_subject_database.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Compute the adjacency matrix of a network from its edgelist</p>
+    <p>This function creates a HospiNet object from the database containing subjects stays.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>matrix_from_edgelist</span>(<span class='no'>edgelist</span>, <span class='kw'>origin_name</span> <span class='kw'>=</span> <span class='st'>"origin"</span>,
-  <span class='kw'>target_name</span> <span class='kw'>=</span> <span class='st'>"target"</span>, <span class='no'>count</span>, <span class='kw'>format_long</span> <span class='kw'>=</span> <span class='no'>F</span>)</pre>
+    <pre class="usage"><span class='fu'>hospinet_from_subject_database</span>(<span class='no'>base</span>, <span class='kw'>window_threshold</span> <span class='kw'>=</span> <span class='fl'>365</span>,
+  <span class='kw'>count_option</span> <span class='kw'>=</span> <span class='st'>"successive"</span>, <span class='kw'>condition</span> <span class='kw'>=</span> <span class='st'>"dates"</span>, <span class='kw'>noloops</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>nmoves_threshold</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>flag_vars</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>flag_values</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>create_MetricsTable</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='no'>...</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>edgelist</th>
-      <td><p>(data.table) A table containing the edges (or links) of the
-network, i.e. representing the movements of subjects between
-facilities. Either in long format with at least two columns (origin and
-target facilities of a link), each row corresponding to a single
-movement, or aggregated by unique pairs of origin/target, therefore with
-an additional variable for movements count (default). See details.</p></td>
+      <th>base</th>
+      <td><p>(hospinet.base) A database of records of stays of subjects in
+facilities. This can be obtained using the function <code><a href='checkBase.html'>checkBase</a></code>.</p></td>
     </tr>
     <tr>
-      <th>origin_name</th>
-      <td><p>(character) Column of the origin facilities of the links.</p></td>
+      <th>window_threshold</th>
+      <td><p>(numeric)
+A threshold for the number of days between discharge and admission to be counted as a transfer. Set to 0 for same day transfer, default is 365 days.</p></td>
     </tr>
     <tr>
-      <th>target_name</th>
-      <td><p>(character) Column of the target facilities of the links.</p></td>
+      <th>count_option</th>
+      <td><p>(character) TODO. Default is "successive".</p></td>
     </tr>
     <tr>
-      <th>count</th>
-      <td><p>(character) Column of the counts of movements by unique pair of
-facilities.</p></td>
+      <th>condition</th>
+      <td><p>(character) TODO. Default is "dates".</p></td>
     </tr>
     <tr>
-      <th>format_long</th>
-      <td><p>(logical) Whether the edgelist is in long format, with
-each row corresponding to a single movement. If TRUE, the edgelist will
-be aggregated by unique pairs of facilities to compute the matrix.</p></td>
+      <th>noloops</th>
+      <td><p>(boolean).
+Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).</p></td>
+    </tr>
+    <tr>
+      <th>nmoves_threshold</th>
+      <td><p>(numeric)
+A threshold for the minimum number of subject transfer between two facilities. Set to NULL to deactivate, default to NULL.</p></td>
+    </tr>
+    <tr>
+      <th>flag_vars</th>
+      <td><p>(list) Additional variables that can help flag a transfer,
+besides the dates of admission and discharge. Must be a named list of two
+character vectors which are the names of the columns that can flag a
+transfer: the column that can flag a potential origin, and the column
+that can flag a potential target. The list must be named with "origin"
+and "transfer". Eg: list("origin" = "var1", "target" = "var2"). See
+details.</p></td>
+    </tr>
+    <tr>
+      <th>flag_values</th>
+      <td><p>(list) A named list of two character vectors which contain
+the values of the variables in flag_var that are matched to flag a
+potential transfer. The list must be named with "origin" and
+"transfer". The character vectors might be of length greater than
+one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2",
+"value2")). The values in 'origin' and 'target' are the values that flag
+a potential origin of a transfer, or a potential target,
+respectively. See details.</p></td>
+    </tr>
+    <tr>
+      <th>create_MetricsTable</th>
+      <td><p>(boolean)
+Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.</p></td>
+    </tr>
+    <tr>
+      <th>verbose</th>
+      <td><p>TRUE to print computation steps</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>Additional parameters to be sent to checkBase in case the database has not been checked yet.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A square numeric matrix, the ajacency matrix of the network.</p>
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>The edgelist contains the information on the connections between
-    nodes of the network, that is the movements of subjects between
-    facilities. The edgelist can be in two different formats: long or
-    aggregated. In long format, each row corresponds to a single movement
-    between two facilities, therefore only two columns are needed, one
-    containing the origin facilities of a movement, the other containing the
-    target facilities. In aggregated format, the edgelist is aggregated by
-    unique pairs of origin-target facilities. Thus, each row corresponds to a
-    unique connection between two facilities, and the table contains an
-    additional variable which is the count of the number of movements
-    recorded for the pair. If the edgelist is provided in long format, it
-    will be aggregated to compute the matrix.</p>
+    <p>The function returns a HospiNet object.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='edgelist_from_base.html'>edgelist_from_base</a></code>, <code><a href='matrix_from_base.html'>matrix_from_base</a></code></p></div>
+    <div class='dont-index'><p><code><a href='HospiNet.html'>HospiNet</a></code></p></div>
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'>#TODO
+
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
       <li><a href="#value">Value</a></li>
-      <li><a href="#details">Details</a></li>
       <li><a href="#see-also">See also</a></li>
+      <li><a href="#examples">Examples</a></li>
     </ul>
 
   </div>

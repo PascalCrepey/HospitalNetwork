@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute the adjacency matrix of a network from its edgelist — matrix_from_edgelist • HospitalNetwork</title>
+<title>Create a fake subject database with clustering — create_fake_subjectDB_clustered • HospitalNetwork</title>
 
 
 <!-- jquery -->
@@ -35,8 +35,8 @@
 
 
 
-<meta property="og:title" content="Compute the adjacency matrix of a network from its edgelist — matrix_from_edgelist" />
-<meta property="og:description" content="Compute the adjacency matrix of a network from its edgelist" />
+<meta property="og:title" content="Create a fake subject database with clustering — create_fake_subjectDB_clustered" />
+<meta property="og:description" content="Create a fake subject database with clustering" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -112,71 +112,51 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute the adjacency matrix of a network from its edgelist</h1>
+    <h1>Create a fake subject database with clustering</h1>
     
-    <div class="hidden name"><code>matrix_from_edgelist.Rd</code></div>
+    <div class="hidden name"><code>create_fake_subjectDB_clustered.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Compute the adjacency matrix of a network from its edgelist</p>
+    <p>Create a fake subject database with clustering</p>
     </div>
 
-    <pre class="usage"><span class='fu'>matrix_from_edgelist</span>(<span class='no'>edgelist</span>, <span class='kw'>origin_name</span> <span class='kw'>=</span> <span class='st'>"origin"</span>,
-  <span class='kw'>target_name</span> <span class='kw'>=</span> <span class='st'>"target"</span>, <span class='no'>count</span>, <span class='kw'>format_long</span> <span class='kw'>=</span> <span class='no'>F</span>)</pre>
+    <pre class="usage"><span class='fu'>create_fake_subjectDB_clustered</span>(<span class='kw'>n_subjects</span> <span class='kw'>=</span> <span class='fl'>50</span>, <span class='kw'>n_facilities</span> <span class='kw'>=</span> <span class='fl'>10</span>,
+  <span class='kw'>avg_n_stays</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>days_since_discharge</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>length_of_stay</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>n_clusters</span> <span class='kw'>=</span> <span class='fl'>3</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>edgelist</th>
-      <td><p>(data.table) A table containing the edges (or links) of the
-network, i.e. representing the movements of subjects between
-facilities. Either in long format with at least two columns (origin and
-target facilities of a link), each row corresponding to a single
-movement, or aggregated by unique pairs of origin/target, therefore with
-an additional variable for movements count (default). See details.</p></td>
+      <th>n_subjects</th>
+      <td><p>the number of different subjects in the database</p></td>
     </tr>
     <tr>
-      <th>origin_name</th>
-      <td><p>(character) Column of the origin facilities of the links.</p></td>
+      <th>n_facilities</th>
+      <td><p>the number of facility present in the database</p></td>
     </tr>
     <tr>
-      <th>target_name</th>
-      <td><p>(character) Column of the target facilities of the links.</p></td>
+      <th>avg_n_stays</th>
+      <td><p>the average number of stays per subject</p></td>
     </tr>
     <tr>
-      <th>count</th>
-      <td><p>(character) Column of the counts of movements by unique pair of
-facilities.</p></td>
+      <th>days_since_discharge</th>
+      <td><p>the number of days between a discharge date and an admission date (default: max(0, rnorm(1, mean = 30, sd = 10)))</p></td>
     </tr>
     <tr>
-      <th>format_long</th>
-      <td><p>(logical) Whether the edgelist is in long format, with
-each row corresponding to a single movement. If TRUE, the edgelist will
-be aggregated by unique pairs of facilities to compute the matrix.</p></td>
+      <th>length_of_stay</th>
+      <td><p>the length of stay (default: max(1, rnorm(1, mean = 5, sd = 3) )</p></td>
+    </tr>
+    <tr>
+      <th>n_clusters</th>
+      <td><p>the number of cluster in the network</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A square numeric matrix, the ajacency matrix of the network.</p>
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>The edgelist contains the information on the connections between
-    nodes of the network, that is the movements of subjects between
-    facilities. The edgelist can be in two different formats: long or
-    aggregated. In long format, each row corresponds to a single movement
-    between two facilities, therefore only two columns are needed, one
-    containing the origin facilities of a movement, the other containing the
-    target facilities. In aggregated format, the edgelist is aggregated by
-    unique pairs of origin-target facilities. Thus, each row corresponds to a
-    unique connection between two facilities, and the table contains an
-    additional variable which is the count of the number of movements
-    recorded for the pair. If the edgelist is provided in long format, it
-    will be aggregated to compute the matrix.</p>
-    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
-
-    <div class='dont-index'><p><code><a href='edgelist_from_base.html'>edgelist_from_base</a></code>, <code><a href='matrix_from_base.html'>matrix_from_base</a></code></p></div>
+    <p>a data.table containing all subjects stays</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
@@ -184,8 +164,6 @@ be aggregated by unique pairs of facilities to compute the matrix.</p></td>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
       <li><a href="#value">Value</a></li>
-      <li><a href="#details">Details</a></li>
-      <li><a href="#see-also">See also</a></li>
     </ul>
 
   </div>

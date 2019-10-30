@@ -7,7 +7,7 @@
 
 #' General check function
 #'
-#' Function that performs various checks to ensure the database is correctly formatted, and adjusts overlapping patient records
+#' Function that performs various checks to ensure the database is correctly formatted, and adjusts overlapping patient records.
 #'
 #' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
@@ -22,18 +22,77 @@
 #' @param deleteErrors (character) How incorrect records should be deleted:
 #'                     "record" deletes just the incorrect record
 #'                     "patient" deletes all records of each patient with one or more incorrect records.
-#' @param convertDates boolean indicating if dates need to be converted to POSIXct if they are not
-#' @param dateFormat character giving the input format of the date character string
-#' @param subjectID (charachter) the columns name containing the subject ID. Default is "sID"
-#' @param facilityID (charachter) the columns name containing the facility ID. Default is "fID"
-#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
-#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
+#' @param convertDates (boolean) indicating if dates need to be converted to POSIXct if they are not
+#' @param dateFormat (character) giving the input format of the date character string (e.g. "ymd" for dates like "2019-10-30")
+#' See \code{\link[lubridate]{parse_date_time}} for more information on the format.
+#' @param subjectID (character) the columns name containing the subject ID. Default is "sID"
+#' @param facilityID (character) the columns name containing the facility ID. Default is "fID"
+#' @param admDate (character) the columns name containing the admission date. Default is "Adate"
+#' @param disDate (character) the columns name containing the discharge date. Default is "Ddate"
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
 #' @param retainAuxData (boolean) allow retaining additional data provided in the database. Default is TRUE.
 #' @param verbose (boolean) print diagnostic messages. Default is TRUE.
 #' @param ... other parameters passed on to internal functions
+#' 
+#' @seealso \code{\link[lubridate]{parse_date_time}}
 #'
-#' @return The adjusted database as a data.table
+#' @return The adjusted database as a data.table with a new class attribute "hospinet.base" and an attribute "report" containing information related to the quality of the database.
+#' @examples
+#' ## create a "fake and custom" data base
+#' mydb = create_fake_subjectDB(n_subjects = 100, n_facilities = 100)
+#' setnames(mydb, 1:4, c("myPatientId", "myHealthCareCenterID", "DateOfAdmission", "DateOfDischarge"))
+#' mydb[,DateOfAdmission:= as.character(DateOfAdmission)]
+#' mydb[,DateOfDischarge:= as.character(DateOfDischarge)]
+#' 
+#' head(mydb)
+#' #   myPatientId myHealthCareCenterID DateOfAdmission DateOfDischarge
+#' #1:        s001                 f078      2019-01-26      2019-02-01
+#' #2:        s002                 f053      2019-01-18      2019-01-21
+#' #3:        s002                 f049      2019-02-25      2019-03-05
+#' #4:        s002                 f033      2019-04-17      2019-04-21
+#' #5:        s003                 f045      2019-02-02      2019-02-04
+#' #6:        s003                 f087      2019-03-12      2019-03-19
+#' 
+#' str(mydb)
+#' #Classes ‘data.table’ and 'data.frame':	262 obs. of  4 variables:
+#' # $ myPatientId         : chr  "s001" "s002" "s002" "s002" ...
+#' # $ myHealthCareCenterID: chr  "f078" "f053" "f049" "f033" ...
+#' # $ DateOfAdmission     : chr  "2019-01-26" "2019-01-18" "2019-02-25" "2019-04-17" ...
+#' # $ DateOfDischarge     : chr  "2019-02-01" "2019-01-21" "2019-03-05" "2019-04-21" ...
+#' #- attr(*, ".internal.selfref")=<externalptr> 
+#' 
+#' my_checked_db = checkBase(mydb, 
+#'      subjectID = "myPatientId", 
+#'      facilityID = "myHealthCareCenterID", 
+#'      disDate = "DateOfDischarge",
+#'      admDate = "DateOfAdmission", 
+#'      convertDates = TRUE, 
+#'      dateFormat = "ymd")
+#'
+#' #Converting Adate, Ddate to Date format
+#' #Checking for missing values...
+#' #Checking for duplicated records...
+#' #Removed 0 duplicates
+#' #Done.
+#' 
+#' head(my_checked_db)
+#' #    sID  fID      Adate      Ddate
+#' #1: s001 f078 2019-01-26 2019-02-01
+#' #2: s002 f053 2019-01-18 2019-01-21
+#' #3: s002 f049 2019-02-25 2019-03-05
+#' #4: s002 f033 2019-04-17 2019-04-21
+#' #5: s003 f045 2019-02-02 2019-02-04
+#' #6: s003 f087 2019-03-12 2019-03-19
+#' str(my_checked_db)
+#' #Classes ‘hospinet.base’, ‘data.table’ and 'data.frame':	262 obs. of  4 variables:
+#' #$ sID  : chr  "s001" "s002" "s002" "s002" ...
+#' #$ fID  : chr  "f078" "f053" "f049" "f033" ...
+#' #$ Adate: POSIXct, format: "2019-01-26" "2019-01-18" "2019-02-25" "2019-04-17" ...
+#' #$ Ddate: POSIXct, format: "2019-02-01" "2019-01-21" "2019-03-05" "2019-04-21" ...
+#' # ...
+#' 
+#' ## Show the quality report
+#' attr(my_checked_db, "report")
 #' @export
 #'
 checkBase <- function(base,

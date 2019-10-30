@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute the adjacency matrix of a network from its edgelist — matrix_from_edgelist • HospitalNetwork</title>
+<title>Compute the edgelist of a network from a database of movements records. — edgelist_from_base • HospitalNetwork</title>
 
 
 <!-- jquery -->
@@ -35,8 +35,10 @@
 
 
 
-<meta property="og:title" content="Compute the adjacency matrix of a network from its edgelist — matrix_from_edgelist" />
-<meta property="og:description" content="Compute the adjacency matrix of a network from its edgelist" />
+<meta property="og:title" content="Compute the edgelist of a network from a database of movements records. — edgelist_from_base" />
+<meta property="og:description" content="This function computes the edgelist of a network of facilities across
+which subjects can be transfered. The edgelist is computed from a database that
+contains the records of the subjects' stays in the facilities." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -112,71 +114,101 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute the adjacency matrix of a network from its edgelist</h1>
+    <h1>Compute the edgelist of a network from a database of movements records.</h1>
     
-    <div class="hidden name"><code>matrix_from_edgelist.Rd</code></div>
+    <div class="hidden name"><code>edgelist_from_base.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Compute the adjacency matrix of a network from its edgelist</p>
+    <p>This function computes the edgelist of a network of facilities across
+which subjects can be transfered. The edgelist is computed from a database that
+contains the records of the subjects' stays in the facilities.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>matrix_from_edgelist</span>(<span class='no'>edgelist</span>, <span class='kw'>origin_name</span> <span class='kw'>=</span> <span class='st'>"origin"</span>,
-  <span class='kw'>target_name</span> <span class='kw'>=</span> <span class='st'>"target"</span>, <span class='no'>count</span>, <span class='kw'>format_long</span> <span class='kw'>=</span> <span class='no'>F</span>)</pre>
+    <pre class="usage"><span class='fu'>edgelist_from_base</span>(<span class='no'>base</span>, <span class='kw'>window_threshold</span> <span class='kw'>=</span> <span class='fl'>365</span>,
+  <span class='kw'>count_option</span> <span class='kw'>=</span> <span class='st'>"successive"</span>, <span class='kw'>condition</span> <span class='kw'>=</span> <span class='st'>"dates"</span>, <span class='kw'>noloops</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>nmoves_threshold</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>flag_vars</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>flag_values</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>edgelist</th>
-      <td><p>(data.table) A table containing the edges (or links) of the
-network, i.e. representing the movements of subjects between
-facilities. Either in long format with at least two columns (origin and
-target facilities of a link), each row corresponding to a single
-movement, or aggregated by unique pairs of origin/target, therefore with
-an additional variable for movements count (default). See details.</p></td>
+      <th>base</th>
+      <td><p>(data.table) A database of records of stays of subjects in
+facilities. The table should have at least the following columns:</p><ul>
+<li><p><b>subjectID</b> (character) unique subject identifier</p></li>
+<li><p><b>facilityID</b> (character) unique facility identifier</p></li>
+<li><p><b>admDate</b> (POSIXct) date of admission in the facility</p></li>
+<li><p><b>disDate</b> (POSIXct) date of discharge of the facility</p></li>
+</ul></td>
     </tr>
     <tr>
-      <th>origin_name</th>
-      <td><p>(character) Column of the origin facilities of the links.</p></td>
+      <th>window_threshold</th>
+      <td><p>(integer) A number of days. If two stays of a subject
+at two facilities occured within this window, this constitutes a
+connection between the two facilities (given that potential other
+conditions are met).</p></td>
     </tr>
     <tr>
-      <th>target_name</th>
-      <td><p>(character) Column of the target facilities of the links.</p></td>
+      <th>count_option</th>
+      <td><p>(character) How to count connections. Either "successive"
+or "all". See details.</p></td>
     </tr>
     <tr>
-      <th>count</th>
-      <td><p>(character) Column of the counts of movements by unique pair of
-facilities.</p></td>
+      <th>condition</th>
+      <td><p>(character) Condition(s) used to decide what constitutes a
+connection. Can be "dates", "flags", or "both". See details.</p></td>
     </tr>
     <tr>
-      <th>format_long</th>
-      <td><p>(logical) Whether the edgelist is in long format, with
-each row corresponding to a single movement. If TRUE, the edgelist will
-be aggregated by unique pairs of facilities to compute the matrix.</p></td>
+      <th>noloops</th>
+      <td><p>(boolean). Should transfers within the same nodes (loops) be
+kept or set to 0. Defaults to TRUE, removing loops (setting matrix
+diagonal to 0).</p></td>
+    </tr>
+    <tr>
+      <th>nmoves_threshold</th>
+      <td><p>(numeric) A threshold for the minimum number of
+subject transfer between two facilities. Set to NULL to deactivate,
+default to NULL.</p></td>
+    </tr>
+    <tr>
+      <th>flag_vars</th>
+      <td><p>(list) Additional variables that can help flag a transfer,
+besides the dates of admission and discharge. Must be a named list of two
+character vectors which are the names of the columns that can flag a
+transfer: the column that can flag a potential origin, and the column
+that can flag a potential target. The list must be named with "origin"
+and "transfer". Eg: list("origin" = "var1", "target" = "var2"). See
+details.</p></td>
+    </tr>
+    <tr>
+      <th>flag_values</th>
+      <td><p>(list) A named list of two character vectors which contain
+the values of the variables in flag_var that are matched to flag a
+potential transfer. The list must be named with "origin" and
+"transfer". The character vectors might be of length greater than
+one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2",
+"value2")). The values in 'origin' and 'target' are the values that flag
+a potential origin of a transfer, or a potential target,
+respectively. See details.</p></td>
+    </tr>
+    <tr>
+      <th>verbose</th>
+      <td><p>TRUE to print computation steps</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A square numeric matrix, the ajacency matrix of the network.</p>
+    <p>A list of two data.tables, which are the edgelists. One in long
+    format (el_long), and one aggregated by pair of nodes (el_aggr).</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>The edgelist contains the information on the connections between
-    nodes of the network, that is the movements of subjects between
-    facilities. The edgelist can be in two different formats: long or
-    aggregated. In long format, each row corresponds to a single movement
-    between two facilities, therefore only two columns are needed, one
-    containing the origin facilities of a movement, the other containing the
-    target facilities. In aggregated format, the edgelist is aggregated by
-    unique pairs of origin-target facilities. Thus, each row corresponds to a
-    unique connection between two facilities, and the table contains an
-    additional variable which is the count of the number of movements
-    recorded for the pair. If the edgelist is provided in long format, it
-    will be aggregated to compute the matrix.</p>
+    <p>TODO</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='edgelist_from_base.html'>edgelist_from_base</a></code>, <code><a href='matrix_from_base.html'>matrix_from_base</a></code></p></div>
+    <div class='dont-index'><p><code><a href='matrix_from_edgelist.html'>matrix_from_edgelist</a></code>, <code><a href='matrix_from_base.html'>matrix_from_base</a></code></p></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

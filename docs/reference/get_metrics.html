@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute the adjacency matrix of a network from its edgelist — matrix_from_edgelist • HospitalNetwork</title>
+<title>Compute network metrics — get_metrics • HospitalNetwork</title>
 
 
 <!-- jquery -->
@@ -35,8 +35,8 @@
 
 
 
-<meta property="og:title" content="Compute the adjacency matrix of a network from its edgelist — matrix_from_edgelist" />
-<meta property="og:description" content="Compute the adjacency matrix of a network from its edgelist" />
+<meta property="og:title" content="Compute network metrics — get_metrics" />
+<meta property="og:description" content="Function computing different network analysis metrics." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -112,80 +112,67 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute the adjacency matrix of a network from its edgelist</h1>
+    <h1>Compute network metrics</h1>
     
-    <div class="hidden name"><code>matrix_from_edgelist.Rd</code></div>
+    <div class="hidden name"><code>get_metrics.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Compute the adjacency matrix of a network from its edgelist</p>
+    <p>Function computing different network analysis metrics.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>matrix_from_edgelist</span>(<span class='no'>edgelist</span>, <span class='kw'>origin_name</span> <span class='kw'>=</span> <span class='st'>"origin"</span>,
-  <span class='kw'>target_name</span> <span class='kw'>=</span> <span class='st'>"target"</span>, <span class='no'>count</span>, <span class='kw'>format_long</span> <span class='kw'>=</span> <span class='no'>F</span>)</pre>
+    <pre class="usage"><span class='fu'>get_metrics</span>(<span class='no'>network</span>, <span class='kw'>mode</span> <span class='kw'>=</span> <span class='st'>"directed"</span>, <span class='kw'>weighted</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>transfers</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>metrics</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"degree"</span>, <span class='st'>"closeness"</span>, <span class='st'>"clusters"</span>,
+  <span class='st'>"betweenness"</span>), <span class='kw'>clusters</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"cluster_fast_greedy"</span>, <span class='st'>"cluster_infomap"</span>),
+  <span class='kw'>hubs</span> <span class='kw'>=</span> <span class='st'>"all_clusters"</span>, <span class='kw'>options</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>degree</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>modes</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"in"</span>,
+  <span class='st'>"out"</span>, <span class='st'>"total"</span>)), <span class='kw'>closeness</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>modes</span> <span class='kw'>=</span> <span class='st'>"total"</span>), <span class='kw'>betweenness</span> <span class='kw'>=</span>
+  <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(), <span class='kw'>cluster_fast_greedy</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>undirected</span> <span class='kw'>=</span> <span class='st'>"collapse"</span>),
+  <span class='kw'>cluster_infomap</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>undirected</span> <span class='kw'>=</span> <span class='st'>"collapse"</span>), <span class='kw'>clusters</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>algos</span> <span class='kw'>=</span>
+  <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"cluster_fast_greedy"</span>, <span class='st'>"cluster_infomap"</span>), <span class='kw'>undirected</span> <span class='kw'>=</span> <span class='st'>"collapse"</span>)))</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>edgelist</th>
-      <td><p>(data.table) A table containing the edges (or links) of the
-network, i.e. representing the movements of subjects between
-facilities. Either in long format with at least two columns (origin and
-target facilities of a link), each row corresponding to a single
-movement, or aggregated by unique pairs of origin/target, therefore with
-an additional variable for movements count (default). See details.</p></td>
+      <th>network</th>
+      <td><p>the network to analyse. Must be an igraph, HospiNet or a square adjacency matrix (n*n).</p></td>
     </tr>
     <tr>
-      <th>origin_name</th>
-      <td><p>(character) Column of the origin facilities of the links.</p></td>
+      <th>mode</th>
+      <td><p>either "directed" or "undirected" network measures</p></td>
     </tr>
     <tr>
-      <th>target_name</th>
-      <td><p>(character) Column of the target facilities of the links.</p></td>
+      <th>weighted</th>
+      <td><p>TRUE if the network is weighted</p></td>
     </tr>
     <tr>
-      <th>count</th>
-      <td><p>(character) Column of the counts of movements by unique pair of
-facilities.</p></td>
+      <th>transfers</th>
+      <td><p>TRUE if metrics specific to subject transfers must be computed</p></td>
     </tr>
     <tr>
-      <th>format_long</th>
-      <td><p>(logical) Whether the edgelist is in long format, with
-each row corresponding to a single movement. If TRUE, the edgelist will
-be aggregated by unique pairs of facilities to compute the matrix.</p></td>
+      <th>metrics</th>
+      <td><p>list of the metrics to compute</p></td>
+    </tr>
+    <tr>
+      <th>clusters</th>
+      <td><p>choose between cluster algorithm: cluster_fast_greedy or cluster_infomap</p></td>
+    </tr>
+    <tr>
+      <th>hubs</th>
+      <td><p>choose between getting hubs from "all_clusters" or "global"</p></td>
+    </tr>
+    <tr>
+      <th>options</th>
+      <td><p>named list of options to be passed to the igraph functions</p></td>
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>A square numeric matrix, the ajacency matrix of the network.</p>
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>The edgelist contains the information on the connections between
-    nodes of the network, that is the movements of subjects between
-    facilities. The edgelist can be in two different formats: long or
-    aggregated. In long format, each row corresponds to a single movement
-    between two facilities, therefore only two columns are needed, one
-    containing the origin facilities of a movement, the other containing the
-    target facilities. In aggregated format, the edgelist is aggregated by
-    unique pairs of origin-target facilities. Thus, each row corresponds to a
-    unique connection between two facilities, and the table contains an
-    additional variable which is the count of the number of movements
-    recorded for the pair. If the edgelist is provided in long format, it
-    will be aggregated to compute the matrix.</p>
-    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
-
-    <div class='dont-index'><p><code><a href='edgelist_from_base.html'>edgelist_from_base</a></code>, <code><a href='matrix_from_base.html'>matrix_from_base</a></code></p></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#details">Details</a></li>
-      <li><a href="#see-also">See also</a></li>
     </ul>
 
   </div>
