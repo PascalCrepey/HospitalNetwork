@@ -1,3 +1,7 @@
+
+[![travis](https://travis-ci.com/PascalCrepey/HospitalNetwork.svg?branch=master)](https://travis-ci.com/PascalCrepey/HospitalNetwork) [![codecov](https://codecov.io/gh/PascalCrepey/HospitalNetwork/branch/master/graphs/badge.svg)](https://codecov.io/gh/PascalCrepey/HospitalNetwork)
+
+
 # HospitalNetwork
 *Building networks of hospitals through patients transfers*
 
