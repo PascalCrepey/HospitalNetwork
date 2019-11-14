@@ -21,7 +21,8 @@ Imports:
     magrittr,
     kableExtra,
     pander,
-    vdiffr
+    vdiffr,
+    ggraph
 Depends: 
   data.table
 RoxygenNote: 6.1.1
