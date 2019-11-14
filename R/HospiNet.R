@@ -46,10 +46,10 @@
 #' @field closenesss the closeness centrality of each facility (read-only)
 #' @field betweennesss the betweenness centrality of each facility (read-only)
 #' @field cluster_infomap the assigned community for each facility, based on the infomap algorithm (read-only)
-#' @field cluster_fast_greedy the assigned community for each facility, based on the greedy modularity optimisation algorithm (read-only)
+#' @field cluster_fast_greedy the assigned community for each facility, based on the greedy modularity optimization algorithm (read-only)
 #' @field hubs_global Kleinberg's hub centrality scores, based on the entire network (read-only)
-#' @field hubs_infomap same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)
-#' @field hubs_fast_greedy same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)
+#' @field hubs_infomap same as hubs_global, but computed per community based on the infomap algorithm (read-only)
+#' @field hubs_fast_greedy same as hubs_global, but computed per community based on the infomap algorithm (read-only)
 #' @field metricsTable (data.table) all of the above metrics for each facility (read-only)
 #' 
 #' @section Methods:
@@ -122,7 +122,7 @@ HospiNet <- R6::R6Class("HospiNet",
                            plot.title = element_text(size = 12), 
                            panel.grid = element_blank())
     }, 
-    plot_spaghetti = function(plotLinks=5000, alphaSteps=15,alphaSet=0.1){
+    plot_spaghetti = function(plotLinks=5000, alphaSteps=15, alphaSet=0.1){
       
       if(plotLinks>length(self$matrix)) plotLinks=length(self$matrix)
       

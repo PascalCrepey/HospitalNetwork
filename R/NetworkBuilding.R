@@ -16,7 +16,7 @@
 #' @param format_long (logical) Whether the edgelist is in long format, with
 #'     each row corresponding to a single movement. If TRUE, the edgelist will
 #'     be aggregated by unique pairs of facilities to compute the matrix.
-#' @return A square numeric matrix, the ajacency matrix of the network.
+#' @return A square numeric matrix, the adjacency matrix of the network.
 #' @details The edgelist contains the information on the connections between
 #'     nodes of the network, that is the movements of subjects between
 #'     facilities. The edgelist can be in two different formats: long or
@@ -101,7 +101,7 @@ matrix_from_edgelist <- function(edgelist,
 #' Compute the adjacency matrix of a network from a database of movements records.
 #'
 #' This function computes the adjacency matrix of a network of facilities across
-#' which subjects can be transfered. The matrix is computed from a database that
+#' which subjects can be transferred. The matrix is computed from a database that
 #' contains the records of the subjects' stays in the facilities. This function
 #' is a simple wrapper around the two functions
 #' \code{\link{edgelist_from_base}}, which computes the edgelist of the network
@@ -147,7 +147,7 @@ matrix_from_base <- function(base,
 #' Compute the edgelist of a network from a database of movements records.
 #'
 #' This function computes the edgelist of a network of facilities across
-#' which subjects can be transfered. The edgelist is computed from a database that
+#' which subjects can be transferred. The edgelist is computed from a database that
 #' contains the records of the subjects' stays in the facilities.
 #'
 #' @param base (data.table) A database of records of stays of subjects in
@@ -157,7 +157,7 @@ matrix_from_base <- function(base,
 #'     \item\bold{admDate} (POSIXct) date of admission in the facility
 #'     \item\bold{disDate} (POSIXct) date of discharge of the facility }
 #' @param window_threshold (integer) A number of days. If two stays of a subject
-#'     at two facilities occured within this window, this constitutes a
+#'     at two facilities occurred within this window, this constitutes a
 #'     connection between the two facilities (given that potential other
 #'     conditions are met).
 #' @param count_option (character) How to count connections. Either "successive"

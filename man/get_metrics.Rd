@@ -14,7 +14,7 @@ get_metrics(network, mode = "directed", weighted = TRUE,
   c("cluster_fast_greedy", "cluster_infomap"), undirected = "collapse")))
 }
 \arguments{
-\item{network}{the network to analyse. Must be an igraph, HospiNet or a square adjacency matrix (n*n).}
+\item{network}{the network to analyze. Must be an igraph, HospiNet or a square adjacency matrix (n*n).}
 
 \item{mode}{either "directed" or "undirected" network measures}
 

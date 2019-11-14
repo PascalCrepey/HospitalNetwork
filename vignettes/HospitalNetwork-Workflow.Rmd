@@ -31,7 +31,7 @@ rownames(mat) = colnames(mat)
 pander::pandoc.table(mat, caption = 'Example of a matrix representation of a 5-nodes network. By convention, the rows contain the facilities of origin, and the columns contain the target facilities. Each cell contains the number of subjects transfered.', )
 ```
 
-At its core, the purpose of this package is to compute the contact matrix from raw data on movement between facilities. Additionally, this package provides the researcher with various tools to analyse and visualize the constructed network.
+At its core, the purpose of this package is to compute the contact matrix from raw data on movement between facilities. Additionally, this package provides the researcher with various tools to analyze and visualize the constructed network.
 
 
 ## Data
@@ -63,7 +63,7 @@ TODO
 |---------------|:-----------------:|-----------------------------|
 |Mode of entry | entry | a variable indicating whether the subject arrived from home (0), or from a facility (1) |
 |Mode of discharge | discharge | a variable indicating whether the subject is discharged back home (0), or to a facility (1) |
-|Subject residential postcode | postcode | a variable indicating the postalcode of the subject residency |
+|Subject residential postcode | postcode | a variable indicating the postal code of the subject residency |
 |Wards visited by the subject | ward | a single type of ward predominantly visited by the subject, coded as 1 for ICU or acute care and 0 for others |
 
 ### Optional data (in a separate database)
@@ -72,7 +72,7 @@ TODO
 
 |Item| Variable name |Description|
 |----|:-------------:|-----------|
-|Facility localization| localisation | GPS coordinates of the facility|
+|Facility localization| localization | GPS coordinates of the facility|
 |Facility capacity | capacity | the number of beds available in the facility|
 |Facility type | type | the type of facility (ECDC level definitions)|
 
@@ -87,7 +87,7 @@ If the tests are successful, ```hospinet_from_subject_database()``` will proceed
 
 The diagnostic tests on the database are performed by the function ```checkBase()```.
 
-The function will check for possible errors in the database. It also offer the possibily to automatically correct the issues it may have found in the database. However, since we cannot guarantee having checked for every possible issue, we encourage you to ensure the data is in the correct format, and is free of errors, prior to run the function. By default, ```checkBase()``` will not modify the database, but return informative messages on the issues found. If you wish the function to try to autocorrect the database, you must set the corresponding arguments (see [Data management](#datamanagement)). We recommend that you carefully check the result afterwards. 
+The function will check for possible errors in the database. It also offer the possibility to automatically correct the issues it may have found in the database. However, since we cannot guarantee having checked for every possible issue, we encourage you to ensure the data is in the correct format, and is free of errors, prior to run the function. By default, ```checkBase()``` will not modify the database, but return informative messages on the issues found. If you wish the function to try to autocorrect the database, you must set the corresponding arguments (see [Data management](#datamanagement)). We recommend that you carefully check the result afterwards. 
 
 ```{r check_example, error = TRUE}
 # Example
@@ -96,13 +96,13 @@ base = create_fake_subjectDB(n_subjects = 100, n_facilities = 10, with_errors = 
 checkBase(base)
 ```
 
-#### Requierements
+#### Requirements
 
-The requierements to pass the diagnostic tests are the following:
+The requirements to pass the diagnostic tests are the following:
 
 * the database must be of class ```data.frame``` or ```data.table```. The functions are implemented in the ```data.table``` framework, so if a ```data.frame``` is provided, it will be converted to a ```data.table```.
 
-* the database must have at least four columms. By default the column names must be: ```c("sID", "fID", "Adate", "Ddate"```. Although we recommend using these column names, it is possible to use different names by providing them as arguments.
+* the database must have at least four columns. By default the column names must be: ```c("sID", "fID", "Adate", "Ddate"```. Although we recommend using these column names, it is possible to use different names by providing them as arguments.
 
 * columns ```"sID"``` and ```"fID"``` must be of type ```character```.
 
@@ -133,14 +133,14 @@ You can use the function ```checkBase()``` to try to correct automatically the i
 
 ##The *HospiNet* object
 
-*HospiNet* is an S3 object containing the facility matrix as well as specific informations regarding the network. We have developped a *summary* and a *print* method for this object. 
+*HospiNet* is an S3 object containing the facility matrix as well as specific informations regarding the network. We have developed a *summary* and a *print* method for this object. 
 The informations contained in an *HospiNet* objects are: 
 
 * *n_facilities*, the number of facilities in the network,
 * *n_subjects*, the number of subjects in the network,
 * *n_movements*, the number direct or indirect (depending on the window size) transfers,
 * *window_threshold*, the size of the movement window in days (0 for direct transfers between facilities),
-* *hist_degrees*, *\_in*, *\_out*, are named vectors containing the number of nodes for each degree, indegree, or outdregree,
+* *hist_degrees*, *\_in*, *\_out*, are named vectors containing the number of nodes for each degree, indegree, or outdegree,
 * ...
 
 

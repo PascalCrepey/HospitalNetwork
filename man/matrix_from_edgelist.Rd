@@ -27,7 +27,7 @@ each row corresponding to a single movement. If TRUE, the edgelist will
 be aggregated by unique pairs of facilities to compute the matrix.}
 }
 \value{
-A square numeric matrix, the ajacency matrix of the network.
+A square numeric matrix, the adjacency matrix of the network.
 }
 \description{
 Compute the adjacency matrix of a network from its edgelist

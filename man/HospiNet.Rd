@@ -63,13 +63,13 @@ Class providing the HospiNet object with its methods
 
 \item{\code{cluster_infomap}}{the assigned community for each facility, based on the infomap algorithm (read-only)}
 
-\item{\code{cluster_fast_greedy}}{the assigned community for each facility, based on the greedy modularity optimisation algorithm (read-only)}
+\item{\code{cluster_fast_greedy}}{the assigned community for each facility, based on the greedy modularity optimization algorithm (read-only)}
 
 \item{\code{hubs_global}}{Kleinberg's hub centrality scores, based on the entire network (read-only)}
 
-\item{\code{hubs_infomap}}{same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)}
+\item{\code{hubs_infomap}}{same as hubs_global, but computed per community based on the infomap algorithm (read-only)}
 
-\item{\code{hubs_fast_greedy}}{same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)}
+\item{\code{hubs_fast_greedy}}{same as hubs_global, but computed per community based on the infomap algorithm (read-only)}
 
 \item{\code{metricsTable}}{(data.table) all of the above metrics for each facility (read-only)}
 }}

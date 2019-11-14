@@ -7,7 +7,7 @@
 #' 
 #' Function computing different network analysis metrics.
 #' 
-#' @param network the network to analyse. Must be an igraph, HospiNet or a square adjacency matrix (n*n).
+#' @param network the network to analyze. Must be an igraph, HospiNet or a square adjacency matrix (n*n).
 #' @param mode either "directed" or "undirected" network measures
 #' @param weighted TRUE if the network is weighted
 #' @param transfers TRUE if metrics specific to subject transfers must be computed
@@ -200,7 +200,7 @@ get_closeness <-
     return(DT_merged)
 }
 
-#' Compute the betweeness centrality
+#' Compute the betweenness centrality
 #'
 #' @param graph an igraph object
 #'
