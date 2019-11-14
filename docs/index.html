@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">HospitalNetwork</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.2</span>
       </span>
     </div>
 
@@ -72,12 +72,15 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
+
+
+<!-- badges: end -->
 <div id="hospitalnetwork" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#hospitalnetwork" class="anchor"></a>HospitalNetwork</h1></div>
 <p><em>Building networks of hospitals through patients transfers</em></p>
 <p>This R package contains functions to help interested researchers to build hospital networks from data on hospitalized patients transferred between hospitals.</p>
-<p>The aim of the project is to provide a common framework to build and analyse hospital networks.</p>
+<p>The aim of the project is to provide a common framework to build and analyze hospital networks.</p>
 <p>This project is partly supported by the NeWIS (NetWorks to Improve Surveillance) initiative, funded by JPIAMR, and by Sphinx project, funded by ANR.</p>
 <div id="step-0-installing-the-package" class="section level3">
 <h3 class="hasAnchor">
@@ -139,7 +142,7 @@
 <p>The result of the reconstruction and analysis can be easily saved as an RDS file, using</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span>(HospiNet, <span class="st">"my_filename.RDS"</span>) </a></code></pre></div>
 <p>since they are all stored in the HospiNet object. This object does not include the raw database, just the edge list (which is basically the same as the contact matrix), the various network metrics for each hospital, and metrics on the size of the used database (number of patients, admissions, hospitals, etc.).</p>
-<p>Currently, the reconstructed network can be plotted as a matrix using <code><a href="https://rdrr.io/r/graphics/plot.html">plot(HospiNet)</a></code> or <code>plot(HospiNet, type=”matrix”)</code>. This can also be done as a clustered matrix: <code>plot(HospiNet, type=”clustered_matrix”)</code>. In addition, you can also visualise the degree distribution of the nodes in the network with <code>plot(HospiNet, type = “degree”)</code>. We will try to include easy ways to plot the network in other ways as well.</p>
+<p>Currently, the reconstructed network can be plotted as a matrix using <code><a href="https://rdrr.io/r/graphics/plot.html">plot(HospiNet)</a></code> or <code>plot(HospiNet, type=”matrix”)</code>. This can also be done as a clustered matrix: <code>plot(HospiNet, type=”clustered_matrix”)</code>. In addition, you can also visualize the degree distribution of the nodes in the network with <code>plot(HospiNet, type = “degree”)</code>. We will try to include easy ways to plot the network in other ways as well.</p>
 </div>
 <div id="example-of-use" class="section level3">
 <h3 class="hasAnchor">
@@ -183,6 +186,7 @@
 <a class="sourceLine" id="cb5-37" data-line-number="37"><span class="kw"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span>(my_hosp_net, <span class="dt">file =</span> <span class="st">"my_hosp_net.RDS"</span>)</a></code></pre></div>
 </div>
 </div>
+
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
@@ -202,7 +206,15 @@
 </ul>
 </div>
 
-  </div>
+  <div class="dev-status">
+<h2>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://travis-ci.com/PascalCrepey/HospitalNetwork"><img src="https://travis-ci.com/PascalCrepey/HospitalNetwork.svg?branch=master" alt="travis build status"></a></li>
+<li><a href="https://ci.appveyor.com/project/PascalCrepey/HospitalNetwork"><img src="https://ci.appveyor.com/api/projects/status/github/PascalCrepey/HospitalNetwork?branch=master&amp;svg=true" alt="AppVeyor build status"></a></li>
+<li><a href="https://codecov.io/gh/PascalCrepey/HospitalNetwork"><img src="https://codecov.io/gh/PascalCrepey/HospitalNetwork/branch/master/graphs/badge.svg" alt="codecov"></a></li>
+</ul>
+</div>
+</div>
 </div>
 
 
