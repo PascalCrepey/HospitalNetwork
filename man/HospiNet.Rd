@@ -19,6 +19,8 @@ Class providing the HospiNet object with its methods
 \describe{
 \item{\code{edgelist}}{(data.table) the list of edges (origin, target) and their associated number of movements (N) (read-only)}
 
+\item{\code{edgelist_long}}{(data.table) edgelist with additionnal informations (read-only)}
+
 \item{\code{matrix}}{(matrix) the transfer matrix (active binding, read-only)}
 
 \item{\code{igraph}}{(igraph) the igraph object corresponding to the network (active binding, read-only)}
@@ -37,13 +39,13 @@ Class providing the HospiNet object with its methods
 
 \item{\code{numFacilities}}{the number of facilities in the network (read-only). Same as n_facilities, but with a different source (base instead of igraph), maybe useful as double-check}
 
-\item{\code{TBAmean}}{the mean time between admissions (read-only)}
+\item{\code{TBAmean}}{the mean time between admissions (read-only) (not implemented yet)}
 
-\item{\code{TBAdistribution}}{the distribution of time between admissions (read-only)}
+\item{\code{TBAdistribution}}{the distribution of time between admissions (read-only) (not implemented yet)}
 
-\item{\code{LOSmean=}}{the mean length of stay (read-only)}
+\item{\code{LOSmean}}{the mean length of stay (read-only) (not implemented yet)}
 
-\item{\code{LOSdistribution}}{the distribution of length of stay (read-only)}
+\item{\code{LOSdistribution}}{the distribution of length of stay (read-only) (not implemented yet)}
 
 \item{\code{LOSPerHosp}}{the mean length of stay for each facility (read-only)}
 
@@ -87,8 +89,10 @@ For ease of use, it is preferable to use the function \code{\link{hospinet_from_
   \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default. 
   The argument \code{type} can take the following values: 
   \describe{
-  \item{matrix}{print the network matrix,}
-  \item{clustered_matrix}{identify and print cluster(s) in the matrix using the infomap algorithm (from igraph).}
+  \item{matrix}{plot the network matrix,}
+  \item{clustered_matrix}{identify and plot cluster(s) in the matrix using the infomap algorithm (from igraph),}
+  \item{degree}{plot the histogram of the number of neighbors by facility,}
+  \item{circular_network}{plot the network by clusters using a "spaghetti-like" layout. Only works when there are at least 2 clusters.}
   }
   }
 }

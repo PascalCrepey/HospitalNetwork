@@ -22,6 +22,7 @@
 #' plot(hn, type = "clustered_matrix")
 #' 
 #' @field edgelist (data.table) the list of edges (origin, target) and their associated number of movements (N) (read-only)
+#' @field edgelist_long (data.table) edgelist with additionnal informations (read-only)
 #' @field matrix (matrix) the transfer matrix (active binding, read-only)
 #' @field igraph (igraph) the igraph object corresponding to the network (active binding, read-only)
 #' @field n_facilities the number of facilities in the network (read-only)
@@ -32,10 +33,10 @@
 
 #' @field hist_degrees histogram data of the number of connections per facility 
 #' @field numFacilities the number of facilities in the network (read-only). Same as n_facilities, but with a different source (base instead of igraph), maybe useful as double-check
-#' @field TBAmean the mean time between admissions (read-only)
-#' @field TBAdistribution the distribution of time between admissions (read-only)
-#' @field LOSmean= the mean length of stay (read-only)
-#' @field LOSdistribution the distribution of length of stay (read-only)
+#' @field TBAmean the mean time between admissions (read-only) (not implemented yet)
+#' @field TBAdistribution the distribution of time between admissions (read-only) (not implemented yet)
+#' @field LOSmean the mean length of stay (read-only) (not implemented yet)
+#' @field LOSdistribution the distribution of length of stay (read-only) (not implemented yet)
 #' @field LOSPerHosp the mean length of stay for each facility (read-only)
 #' @field admissions the number of admissions in the entire data base (read-only)
 #' @field admissionsPerHosp the number of admissions to each facility (read-only)
@@ -64,8 +65,10 @@
 #'   \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default. 
 #'   The argument \code{type} can take the following values: 
 #'   \describe{
-#'   \item{matrix}{print the network matrix,}
-#'   \item{clustered_matrix}{identify and print cluster(s) in the matrix using the infomap algorithm (from igraph).}
+#'   \item{matrix}{plot the network matrix,}
+#'   \item{clustered_matrix}{identify and plot cluster(s) in the matrix using the infomap algorithm (from igraph),}
+#'   \item{degree}{plot the histogram of the number of neighbors by facility,}
+#'   \item{circular_network}{plot the network by clusters using a "spaghetti-like" layout. Only works when there are at least 2 clusters.}
 #'   }
 #'   }
 #' }
