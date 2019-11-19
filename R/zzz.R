@@ -1,4 +1,4 @@
-globalVariables(c("sID", 
+utils::globalVariables(c("sID", 
                   "Adate",
                   "Ddate",
                   "fID",
@@ -15,5 +15,6 @@ globalVariables(c("sID",
                   "cluster",
                   "origin",
                   "target",
-                  "..extraCols"
+                  "..extraCols", 
+                  "LOS"
                   ))

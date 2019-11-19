@@ -1,7 +1,7 @@
 Package: HospitalNetwork
 Type: Package
 Title: Building networks of hospitals through patients transfers
-Version: 0.9.1-2
+Version: 0.9.1-3
 Authors@R: c(
   person("Pascal", "Crépey", email = "pascal.crepey@ehesp.fr", role = c("aut", "cre")),
   person("Tjibbe", "Donker", email = "tjibbe.donker@uniklinik-freiburg.de", role = "aut"),
@@ -23,12 +23,15 @@ Imports:
     pander,
     vdiffr,
     ggraph,
-	glue,
-	golem,
-	htmltools,
-	shiny,
-	shinyWidgets,
-	shinydashboard
+    glue,
+    golem,
+    htmltools,
+    shiny,
+    shinyWidgets,
+    shinydashboard,
+    DT,
+    shinyalert,
+    shinyjs
 Depends: 
   data.table
 RoxygenNote: 7.0.0

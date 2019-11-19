@@ -4,8 +4,13 @@
 \alias{create_subject_stay}
 \title{Create a fake subject stay}
 \usage{
-create_subject_stay(sID, fID, last_discharge_date = NULL,
-  days_since_discharge = NULL, length_of_stay = NULL)
+create_subject_stay(
+  sID,
+  fID,
+  last_discharge_date = NULL,
+  days_since_discharge = NULL,
+  length_of_stay = NULL
+)
 }
 \arguments{
 \item{sID}{the subject ID}

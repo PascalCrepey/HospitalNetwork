@@ -4,8 +4,7 @@
 \alias{checkFormat}
 \title{Check database format}
 \usage{
-checkFormat(report, convertDates = FALSE, dateFormat = NULL,
-  verbose = TRUE)
+checkFormat(report, convertDates = FALSE, dateFormat = NULL, verbose = TRUE)
 }
 \arguments{
 \item{report}{(list).

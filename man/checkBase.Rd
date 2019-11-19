@@ -4,10 +4,21 @@
 \alias{checkBase}
 \title{General check function}
 \usage{
-checkBase(base, convertDates = F, dateFormat = NULL,
-  deleteMissing = NULL, deleteErrors = NULL, subjectID = "sID",
-  facilityID = "fID", disDate = "Ddate", admDate = "Adate",
-  maxIteration = 25, retainAuxData = TRUE, verbose = TRUE, ...)
+checkBase(
+  base,
+  convertDates = F,
+  dateFormat = NULL,
+  deleteMissing = NULL,
+  deleteErrors = NULL,
+  subjectID = "sID",
+  facilityID = "fID",
+  disDate = "Ddate",
+  admDate = "Adate",
+  maxIteration = 25,
+  retainAuxData = TRUE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{base}{(data.table).

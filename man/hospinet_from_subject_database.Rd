@@ -4,10 +4,19 @@
 \alias{hospinet_from_subject_database}
 \title{Create HospiNet object from subject database}
 \usage{
-hospinet_from_subject_database(base, window_threshold = 365,
-  count_option = "successive", condition = "dates", noloops = TRUE,
-  nmoves_threshold = NULL, flag_vars = NULL, flag_values = NULL,
-  create_MetricsTable = TRUE, verbose = FALSE, ...)
+hospinet_from_subject_database(
+  base,
+  window_threshold = 365,
+  count_option = "successive",
+  condition = "dates",
+  noloops = TRUE,
+  nmoves_threshold = NULL,
+  flag_vars = NULL,
+  flag_values = NULL,
+  create_MetricsTable = TRUE,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{base}{(hospinet.base) A database of records of stays of subjects in

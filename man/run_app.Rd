@@ -6,6 +6,9 @@
 \usage{
 run_app(...)
 }
+\arguments{
+\item{...}{parameters passed on to golem options.}
+}
 \description{
 Run the Shiny Application
 }

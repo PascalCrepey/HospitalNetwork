@@ -36,7 +36,8 @@
 
 
 <meta property="og:title" content="Class providing the HospiNet object with its methods — HospiNet" />
-<meta property="og:description" content="Class providing the HospiNet object with its methods" />
+<meta property="og:description" content="Class providing the HospiNet object with its methods
+Class providing the HospiNet object with its methods" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -69,7 +70,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">HospitalNetwork</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.3</span>
       </span>
     </div>
 
@@ -119,9 +120,9 @@
 
     <div class="ref-description">
     <p>Class providing the HospiNet object with its methods</p>
+<p>Class providing the HospiNet object with its methods</p>
     </div>
 
-    <pre class="usage"><span class='no'>HospiNet</span></pre>
 
 
     <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
@@ -130,12 +131,52 @@
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>Object of <code>R6Class</code> with methods for accessing facility networks.</p>
-    <h2 class="hasAnchor" id="fields"><a class="anchor" href="#fields"></a>Fields</h2>
+    <h2 class="hasAnchor" id="methods"><a class="anchor" href="#methods"></a>Methods</h2>
 
     
 
 <dl class='dl-horizontal'>
+  <dt><code>new(edgelist, 
+window_threshold,
+nmoves_threshold,
+noloops)</code></dt><dd><p>This method is used to create an object of this class with <code>edgelist</code> as the necessary information to create the network.
+The other arguments <code>window_threshold</code>, <code>nmoves_threshold</code>, and <code>noloops</code> are specific to the <code>edgelist</code> and need to be provided.
+For ease of use, it is preferable to use the function <code><a href='hospinet_from_subject_database.html'>hospinet_from_subject_database</a></code></p></dd>
+  <dt><code><a href='https://rdrr.io/r/base/print.html'>print()</a></code></dt><dd><p>This method prints basic information about the object.</p></dd>
+  <dt><code><a href='https://rdrr.io/r/graphics/plot.html'>plot(type = "matrix")</a></code></dt><dd><p>This method plots the network matrix by default. 
+  The argument <code>type</code> can take the following values: 
+  <dl class='dl-horizontal'>
+  <dt>matrix</dt><dd><p>plot the network matrix,</p></dd>
+  <dt>clustered_matrix</dt><dd><p>identify and plot cluster(s) in the matrix using the infomap algorithm (from igraph),</p></dd>
+  <dt>degree</dt><dd><p>plot the histogram of the number of neighbors by facility,</p></dd>
+  <dt>circular_network</dt><dd><p>plot the network by clusters using a "spaghetti-like" layout. Only works when there are at least 2 clusters.</p></dd></dl></p></dd>
+
+</dl>
+
+    <h2 class="hasAnchor" id="public-fields"><a class="anchor" href="#public-fields"></a>Public fields</h2>
+
+    <p><div class="r6-fields"></p><dl class='dl-horizontal'>
+<dt><code>numFacilities</code></dt><dd><p>the number of facilities in the network (read-only). Same as n_facilities, but with a different source (base instead of igraph), maybe useful as double-check</p></dd>
+
+<dt><code>TBAmean</code></dt><dd><p>the mean time between admissions (read-only) (not implemented yet)</p></dd>
+
+<dt><code>TBAdistribution</code></dt><dd><p>the distribution of time between admissions (read-only) (not implemented yet)</p></dd>
+
+<dt><code>LOSmean</code></dt><dd><p>the mean length of stay (read-only) (not implemented yet)</p></dd>
+
+<dt><code>LOSdistribution</code></dt><dd><p>the distribution of length of stay (read-only) (not implemented yet)</p></dd>
+
+<dt><code>admissions</code></dt><dd><p>the number of admissions in the entire data base (read-only)</p></dd>
+
+<dt><code>subjects</code></dt><dd><p>the number of unique subjects in the data base (read-only)</p></dd>
+
+</dl><p></div></p>
+    <h2 class="hasAnchor" id="active-bindings"><a class="anchor" href="#active-bindings"></a>Active bindings</h2>
+
+    <p><div class="r6-active-bindings"></p><dl class='dl-horizontal'>
 <dt><code>edgelist</code></dt><dd><p>(data.table) the list of edges (origin, target) and their associated number of movements (N) (read-only)</p></dd>
+
+<dt><code>edgelist_long</code></dt><dd><p>(data.table) edgelist with additionnal informations (read-only)</p></dd>
 
 <dt><code>matrix</code></dt><dd><p>(matrix) the transfer matrix (active binding, read-only)</p></dd>
 
@@ -155,13 +196,13 @@
 
 <dt><code>numFacilities</code></dt><dd><p>the number of facilities in the network (read-only). Same as n_facilities, but with a different source (base instead of igraph), maybe useful as double-check</p></dd>
 
-<dt><code>TBAmean</code></dt><dd><p>the mean time between admissions (read-only)</p></dd>
+<dt><code>TBAmean</code></dt><dd><p>the mean time between admissions (read-only) (not implemented yet)</p></dd>
 
-<dt><code>TBAdistribution</code></dt><dd><p>the distribution of time between admissions (read-only)</p></dd>
+<dt><code>TBAdistribution</code></dt><dd><p>the distribution of time between admissions (read-only) (not implemented yet)</p></dd>
 
-<dt><code>LOSmean=</code></dt><dd><p>the mean length of stay (read-only)</p></dd>
+<dt><code>LOSmean</code></dt><dd><p>the mean length of stay (read-only) (not implemented yet)</p></dd>
 
-<dt><code>LOSdistribution</code></dt><dd><p>the distribution of length of stay (read-only)</p></dd>
+<dt><code>LOSdistribution</code></dt><dd><p>the distribution of length of stay (read-only) (not implemented yet)</p></dd>
 
 <dt><code>LOSPerHosp</code></dt><dd><p>the mean length of stay for each facility (read-only)</p></dd>
 
@@ -191,26 +232,60 @@
 
 <dt><code>metricsTable</code></dt><dd><p>(data.table) all of the above metrics for each facility (read-only)</p></dd>
 
-</dl>
+</dl><p></div></p>
     <h2 class="hasAnchor" id="methods"><a class="anchor" href="#methods"></a>Methods</h2>
 
     
+<h3>Public methods</h3>
 
-<dl class='dl-horizontal'>
-  <dt><code>new(edgelist, 
-window_threshold,
-nmoves_threshold,
-noloops)</code></dt><dd><p>This method is used to create an object of this class with <code>edgelist</code> as the necessary information to create the network.
-The other arguments <code>window_threshold</code>, <code>nmoves_threshold</code>, and <code>noloops</code> are specific to the <code>edgelist</code> and need to be provided.
-For ease of use, it is preferable to use the function <code><a href='hospinet_from_subject_database.html'>hospinet_from_subject_database</a></code></p></dd>
-  <dt><code><a href='https://rdrr.io/r/base/print.html'>print()</a></code></dt><dd><p>This method prints basic information about the object.</p></dd>
-  <dt><code><a href='https://rdrr.io/r/graphics/plot.html'>plot(type = "matrix")</a></code></dt><dd><p>This method plots the network matrix by default. 
-  The argument <code>type</code> can take the following values: 
-  <dl class='dl-horizontal'>
-  <dt>matrix</dt><dd><p>print the network matrix,</p></dd>
-  <dt>clustered_matrix</dt><dd><p>identify and print cluster(s) in the matrix using the infomap algorithm (from igraph).</p></dd></dl></p></dd>
+<ul>
+<li><p><a href='#method-new'><code>HospiNet$new()</code></a></p></li>
+<li><p><a href='#method-print'><code>HospiNet$print()</code></a></p></li>
+<li><p><a href='#method-plot'><code>HospiNet$plot()</code></a></p></li>
+<li><p><a href='#method-clone'><code>HospiNet$clone()</code></a></p></li>
+</ul>
+<p><hr>
+<a id="method-new"></a></p><h3>Method <code>new()</code></h3>
 
-</dl>
+<h3>Usage</h3>
+<p><div class="r"></p><pre>HospiNet$new(
+  edgelist,
+  edgelist_long,
+  window_threshold,
+  nmoves_threshold,
+  noloops,
+  fsummary = NULL,
+  create_MetricsTable = FALSE
+)</pre><p></div></p>
+
+<p><hr>
+<a id="method-print"></a></p><h3>Method <code><a href='https://rdrr.io/r/base/print.html'>print()</a></code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre>HospiNet$print()</pre><p></div></p>
+
+<p><hr>
+<a id="method-plot"></a></p><h3>Method <code><a href='https://rdrr.io/r/graphics/plot.html'>plot()</a></code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre>HospiNet$plot(
+  type = "matrix",
+  plotLinks = 5000,
+  alphaSteps = 15,
+  alphaSet = 0.1
+)</pre><p></div></p>
+
+<p><hr>
+<a id="method-clone"></a></p><h3>Method <code>clone()</code></h3>
+<p>The objects of this class are cloneable with this method.</p><h3>Usage</h3>
+<p><div class="r"></p><pre>HospiNet$clone(deep = FALSE)</pre><p></div></p>
+
+<h3>Arguments</h3>
+<p><div class="arguments"></p><dl class='dl-horizontal'>
+<dt><code>deep</code></dt><dd><p>Whether to make a deep clone.</p></dd>
+
+</dl><p></div></p>
+
 
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
@@ -242,7 +317,9 @@ For ease of use, it is preferable to use the function <code><a href='hospinet_fr
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#format">Format</a></li>
       <li><a href="#value">Value</a></li>
-      <li><a href="#fields">Fields</a></li>
+      <li><a href="#methods">Methods</a></li>
+      <li><a href="#public-fields">Public fields</a></li>
+      <li><a href="#active-bindings">Active bindings</a></li>
       <li><a href="#methods">Methods</a></li>
       <li><a href="#examples">Examples</a></li>
     </ul>

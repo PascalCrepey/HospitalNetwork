@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Create a fake subject database — create_fake_subjectDB • HospitalNetwork</title>
+<title>Launch app — shiny_app • HospitalNetwork</title>
 
 
 <!-- jquery -->
@@ -35,8 +35,8 @@
 
 
 
-<meta property="og:title" content="Create a fake subject database — create_fake_subjectDB" />
-<meta property="og:description" content="Create a fake subject database" />
+<meta property="og:title" content="Launch app — shiny_app" />
+<meta property="og:description" content="Launch app" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -112,69 +112,23 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Create a fake subject database</h1>
+    <h1>Launch app</h1>
     
-    <div class="hidden name"><code>create_fake_subjectDB.Rd</code></div>
+    <div class="hidden name"><code>shiny_app.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Create a fake subject database</p>
+    <p>Launch app</p>
     </div>
 
-    <pre class="usage"><span class='fu'>create_fake_subjectDB</span>(
-  <span class='kw'>n_subjects</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>n_facilities</span> <span class='kw'>=</span> <span class='fl'>10</span>,
-  <span class='kw'>avg_n_stays</span> <span class='kw'>=</span> <span class='fl'>3</span>,
-  <span class='kw'>days_since_discharge</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>length_of_stay</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>start_id_subjects</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>start_id_facilities</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>with_errors</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
-)</pre>
+    <pre class="usage"><span class='fu'>shiny_app</span>()</pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>n_subjects</th>
-      <td><p>the number of different subjects in the database</p></td>
-    </tr>
-    <tr>
-      <th>n_facilities</th>
-      <td><p>the number of facility present in the database</p></td>
-    </tr>
-    <tr>
-      <th>avg_n_stays</th>
-      <td><p>the average number of stays per subject</p></td>
-    </tr>
-    <tr>
-      <th>days_since_discharge</th>
-      <td><p>the number of days between a discharge date and an admission date (default: max(0, rnorm(1, mean = 30, sd = 10)))</p></td>
-    </tr>
-    <tr>
-      <th>length_of_stay</th>
-      <td><p>the length of stay (default: max(1, rnorm(1, mean = 5, sd = 3) )</p></td>
-    </tr>
-    <tr>
-      <th>start_id_subjects, start_id_facilities</th>
-      <td><p>change starting ids (used for clustered network)</p></td>
-    </tr>
-    <tr>
-      <th>with_errors</th>
-      <td><p>(boolean) introduce or not random errors in the database. Default to FALSE.</p></td>
-    </tr>
-    </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>a data.table containing all subjects stays</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
     </ul>
 
   </div>

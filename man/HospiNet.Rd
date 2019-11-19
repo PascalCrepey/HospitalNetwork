@@ -5,17 +5,72 @@
 \alias{HospiNet}
 \title{Class providing the HospiNet object with its methods}
 \format{\code{\link{R6Class}} object.}
-\usage{
-HospiNet
-}
 \value{
 Object of \code{\link{R6Class}} with methods for accessing facility networks.
 }
 \description{
 Class providing the HospiNet object with its methods
-}
-\section{Fields}{
 
+Class providing the HospiNet object with its methods
+}
+\section{Methods}{
+
+\describe{
+  \item{\code{new(edgelist, 
+window_threshold,
+nmoves_threshold,
+noloops)}}{This method is used to create an object of this class with \code{edgelist} as the necessary information to create the network.
+The other arguments \code{window_threshold}, \code{nmoves_threshold}, and \code{noloops} are specific to the \code{edgelist} and need to be provided.
+For ease of use, it is preferable to use the function \code{\link{hospinet_from_subject_database}}}
+  \item{\code{print()}}{This method prints basic information about the object.}
+  \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default. 
+  The argument \code{type} can take the following values: 
+  \describe{
+  \item{matrix}{plot the network matrix,}
+  \item{clustered_matrix}{identify and plot cluster(s) in the matrix using the infomap algorithm (from igraph),}
+  \item{degree}{plot the histogram of the number of neighbors by facility,}
+  \item{circular_network}{plot the network by clusters using a "spaghetti-like" layout. Only works when there are at least 2 clusters.}
+  }
+  }
+}
+}
+
+\examples{
+mydbsmall = create_fake_subjectDB(n_subjects = 1000, n_facilities = 10)
+  
+hn = hospinet_from_subject_database(base = mydbsmall,
+                                    window_threshold = 10,
+                                    count_option = "successive",
+                                    condition = "dates")
+
+hn
+
+plot(hn)
+plot(hn, type = "clustered_matrix")
+
+}
+\keyword{data}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{numFacilities}}{the number of facilities in the network (read-only). Same as n_facilities, but with a different source (base instead of igraph), maybe useful as double-check}
+
+\item{\code{TBAmean}}{the mean time between admissions (read-only) (not implemented yet)}
+
+\item{\code{TBAdistribution}}{the distribution of time between admissions (read-only) (not implemented yet)}
+
+\item{\code{LOSmean}}{the mean length of stay (read-only) (not implemented yet)}
+
+\item{\code{LOSdistribution}}{the distribution of length of stay (read-only) (not implemented yet)}
+
+\item{\code{admissions}}{the number of admissions in the entire data base (read-only)}
+
+\item{\code{subjects}}{the number of unique subjects in the data base (read-only)}
+}
+\if{html}{\out{</div>}}
+}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
 \item{\code{edgelist}}{(data.table) the list of edges (origin, target) and their associated number of movements (N) (read-only)}
 
@@ -74,42 +129,69 @@ Class providing the HospiNet object with its methods
 \item{\code{hubs_fast_greedy}}{same as hubs_global, but computed per community based on the infomap algorithm (read-only)}
 
 \item{\code{metricsTable}}{(data.table) all of the above metrics for each facility (read-only)}
-}}
-
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
+\subsection{Public methods}{
+\itemize{
+\item \href{#method-new}{\code{HospiNet$new()}}
+\item \href{#method-print}{\code{HospiNet$print()}}
+\item \href{#method-plot}{\code{HospiNet$plot()}}
+\item \href{#method-clone}{\code{HospiNet$clone()}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-new"></a>}}
+\subsection{Method \code{new()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HospiNet$new(
+  edgelist,
+  edgelist_long,
+  window_threshold,
+  nmoves_threshold,
+  noloops,
+  fsummary = NULL,
+  create_MetricsTable = FALSE
+)}\if{html}{\out{</div>}}
+}
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-print"></a>}}
+\subsection{Method \code{print()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HospiNet$print()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-plot"></a>}}
+\subsection{Method \code{plot()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HospiNet$plot(
+  type = "matrix",
+  plotLinks = 5000,
+  alphaSteps = 15,
+  alphaSet = 0.1
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-clone"></a>}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HospiNet$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
 \describe{
-  \item{\code{new(edgelist, 
-window_threshold,
-nmoves_threshold,
-noloops)}}{This method is used to create an object of this class with \code{edgelist} as the necessary information to create the network.
-The other arguments \code{window_threshold}, \code{nmoves_threshold}, and \code{noloops} are specific to the \code{edgelist} and need to be provided.
-For ease of use, it is preferable to use the function \code{\link{hospinet_from_subject_database}}}
-  \item{\code{print()}}{This method prints basic information about the object.}
-  \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default. 
-  The argument \code{type} can take the following values: 
-  \describe{
-  \item{matrix}{plot the network matrix,}
-  \item{clustered_matrix}{identify and plot cluster(s) in the matrix using the infomap algorithm (from igraph),}
-  \item{degree}{plot the histogram of the number of neighbors by facility,}
-  \item{circular_network}{plot the network by clusters using a "spaghetti-like" layout. Only works when there are at least 2 clusters.}
-  }
-  }
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
 }
 }
-
-\examples{
-mydbsmall = create_fake_subjectDB(n_subjects = 1000, n_facilities = 10)
-  
-hn = hospinet_from_subject_database(base = mydbsmall,
-                                    window_threshold = 10,
-                                    count_option = "successive",
-                                    condition = "dates")
-
-hn
-
-plot(hn)
-plot(hn, type = "clustered_matrix")
-
 }
-\keyword{data}

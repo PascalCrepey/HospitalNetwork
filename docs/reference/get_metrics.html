@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">HospitalNetwork</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.3</span>
       </span>
     </div>
 
@@ -121,14 +121,19 @@
     <p>Function computing different network analysis metrics.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_metrics</span>(<span class='no'>network</span>, <span class='kw'>mode</span> <span class='kw'>=</span> <span class='st'>"directed"</span>, <span class='kw'>weighted</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>transfers</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>metrics</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"degree"</span>, <span class='st'>"closeness"</span>, <span class='st'>"clusters"</span>,
-  <span class='st'>"betweenness"</span>), <span class='kw'>clusters</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"cluster_fast_greedy"</span>, <span class='st'>"cluster_infomap"</span>),
-  <span class='kw'>hubs</span> <span class='kw'>=</span> <span class='st'>"all_clusters"</span>, <span class='kw'>options</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>degree</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>modes</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"in"</span>,
-  <span class='st'>"out"</span>, <span class='st'>"total"</span>)), <span class='kw'>closeness</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>modes</span> <span class='kw'>=</span> <span class='st'>"total"</span>), <span class='kw'>betweenness</span> <span class='kw'>=</span>
-  <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(), <span class='kw'>cluster_fast_greedy</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>undirected</span> <span class='kw'>=</span> <span class='st'>"collapse"</span>),
-  <span class='kw'>cluster_infomap</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>undirected</span> <span class='kw'>=</span> <span class='st'>"collapse"</span>), <span class='kw'>clusters</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>algos</span> <span class='kw'>=</span>
-  <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"cluster_fast_greedy"</span>, <span class='st'>"cluster_infomap"</span>), <span class='kw'>undirected</span> <span class='kw'>=</span> <span class='st'>"collapse"</span>)))</pre>
+    <pre class="usage"><span class='fu'>get_metrics</span>(
+  <span class='no'>network</span>,
+  <span class='kw'>mode</span> <span class='kw'>=</span> <span class='st'>"directed"</span>,
+  <span class='kw'>weighted</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>transfers</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>metrics</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"degree"</span>, <span class='st'>"closeness"</span>, <span class='st'>"clusters"</span>, <span class='st'>"betweenness"</span>),
+  <span class='kw'>clusters</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"cluster_fast_greedy"</span>, <span class='st'>"cluster_infomap"</span>),
+  <span class='kw'>hubs</span> <span class='kw'>=</span> <span class='st'>"all_clusters"</span>,
+  <span class='kw'>options</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>degree</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>modes</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"in"</span>, <span class='st'>"out"</span>, <span class='st'>"total"</span>)), <span class='kw'>closeness</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>modes</span>
+    <span class='kw'>=</span> <span class='st'>"total"</span>), <span class='kw'>betweenness</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(), <span class='kw'>cluster_fast_greedy</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>undirected</span> <span class='kw'>=</span> <span class='st'>"collapse"</span>),
+    <span class='kw'>cluster_infomap</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>undirected</span> <span class='kw'>=</span> <span class='st'>"collapse"</span>), <span class='kw'>clusters</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>algos</span> <span class='kw'>=</span>
+    <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"cluster_fast_greedy"</span>, <span class='st'>"cluster_infomap"</span>), <span class='kw'>undirected</span> <span class='kw'>=</span> <span class='st'>"collapse"</span>))
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
