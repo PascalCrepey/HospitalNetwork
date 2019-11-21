@@ -12,9 +12,9 @@ test_that("plotting functions on non-clustered network",{
   plot_clust100 = plot(hn, type = "clustered_matrix")
   #plot_circular_network100 = plot(hn, type = "circular_network")
   
-  vdiffr::expect_doppelganger("Matrix plot 100", plot_mat100)
   vdiffr::expect_doppelganger("Clustered Matrix plot 100", plot_clust100)
   vdiffr::expect_doppelganger("plot degree 100", plot_deg)
+  vdiffr::expect_doppelganger("Matrix plot 100", plot_mat100)
   
 })
 #vdiffr::expect_doppelganger("Circular plot 100", plot_circular_network100)
@@ -31,10 +31,10 @@ test_that("plotting functions on clustered network", {
   plot_clust_net500 = plot(hn, type = "clustered_matrix")
   plot_circular_clust_network500 = plot(hn, type = "circular_network")
   
-  vdiffr::expect_doppelganger("Matrix plot clust 500", plot_mat_net500)
   vdiffr::expect_doppelganger("Clustered Matrix plot clust 500", plot_clust_net500)
   vdiffr::expect_doppelganger("plot clust degree 500", plot_deg_net500)
   vdiffr::expect_doppelganger("Circular plot clust 500", plot_circular_clust_network500)
+  vdiffr::expect_doppelganger("Matrix plot clust 500", plot_mat_net500)
   
 })
 
