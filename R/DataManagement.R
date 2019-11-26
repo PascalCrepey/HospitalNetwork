@@ -405,7 +405,7 @@ adjust_overlapping_stays = function(report,
 
   nbefore = nrow(base)
   if (verbose) message("Checking for duplicated records...")
-  base = unique(base)
+  base = unique(base, by = key(base))
   if (verbose) message(paste0("Removed ", nbefore-nrow(base), " duplicates"))
   report$removedDuplicates=nbefore-nrow(base)
 
