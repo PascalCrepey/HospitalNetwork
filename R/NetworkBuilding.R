@@ -404,6 +404,7 @@ edgelist_from_base <- function(base,
 #'     Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.
 #' @param ... Additional parameters to be sent to checkBase in case the database has not been checked yet.
 #' @param verbose TRUE to print computation steps
+#' @param shinySession (NULL) internal variable to deal with the progress bar
 #'
 #' @seealso \code{\link{HospiNet}}
 #'
@@ -422,6 +423,7 @@ hospinet_from_subject_database <- function(base,
                                            flag_values = NULL,
                                            create_MetricsTable = TRUE,
                                            verbose = FALSE,
+                                           shinySession = NULL,
                                            ...)
 {
     if (!inherits(base, "hospinet.base")) {
@@ -433,6 +435,7 @@ hospinet_from_subject_database <- function(base,
                     ...
                     )
     }
+
     ## Compute the edgelists (long and aggregated format)
     edgelists = edgelist_from_base(base = base,
                                    window_threshold = window_threshold,
@@ -443,19 +446,30 @@ hospinet_from_subject_database <- function(base,
                                    flag_vars = flag_vars,
                                    flag_values = flag_values,
                                    verbose = verbose)
+    if (!is.null(shinySession)){
+      incProgress(session = shinySession, amount = 0.5)
+    }
     ## Abort if the edgelist is empty
     if (nrow(edgelists$el_aggr) == 0) {
-        message("No connections satisfying the conditions were found in the database. Aborting.")
-        return(NULL)
+      message("No connections satisfying the conditions were found in the database. Aborting.")
+      return(NULL)
     }
 
   facilitySummary = per_facility_summary(base)
-
-  HospiNet$new(edgelist = edgelists$el_aggr,
+  
+  if (!is.null(shinySession)){
+    incProgress(session = shinySession, amount = 0.3)
+  }
+  hn = HospiNet$new(edgelist = edgelists$el_aggr,
                edgelist_long = edgelists$el_long,
                window_threshold = window_threshold, 
                nmoves_threshold = nmoves_threshold, 
                noloops = noloops,
                fsummary = facilitySummary,
                create_MetricsTable=create_MetricsTable)
+  
+  if (!is.null(shinySession)){
+    incProgress(session = shinySession, amount = 0.2)
+  }
+  hn
 }

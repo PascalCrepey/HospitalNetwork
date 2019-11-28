@@ -15,6 +15,7 @@ hospinet_from_subject_database(
   flag_values = NULL,
   create_MetricsTable = TRUE,
   verbose = FALSE,
+  shinySession = NULL,
   ...
 )
 }
@@ -56,6 +57,8 @@ respectively. See details.}
 Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.}
 
 \item{verbose}{TRUE to print computation steps}
+
+\item{shinySession}{(NULL) internal variable to deal with the progress bar}
 
 \item{...}{Additional parameters to be sent to checkBase in case the database has not been checked yet.}
 }

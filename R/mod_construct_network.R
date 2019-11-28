@@ -178,7 +178,8 @@ mod_construct_network_server <- function(input, output, session, base)
                                      noloops = input$loops,
                                      nmoves_threshold = args()$nmoves_threshold,
                                      flag_vars = args()$flag_vars,
-                                     flag_values = args()$flag_values)
+                                     flag_values = args()$flag_values, 
+                                     shinySession = session)
                 ),
             message = function(e) {
                 savedMsg <<- c(savedMsg, conditionMessage(e))
@@ -187,13 +188,16 @@ mod_construct_network_server <- function(input, output, session, base)
                 savedWar <<- c(savedWar, warningCondition(w))
             }
         )
+        
     })
     
     ##--- Pop-up message of success or failure ------------------------------------------
     observeEvent(input$construct, {
         savedMsg <<- c()
         savedWar <<- c()
-        net(out())
+        withProgress(message = "Building network...",
+         net(out())
+        )
         if ("try-error" %in% class(net())) {
             shinyalert::shinyalert(title = "Error",
                                    text = paste0("<div align=left>",
