@@ -38,6 +38,8 @@ mod_network_ui <- function(id){
                                   plotOutput(ns("plot_matrix"))),
                          tabPanel("clustered matrix",
                                   plotOutput(ns("plot_clustered_matrix"))),
+                         tabPanel("circular network",
+                                  plotOutput(ns("plot_circular_net"))),
                          side = "right",
                          width = NULL))
           ))
@@ -66,8 +68,9 @@ mod_network_server <- function(input, output, session, net){
                                   filter = "bottom",
                                   options = list(scrollY = "400px",
                                                  scrollX = "200px"))
-    output$plot_matrix = renderPlot({ net()$plot("matrix") })
-    output$plot_clustered_matrix = renderPlot({ net()$plot("clustered_matrix") })
+    output$plot_matrix = renderPlot({net()$plot("matrix") })
+    output$plot_clustered_matrix = renderPlot({net()$plot("clustered_matrix") })
+    output$plot_circular_net = renderPlot({net()$plot("circular_network") })
 
     
 }
