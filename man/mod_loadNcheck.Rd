@@ -7,7 +7,7 @@
 \usage{
 mod_loadNcheck_ui(id)
 
-mod_loadNcheck_server(input, output, session)
+mod_loadNcheck_server(input, output, session, parent)
 }
 \arguments{
 \item{id}{shiny id}

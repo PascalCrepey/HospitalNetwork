@@ -10,7 +10,7 @@ app_ui <- function() {
         dashboardHeader(title = "HospitalNetwork",
                         titleWidth = "200px"),
         dashboardSidebar(
-            sidebarMenu(
+            sidebarMenu(id = "mainSidebar",
                 menuItem("Upload and check",
                          tabName = "upload",
                          icon = icon("upload")),
@@ -59,7 +59,7 @@ golem_add_external_resources <- function(){
   addResourcePath(
     'www', system.file('app/www', package = 'HospitalNetwork')
   )
- 
+  
   tags$head(
     golem::activate_js(),
     golem::favicon()
@@ -69,5 +69,6 @@ golem_add_external_resources <- function(){
     #tags$link(rel="stylesheet", type="text/css", href="www/custom.css")
   )
 }
+
 
 

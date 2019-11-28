@@ -49,7 +49,7 @@ mod_loadNcheck_ui <- function(id) {
 #' @export
 #' @keywords internal
     
-mod_loadNcheck_server <- function(input, output, session){
+mod_loadNcheck_server <- function(input, output, session, parent){
     ns <- session$ns
 
     ## Reactive value to store the checked database
@@ -177,8 +177,10 @@ mod_loadNcheck_server <- function(input, output, session){
                 ),
             div(style="display: inline-block;vertical-align:top;",
                 conditionalPanel(paste0("output['", ns("checked"), "']"),
-                                 downloadButton(ns("download"),
-                                                label = "Download checked base")))            
+                                 downloadButton(ns("downloadCheckedBase"),
+                                                label = "Download checked base"),
+                                 actionButton(ns("goToConstruct"), "go to network", icon = icon("forward"))
+                                 ))            
         )
         return(conditionalPanel(paste0("output['", ns("fileUploaded"), "']"),
                                 c(conditionalUI, startUI)))
@@ -263,7 +265,10 @@ mod_loadNcheck_server <- function(input, output, session){
     output$checked = reactive({ !is.null(base()) }) 
     outputOptions(output, 'checked', suspendWhenHidden=FALSE)
     
-    output$download <- downloadHandler(
+    observeEvent(input$goToConstruct, {
+      updateTabItems(session = parent, inputId = "mainSidebar", selected = "construct")
+    })
+    output$downloadCheckedBase <- downloadHandler(
         filename = function() {
           "checked_database.RDS"
         },
