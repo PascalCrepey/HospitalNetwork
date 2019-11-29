@@ -49,7 +49,7 @@ mod_loadNcheck_ui <- function(id) {
 #' @export
 #' @keywords internal
     
-mod_loadNcheck_server <- function(input, output, session, parent){
+mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     ns <- session$ns
 
     ## Reactive value to store the checked database
@@ -175,7 +175,7 @@ mod_loadNcheck_server <- function(input, output, session, parent){
                              icon = icon("search"),
                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                 ),
-            div(style="display: inline-block;vertical-align:top;",
+            div(style="display: inline-block;vertical-align:top;padding-top:10px",
                 conditionalPanel(paste0("output['", ns("checked"), "']"),
                                  downloadButton(ns("downloadCheckedBase"),
                                                 label = "Download checked base"),
@@ -231,6 +231,17 @@ mod_loadNcheck_server <- function(input, output, session, parent){
         out = checked()
         if (previously_checked()) {
             base(datatable())
+          #browser()
+            #update message board
+            mainData$notifications = makeNotification(mainData$notifications, 
+                                                      mtype = "database", 
+                                                      micon = "battery-full", 
+                                                      mtext = "database checked and loaded.")
+            mainData$notifications = makeNotification(mainData$notifications, 
+                                                      mtype = "datafile", 
+                                                      micon = "file", 
+                                                      mtext = paste0("dataset: ",dataset()$name))
+            #browser()
             shinyalert::shinyalert(title = "Database previously checked",
                                    text = "The database was not checked again",
                                    type = "success")
@@ -250,6 +261,14 @@ mod_loadNcheck_server <- function(input, output, session, parent){
                                                                "removedDuplicates")]
                                       )
                                )
+            #update message board
+            mainData$notifications = makeNotification(mainData$notifications, mtype = "database", micon = "battery-full",
+                             mtext = "database checked and loaded !")
+            mainData$notifications = makeNotification(mainData$notifications, 
+                                                      mtype = "datafile", 
+                                                      micon = "file", 
+                                                      mtext = paste0("dataset: ",dataset()$name))
+            
             shinyalert::shinyalert(title = "Checked",
                                    text = HTML(paste0("<div align=left>",
                                                       paste(savedMsg, collapse = "<br/>"),

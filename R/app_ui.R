@@ -8,7 +8,8 @@ app_ui <- function() {
     # List the first level UI elements here
     dashboardPage(
         dashboardHeader(title = "HospitalNetwork",
-                        titleWidth = "200px"),
+                        titleWidth = "200px", 
+                        dropdownMenuOutput("messageMenu")),
         dashboardSidebar(
             sidebarMenu(id = "mainSidebar",
                 menuItem("Upload and check",

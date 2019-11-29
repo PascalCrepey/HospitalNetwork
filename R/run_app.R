@@ -19,3 +19,9 @@ shiny_app = function() {
     run_app() # add parameters here (if any)
 }
 
+makeNotification = function(notifications, mtype, micon, mtext){
+  tmpNotif = copy(notifications)
+  tmpNotif[type == mtype, ':='(icon = micon, text = mtext)]
+  #update the pointer to trigger interface update
+  tmpNotif
+}
