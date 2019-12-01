@@ -39,7 +39,16 @@ mod_network_ui <- function(id){
                          tabPanel("clustered matrix",
                                   plotOutput(ns("plot_clustered_matrix"))),
                          tabPanel("circular network",
-                                  plotOutput(ns("plot_circular_net"))),
+                                                  plotOutput(ns("plot_circular_net")),
+                                                  
+                                  fluidRow(column(6, sliderInput(inputId = ns("alphaSet"), 
+                                                              label = "link transparency", value = 0.1, 
+                                                              min = 0, max = 1, step = 0.1)),
+                                           column(6, sliderInput(inputId = ns("alphaSteps"), 
+                                                                 label = "alpha steps", 
+                                                                 min = 1, max = 30, step = 1, 
+                                                                 value = 15)))
+                                  ),
                          side = "right",
                          width = NULL))
           ))
@@ -70,7 +79,13 @@ mod_network_server <- function(input, output, session, net){
                                                  scrollX = "200px"))
     output$plot_matrix = renderPlot({net()$plot("matrix") })
     output$plot_clustered_matrix = renderPlot({net()$plot("clustered_matrix") })
-    output$plot_circular_net = renderPlot({net()$plot("circular_network") })
+    output$plot_circular_net = renderPlot({
+      my_net = net()
+      gg=plot(my_net, type = "circular_network", 
+           alphaSet = as.numeric(input$alphaSet), 
+           alphaSteps = as.numeric(input$alphaSteps))
+      gg
+    })
 
     
 }

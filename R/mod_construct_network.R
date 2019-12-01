@@ -48,7 +48,7 @@ mod_construct_network_ui <- function(id){
                                    ),
                   fluidRow(
                       column(5, HTML("<b>Remove loops</b></br>")),
-                      column(7, materialSwitch(ns("loops"), status = "primary"))
+                      column(7, materialSwitch(ns("loops"), status = "primary", value = TRUE))
                   ),
                   fluidRow(
                       column(5, HTML("<b>Transfer cutoff</b>")),
