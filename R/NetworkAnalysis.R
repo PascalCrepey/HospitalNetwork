@@ -108,7 +108,7 @@ get_metrics <-
             ## instead of getting matrices by cluster, and getting graphs by group from the matrices:
             ## use the direct method, based on subgraph() to get graphs by cluster
             graph_byclust=get_graph_bycluster(graph=graph,
-                                DT = DT_list[[g]],
+                                DT = DT_list[["clusters"]],
                                 clusters = g)
             
             ## get hub scores by group

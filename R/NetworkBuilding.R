@@ -89,7 +89,7 @@ matrix_from_edgelist <- function(edgelist,
                                             origin ~ target,
                                             drop = F,
                                             fill = 0,
-                                            count = 'N')
+                                            count = 'N', value.var = 'N')
     DT_trans[, origin := NULL]
     matrix = as.matrix(DT_trans)
     rownames(matrix) = colnames(matrix)
