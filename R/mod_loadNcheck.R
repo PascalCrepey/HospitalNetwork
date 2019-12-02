@@ -23,21 +23,38 @@ mod_loadNcheck_ui <- function(id) {
               includeMarkdown("inst/intro.md")
           ),          
           sidebarPanel = sidebarPanel(
-              h3("Upload and check dataset", align = "center"),
-              fileInput(ns("dataset"),
-                        "File",
-                        buttonLabel = HTML(paste(icon("upload",  ), "Browse"))),
-              fluidRow(
-                  column(5, HTML("<b>File format</b>")),
-                  column(7, 
-                         shinyWidgets::radioGroupButtons(ns("filetype"),
-                                                         choices = c("CSV", "Rdata", "RDS"),
-                                                         status = "default",
-                                                         size = "sm",
-                                                         selected = NA)
-                         )
+            tabsetPanel(
+              tabPanel(title = "Upload and check dataset",
+                 fileInput(ns("dataset"),
+                           "File",
+                           buttonLabel = HTML(paste(icon("upload",  ), "Browse"))),
+                 fluidRow(
+                   column(5, HTML("<b>File format</b>")),
+                   column(7, 
+                          shinyWidgets::radioGroupButtons(ns("filetype"),
+                                                          choices = c("CSV", "Rdata", "RDS"),
+                                                          status = "default",
+                                                          size = "sm",
+                                                          selected = NA)
+                   )
+                 ),
+                 uiOutput(ns("checkUI"))
               ),
-              uiOutput(ns("checkUI"))
+              tabPanel(title = "Fake dataset", 
+                       sliderInput(ns("fd_n_subjects"), "Number of subjects", 
+                                   min = 100, max = 10000, value = 1000),
+                       sliderInput(ns("fd_n_facilities"), "Number of facilities",
+                                   min = 2, max = 1000, value = 10),
+                       uiOutput(ns("fd_n_clustersUI")),
+                       div(style="display: inline-block;vertical-align:top;",
+                           actionButton(ns("buildFD"),
+                                        "Build base",
+                                        icon = icon("data-base"),
+                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                       )
+                       )
+            ),
+            uiOutput(ns("downloadNgoto"))
           ),
           position = "right")
   )
@@ -64,23 +81,67 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     })
     outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
     
+    #where we put the main datatable
+    datatable = reactiveVal(NULL)
     #--- Read file depending on type ----------------------------------
-    datatable = reactive({
-        req(input$filetype)
-        base(NULL)
-        user_file = dataset()$datapath
-        if (input$filetype == "CSV") {
-            fread(user_file)
+    observeEvent(input$filetype,{
+      req(input$filetype)
+      #reset the base
+      base(NULL)
+      user_file = dataset()$datapath
+      if (input$filetype == "CSV") {
+        datatable(fread(user_file))
+      }
+      else if (input$filetype == "Rdata") {
+          e = new.env()
+          dtb = load(user_file, envir = e)
+          datatable(e[[dtb]])
+      }
+      else {
+        datatable(readRDS(user_file))
+      }
+    })
+    
+    # Generate the fake data ----
+    observeEvent(input$buildFD, {
+      withProgress(message = "Building fake data...",{
+        if (input$fd_n_clusters == 1){
+          print("build fake data with single cluster")
+          db = create_fake_subjectDB(n_subjects = input$fd_n_subjects,
+                                     n_facilities = input$fd_n_facilities,
+                                     with_errors = FALSE)
+          incProgress(amount = 0.5, detail = "data generated")
+        }else{
+          print("build fake data with multiple clusters")
+          db = create_fake_subjectDB_clustered(n_subjects = input$fd_n_subjects, 
+                                               n_facilities = input$fd_n_facilities,
+                                               n_clusters = input$fd_n_clusters)
+          incProgress(amount = 0.5, detail = "clustered data generated")
         }
-        else if (input$filetype == "Rdata") {
-            e = new.env()
-            dtb = load(user_file, envir = e)
-            return(e[[dtb]])
-        }
-        else {
-            readRDS(user_file)
-        }
-
+        #output the base
+        base(HospitalNetwork::checkBase(base = db))
+        
+        incProgress(amount = 0.5, detail = "data checked")
+      })
+      #update message board
+      mainData$notifications = makeNotification(mainData$notifications, 
+                                                mtype = "database", 
+                                                micon = "battery-full", 
+                                                mtext = "fake database loaded.")
+      mainData$notifications = makeNotification(mainData$notifications, 
+                                                mtype = "datafile", 
+                                                micon = "file", 
+                                                mtext = paste0("dataset: ",
+                                                               input$fd_n_subjects,"/",
+                                                               input$fd_n_facilities,"/",
+                                                               input$fd_n_clusters))
+      #browser()
+      shinyalert::shinyalert(title = "Fake database built successfully",
+                             text = paste0("The database containing ",
+                                           input$fd_n_subjects, " subjects, ",
+                                           input$fd_n_facilities, " facilities, and ",
+                                           input$fd_n_clusters, " clusters has been built."),
+                             type = "success")
     })
 
     previously_checked = eventReactive(input$filetype, {
@@ -174,16 +235,21 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                              "Check base",
                              icon = icon("search"),
                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
-                ),
-            div(style="display: inline-block;vertical-align:top;padding-top:10px",
-                conditionalPanel(paste0("output['", ns("checked"), "']"),
-                                 downloadButton(ns("downloadCheckedBase"),
-                                                label = "Download checked base"),
-                                 actionButton(ns("goToConstruct"), "go to network", icon = icon("forward"))
-                                 ))            
+                )            
         )
         return(conditionalPanel(paste0("output['", ns("fileUploaded"), "']"),
                                 c(conditionalUI, startUI)))
+    })
+    
+    output$downloadNgoto <- renderUI({
+      dgUI = div(style="display: inline-block;vertical-align:top;padding-top:10px",
+          conditionalPanel(paste0("output['", ns("checked"), "']"),
+                           downloadButton(ns("downloadCheckedBase"),
+                                          label = "Download checked base"),
+                           actionButton(ns("goToConstruct"), "go to network", icon = icon("forward"))
+          )
+      )
+      return(dgUI)
     })
 
     #--- Set arguments ------------------------------------------------
@@ -296,7 +362,15 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
         }
     )
 
-        
+    # Fake data UI ----
+    output$fd_n_clustersUI <- renderUI({
+      sliderInput(ns("fd_n_clusters"), "number of clusters", 
+                  min = 1, 
+                  max = input$fd_n_facilities, step = 1,
+                  value = 1)
+    })
+    
+
 
     ##--- RETURN ------------------------------------------------------
     return(reactive({ base() }))

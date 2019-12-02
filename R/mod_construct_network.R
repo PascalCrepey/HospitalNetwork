@@ -95,8 +95,8 @@ mod_construct_network_server <- function(input, output, session, base)
                     max = as.integer(difftime(max(base()$Ddate),
                                               min(base()$Adate),
                                               units = "days")),
-                    value = 0,
-                    step = 0,
+                    value = 14,
+                    step = 1,
                     post = " days")
     })
     ## Flags selection

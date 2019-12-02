@@ -19,20 +19,10 @@ mod_network_ui <- function(id){
       div(id = ns("hideUI"),
           "The network has not been constructed yet"),
       div(id = ns("showUI"),
-          fluidRow(
-              column(5,
+          tabsetPanel(
+              tabPanel("Plots",
                      tabBox(
-                         title = HTML("<b>Edgelist</b>"),
-                         id = ns("edgelist"),
-                         tabPanel("aggregated",
-                                  DT::DTOutput(ns("el_aggr"))),
-                         tabPanel("long",
-                                  DT::DTOutput(ns("el_long"))),
-                         side = "right",
-                         width = NULL)),
-              column(7,
-                     tabBox(
-                         title = HTML("<b>Plots</b>"),
+                         title = NULL,#HTML("<b>Plots</b>"),
                          id = ns("plots"),
                          tabPanel("matrix",
                                   plotOutput(ns("plot_matrix"))),
@@ -50,6 +40,16 @@ mod_network_ui <- function(id){
                                                                  value = 15)))
                                   ),
                          side = "right",
+                         width = NULL)),
+              tabPanel("Edgelist",
+                       tabBox(
+                         title = NULL,#HTML("<b>Edgelist</b>"),
+                         id = ns("edgelist"),
+                         tabPanel("aggregated",
+                                  DT::DTOutput(ns("el_aggr"))),
+                         tabPanel("long",
+                                  DT::DTOutput(ns("el_long"))),
+                         side = "right",
                          width = NULL))
           ))
   )
@@ -60,6 +60,7 @@ mod_network_ui <- function(id){
 #' @rdname mod_network
 #' @export
 #' @keywords internal
+#' @importFrom graphics plot
     
 mod_network_server <- function(input, output, session, net){
     ns <- session$ns

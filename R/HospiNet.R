@@ -154,7 +154,7 @@ HospiNet <- R6::R6Class("HospiNet",
       # set the number of duplication of strong connections
       maxStr=self$matrix[order(-self$matrix)][1]
       minStr=self$matrix[order(-self$matrix)][plotLinks]
-      steps=round((maxStr-minStr)/alphaSteps)
+      steps=((maxStr-minStr)/alphaSteps)
 
       #artificially duplicate strong connections so that they appear darker on the plot
       strongConnections<-do.call("rbind", lapply(seq(minStr,maxStr,by=steps),function(x){data.frame(from=myleaves[which(self$matrix>x,arr.ind = T)[,1]],to=myleaves[which(self$matrix>x,arr.ind = T)[,2]])}))
