@@ -1,0 +1,86 @@
+{
+  "input": {
+    "construct_network_ui_1-condition": "dates",
+    "construct_network_ui_1-construct": 0,
+    "construct_network_ui_1-countoption": "successive",
+    "construct_network_ui_1-cutoff": "NULL",
+    "construct_network_ui_1-loops": true,
+    "construct_network_ui_1-nmoves": false,
+    "loadNcheck_ui_1-buildFD": 0,
+    "loadNcheck_ui_1-dataset": null,
+    "loadNcheck_ui_1-fd_n_facilities": 10,
+    "loadNcheck_ui_1-fd_n_subjects": 1000,
+    "loadNcheck_ui_1-goToConstruct": 0,
+    "mainSidebar": "upload",
+    "network_ui_1-alphaSet": 0.1,
+    "network_ui_1-alphaSteps": 15,
+    "network_ui_1-edgelist": "aggregated",
+    "network_ui_1-plots": "matrix",
+    "sidebarCollapsed": false,
+    "sidebarItemExpanded": null
+  },
+  "output": {
+    "loadNcheck_ui_1-checked": false,
+    "loadNcheck_ui_1-checkUI": {
+      "message": "",
+      "call": "NULL",
+      "type": [
+        "shiny.silent.error",
+        "validation"
+      ]
+    },
+    "loadNcheck_ui_1-downloadNgoto": {
+      "html": "<div style=\"display: inline-block;vertical-align:top;padding-top:10px\">\n  <div data-display-if=\"output[&#39;loadNcheck_ui_1-checked&#39;]\" data-ns-prefix=\"\">\n    <a id=\"loadNcheck_ui_1-downloadCheckedBase\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download>\n      <i class=\"fa fa-download\"><\/i>\n      Download checked base\n    <\/a>\n    <button id=\"loadNcheck_ui_1-goToConstruct\" type=\"button\" class=\"btn btn-default action-button\">\n      <i class=\"fa fa-forward\"><\/i>\n      go to network\n    <\/button>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "font-awesome",
+          "version": "5.3.1",
+          "src": {
+            "href": "font-awesome-5.3.1"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": [
+            "css/all.min.css",
+            "css/v4-shims.min.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    },
+    "loadNcheck_ui_1-fileUploaded": {
+      "message": "",
+      "call": "NULL",
+      "type": [
+        "shiny.silent.error",
+        "validation"
+      ]
+    },
+    "messageMenu": {
+      "html": "<li class=\"dropdown notifications-menu\">\n  <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\">\n    <i class=\"fa fa-warning\"><\/i>\n    <span class=\"label label-primary\">2<\/span>\n  <\/a>\n  <ul class=\"dropdown-menu\">\n    <li class=\"header\">You have 2 notifications<\/li>\n    <li>\n      <ul class=\"menu\">\n        <li>\n          <a href=\"#\">\n            <i class=\"fa fa-battery-empty text-success\"><\/i>\n            No database.\n          <\/a>\n        <\/li>\n        <li>\n          <a href=\"#\">\n            <i class=\"fa fa-file text-success\"><\/i>\n            No file loaded\n          <\/a>\n        <\/li>\n      <\/ul>\n    <\/li>\n  <\/ul>\n<\/li>",
+      "deps": [
+        {
+          "name": "font-awesome",
+          "version": "5.3.1",
+          "src": {
+            "href": "font-awesome-5.3.1"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": [
+            "css/all.min.css",
+            "css/v4-shims.min.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    }
+  },
+  "export": {
+
+  }
+}

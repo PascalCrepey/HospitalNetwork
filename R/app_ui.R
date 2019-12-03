@@ -6,49 +6,49 @@ app_ui <- function() {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # List the first level UI elements here
-    dashboardPage(
-        dashboardHeader(title = "HospitalNetwork",
+    shinydashboard::dashboardPage(
+      shinydashboard::dashboardHeader(title = "HospitalNetwork",
                         titleWidth = "200px", 
-                        dropdownMenuOutput("messageMenu")),
-        dashboardSidebar(
-            sidebarMenu(id = "mainSidebar",
-                menuItem("Upload and check",
+                        shinydashboard::dropdownMenuOutput("messageMenu")),
+      shinydashboard::dashboardSidebar(
+        shinydashboard::sidebarMenu(id = "mainSidebar",
+                                    shinydashboard::menuItem("Upload and check",
                          tabName = "upload",
                          icon = icon("upload")),
-                menuItem("Construct network",
+                         shinydashboard::menuItem("Construct network",
                          tabName = "construct",
                          icon = icon("wrench")),
-                menuItem("Database",
+                         shinydashboard::menuItem("Database",
                          tabName = "database",
                          icon = icon("database")),
-                menuItem("Network",
+                         shinydashboard::menuItem("Network",
                          tabName = "network",
                          icon = icon("connectdevelop")),
-                menuItem("Statistics and metrics",
+                         shinydashboard::menuItem("Statistics and metrics",
                          tabName = "stat",
                          icon = icon("clipboard-list"))
                 ), width = "200px"
         ),
-        dashboardBody(
+      shinydashboard::dashboardBody(
             shinyjs::useShinyjs(),
             shinyalert::useShinyalert(),
-            tabItems(
-                tabItem(tabName = "upload",
+            shinydashboard::tabItems(
+              shinydashboard::tabItem(tabName = "upload",
                         mod_loadNcheck_ui("loadNcheck_ui_1")
                         ),
-                tabItem(tabName = "construct",
+              shinydashboard::tabItem(tabName = "construct",
                         mod_construct_network_ui("construct_network_ui_1")
                         ),
-                tabItem(tabName = "database",
+              shinydashboard::tabItem(tabName = "database",
                         mod_database_ui("database_ui_1")
                         ),
-                tabItem(tabName = "network",
+              shinydashboard::tabItem(tabName = "network",
                         mod_network_ui("network_ui_1")
                         ),
-                tabItem(tabName = "stat",
+              shinydashboard::tabItem(tabName = "stat",
                         mod_statmet_ui("statmet_ui_1")
                         )
-                )
+                 )
         )
     )
   )
