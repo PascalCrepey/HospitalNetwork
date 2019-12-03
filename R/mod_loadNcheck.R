@@ -17,47 +17,48 @@
 
 mod_loadNcheck_ui <- function(id) {
   ns <- NS(id)
-  tagList(
-      sidebarLayout(
-          mainPanel = mainPanel(
-              includeMarkdown("inst/intro.md")
-          ),          
-          sidebarPanel = sidebarPanel(
-            tabsetPanel(
-              tabPanel(title = "Upload and check dataset",
-                 fileInput(ns("dataset"),
-                           "File",
-                           buttonLabel = HTML(paste(icon("upload",  ), "Browse"))),
-                 fluidRow(
-                   column(5, HTML("<b>File format</b>")),
-                   column(7, 
-                          shinyWidgets::radioGroupButtons(ns("filetype"),
-                                                          choices = c("CSV", "Rdata", "RDS"),
-                                                          status = "default",
-                                                          size = "sm",
-                                                          selected = NA)
-                   )
-                 ),
-                 uiOutput(ns("checkUI"))
-              ),
-              tabPanel(title = "Fake dataset", 
-                       sliderInput(ns("fd_n_subjects"), "Number of subjects", 
-                                   min = 100, max = 10000, value = 1000),
-                       sliderInput(ns("fd_n_facilities"), "Number of facilities",
-                                   min = 2, max = 1000, value = 10),
-                       uiOutput(ns("fd_n_clustersUI")),
-                       div(style="display: inline-block;vertical-align:top;",
-                           actionButton(ns("buildFD"),
-                                        "Build base",
-                                        icon = icon("data-base"),
-                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
-                       )
-                       )
-            ),
-            uiOutput(ns("downloadNgoto"))
-          ),
-          position = "right")
+  sbPan = sidebarPanel(
+    tabsetPanel(
+      tabPanel(title = "Upload and check dataset",
+               fileInput(ns("dataset"),
+                         "File",
+                         buttonLabel = HTML(paste(icon("upload",  ), "Browse"))),
+               fluidRow(
+                 column(5, HTML("<b>File format</b>")),
+                 column(7, 
+                        shinyWidgets::radioGroupButtons(ns("filetype"),
+                                                        choices = c("CSV", "Rdata", "RDS"),
+                                                        status = "default",
+                                                        size = "sm",
+                                                        selected = NA)
+                 )
+               ),
+               uiOutput(ns("checkUI"))
+      ),
+      tabPanel(title = "Fake dataset", 
+               sliderInput(ns("fd_n_subjects"), "Number of subjects", 
+                           min = 100, max = 10000, value = 1000),
+               sliderInput(ns("fd_n_facilities"), "Number of facilities",
+                           min = 2, max = 1000, value = 10),
+               uiOutput(ns("fd_n_clustersUI")),
+               div(style = "display: inline-block;vertical-align:top;",
+                   actionButton(ns("buildFD"),
+                                "Build base",
+                                icon = icon("data-base"),
+                                style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
+               )
+      )
+    ),
+    uiOutput(ns("downloadNgoto"))
   )
+
+  sidebarLayout(
+      mainPanel = mainPanel(
+          includeMarkdown("inst/intro.md")
+      ),          
+      sidebarPanel = sbPan,
+      position = "right")
+
 }
     
 # Module Server
@@ -213,13 +214,13 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                                                                       "Hours-Minutes" = "HM"),
                                                           selected = "None"))
                                 ),
-                                awesomeRadio(ns("deletemissing"),
+                                shinyWidgets::awesomeRadio(ns("deletemissing"),
                                              "Remove missing values?",
                                              choices = c("No" = "No",
                                                          "Remove record" = "record",
                                                          "Remove patient" = "patient"),
                                              inline = T),
-                                awesomeRadio(ns("deleteerrors"),
+                                shinyWidgets::awesomeRadio(ns("deleteerrors"),
                                              "Remove erroneous records?",
                                              choices = c("No" = "No",
                                                          "Remove record" = "record",
@@ -351,7 +352,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     outputOptions(output, 'checked', suspendWhenHidden=FALSE)
     
     observeEvent(input$goToConstruct, {
-      updateTabItems(session = parent, inputId = "mainSidebar", selected = "construct")
+      shinydashboard::updateTabItems(session = parent, inputId = "mainSidebar", selected = "construct")
     })
     output$downloadCheckedBase <- downloadHandler(
         filename = function() {

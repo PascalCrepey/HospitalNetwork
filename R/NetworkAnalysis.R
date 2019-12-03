@@ -18,6 +18,7 @@
 #' 
 #' @import igraph
 #' @import checkmate
+#' @export
 #' 
 get_metrics <-
     function(network,

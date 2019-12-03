@@ -17,59 +17,61 @@
 
 mod_construct_network_ui <- function(id){
   ns <- NS(id)
-  tagList(     
-      sidebarLayout(
-          mainPanel = mainPanel(
-              includeMarkdown("inst/construct_network.md")
-          ),
-          sidebarPanel = sidebarPanel(
-              h3("Parameters", align = "center"),
-              div(id = ns("nobase"),
-                  "You must start by uploading and checking a database"),
-              div(id = ns("parameters"),
-                  uiOutput(ns("window_threshold")),
-                  conditionalPanel(paste0("input['", ns("window"), "'] > 0"),
-                                   radioGroupButtons(ns("countoption"),
-                                                     label = "How to count connections",
-                                                     choices = c("Successive stays" = "successive",
-                                                                 "All stays" = "all"),
-                                                     selected = "successive",
-                                                     size = "normal")
-                                   ),
-                  radioGroupButtons(ns("condition"),
-                                    label = "Conditioning on:",
-                                    choices = c("Dates" = "dates",
-                                                "Flags" = "flags",
-                                                "Both" = "both"),
-                                    selected = "dates",
-                                    size = "normal"),
-                  conditionalPanel(paste0("input['", ns("condition"), "'] == 'flags' | input['", ns("condition"), "'] == 'both'"),
-                                   uiOutput(ns("flagsUI"))
-                                   ),
-                  fluidRow(
-                      column(5, HTML("<b>Remove loops</b></br>")),
-                      column(7, materialSwitch(ns("loops"), status = "primary", value = TRUE))
-                  ),
-                  fluidRow(
-                      column(5, HTML("<b>Transfer cutoff</b>")),
-                      column(7, materialSwitch(ns("nmoves"), status = "primary"))
-                  ),
-                  conditionalPanel(paste0("input['", ns("nmoves"), "'] == true"),
-                                   fluidRow(
-                                       column(5, textInput(ns("cutoff"),
-                                                           label = NULL,
-                                                           value = "NULL",
-                                                           width = "100%")),
-                                       column(7, htmlOutput(ns("cutoffcheck"),
-                                                            inline = T))
-                                   )),
-                  actionButton(ns("construct"),
-                               "Construct network",
-                               icon = icon("wrench"),
-                               style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
-                  )),
-          position = "right")
-  )
+  sbPan = sidebarPanel(
+   h3("Parameters", align = "center"),
+    div(id = ns("nobase"),
+         "You must start by uploading and checking a database"),
+     div(id = ns("parameters"),
+         uiOutput(ns("window_threshold")),
+        conditionalPanel(paste0("input['", ns("window"), "'] > 0"),
+                         shinyWidgets::radioGroupButtons(ns("countoption"),
+                                           label = "How to count connections",
+                                           choices = c("Successive stays" = "successive",
+                                                       "All stays" = "all"),
+                                           selected = "successive",
+                                           size = "normal")
+        ),
+        shinyWidgets::radioGroupButtons(ns("condition"),
+                          label = "Conditioning on:",
+                          choices = c("Dates" = "dates",
+                                      "Flags" = "flags",
+                                      "Both" = "both"),
+                          selected = "dates",
+                          size = "normal"),
+        conditionalPanel(paste0("input['", ns("condition"), "'] == 'flags' | input['", ns("condition"), "'] == 'both'"),
+                         uiOutput(ns("flagsUI"))
+        ),
+        fluidRow(
+          column(5, HTML("<b>Remove loops</b></br>")),
+          column(7, shinyWidgets::materialSwitch(ns("loops"), status = "primary", value = TRUE))
+        ),
+        fluidRow(
+          column(5, HTML("<b>Transfer cutoff</b>")),
+          column(7, shinyWidgets::materialSwitch(ns("nmoves"), status = "primary"))
+        ),
+        conditionalPanel(paste0("input['", ns("nmoves"), "'] == true"),
+                         fluidRow(
+                           column(5, textInput(ns("cutoff"),
+                                               label = NULL,
+                                               value = "NULL",
+                                               width = "100%")),
+                           column(7, htmlOutput(ns("cutoffcheck"),
+                                                inline = T))
+                        )),
+        actionButton(ns("construct"),
+                     "Construct network",
+                     icon = icon("wrench"),
+                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+    ))
+  
+  
+  sidebarLayout(
+      mainPanel = mainPanel(
+          includeMarkdown("inst/construct_network.md")
+      ),
+      sidebarPanel = sbPan,
+      position = "right")
+
 }
     
 # Module Server
@@ -230,10 +232,7 @@ mod_construct_network_server <- function(input, output, session, base)
                                    html = T)
         }
     })
-
     return(reactive({ net() }))
-
-                
 }
     
 ## To be copied in the UI
