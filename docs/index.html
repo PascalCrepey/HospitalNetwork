@@ -7,8 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Building networks of hospitals through patients transfers • HospitalNetwork</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Building networks of hospitals through patients transfers">
 <meta property="og:description" content="This R package contains functions to help interested researchers to build 
       hospital networks from data on hospitalized patients transferred between hospitals. ">
@@ -31,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">HospitalNetwork</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.3</span>
       </span>
     </div>
 
@@ -39,7 +40,7 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="index.html">
-    <span class="fa fa-home fa-lg"></span>
+    <span class="fas fa fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -68,16 +69,124 @@
 <!--/.navbar -->
 
       
+
       </header><div class="row">
   <div class="contents col-md-9">
+
+
+<!-- badges: end -->
 <div id="hospitalnetwork" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#hospitalnetwork" class="anchor"></a>HospitalNetwork</h1></div>
 <p><em>Building networks of hospitals through patients transfers</em></p>
 <p>This R package contains functions to help interested researchers to build hospital networks from data on hospitalized patients transferred between hospitals.</p>
-<p>The aim of the project is to provide a common framework to build and analyse hospital networks.</p>
+<p>The aim of the project is to provide a common framework to build and analyze hospital networks.</p>
 <p>This project is partly supported by the NeWIS (NetWorks to Improve Surveillance) initiative, funded by JPIAMR, and by Sphinx project, funded by ANR.</p>
+<div id="step-0-installing-the-package" class="section level3">
+<h3 class="hasAnchor">
+<a href="#step-0-installing-the-package" class="anchor"></a>Step 0: Installing the package:</h3>
+<ul>
+<li>To install packages from GitHub, the package “devtools” needs to be installed first</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="st">"devtools"</span>)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(“devtools”)</a></code></pre></div>
+<ul>
+<li>Then install the package from GitHub. Update or install all the required packages.</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">install_github</span>(<span class="st">"PascalCrepey/HospitalNetwork@*release"</span>)</a></code></pre></div>
+<p>This command will install the latest “released” version of the package.</p>
 </div>
+<div id="step-1-checking-the-consistency-of-the-database" class="section level3">
+<h3 class="hasAnchor">
+<a href="#step-1-checking-the-consistency-of-the-database" class="anchor"></a>Step 1: Checking the consistency of the database</h3>
+<p>The function <code><a href="reference/checkBase.html">checkBase()</a></code>should be run first, and the resulting checked/repaired database should be used in the following step. The function checks if :</p>
+<ul>
+<li>all required variables are present,</li>
+<li>any records contain missing values,</li>
+<li>identifiers are in the correct format (character),</li>
+<li>admission and discharge dates are in date format, and if not, convert them into dates,</li>
+<li>discharges happened at same or later day as admission</li>
+<li>if any hospital stays overlap, and correct if so.</li>
+</ul>
+<p>The minimal way of running this is: <code><a href="reference/checkBase.html">checkBase(base)</a></code> where base is the patient admission database. It takes the following parameters to adjust to the database in question: (default values are indicated in bold characters)</p>
+<ul>
+<li>deleteErrors = “subject” or <strong>“record”</strong>: how to take care of missing or erroneous records. Delete just the record with an error, or delete all records of the patient with one or more erroneous records.</li>
+<li>convertDates = <strong>TRUE</strong>/FALSE: whether the dates should converted,</li>
+<li>dateFormat = The format of date as a character string (e.g. %y%m%d for 20190524, or %d-%m-%y for 24-05-2019)</li>
+<li>subjectID = the name of the column/variable containing the subject (i.e. patient) identifier</li>
+<li>facilityID = as above, for facility (i.e. hospital) identifier</li>
+<li>disDate = as above, for discharge date</li>
+<li>admDate = as above, for admissions date</li>
+<li>maxIteration = the maximum number of times the script runs through the database to correct for overlapping admissions. Ideally set to more than the required number of times.</li>
+<li>verbose = TRUE/<strong>FALSE</strong>: if the script prints out what it is doing.</li>
+</ul>
+</div>
+<div id="step-2-reconstructing-the-network" class="section level3">
+<h3 class="hasAnchor">
+<a href="#step-2-reconstructing-the-network" class="anchor"></a>Step 2: Reconstructing the network</h3>
+<p>The best way the reconstruct the hospital network is creating a HospiNet object from the patient database. This object also allows for easy calculation of the network metrics as well as plotting and printing of results.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw"><a href="reference/hospinet_from_subject_database.html">hospinet_from_subject_database</a></span>(checkedBase)</a></code></pre></div>
+<p>This function has a number of similar input parameters as the previous: subjectID, facilityID, disDate, admDate, verbose. Next to that, the following parameters can also be input:</p>
+<ul>
+<li>noloops = <strong>TRUE</strong>/FALSE, indicating if movements/transfers to the same hospital as discharge should be included. These self-referrals are not necessary for the analysis of the hospitals network.</li>
+<li>window_threshold = the number of days allowed between discharge and next admission to be counted as a movement or transfer. Suggest to set at <strong>365</strong> for full year, and use 0,7,30,182, and 365 for the final analysis</li>
+<li>nmoves_threshold = Any edge/link between hospital with fewer or equal to this number of patients will be removed. Suggest to keep at default <strong>NULL</strong> or 0.</li>
+<li>create_MetricsTable = <strong>TRUE</strong>/FALSE, indicates if the network metrics need to be immediately calculated, or only when called for.</li>
+<li>count_option = <strong>“successive”</strong> or “all”: the way movements are counted, whether a sequence of admissions from hospital A to B to C are count as moves A→B and B→C (Successive) or A→B, B→C , and A→C (All)</li>
+<li>condition = <strong>“dates”</strong>, “flags”, or “both”. Whether a move is counted based on the time difference between two stays (dates), or a variable indicating if the patient was directly transferred (flags), or both.</li>
+</ul>
+</div>
+<div id="step-3-exporting-and-plotting-results-" class="section level3">
+<h3 class="hasAnchor">
+<a href="#step-3-exporting-and-plotting-results-" class="anchor"></a>Step 3: Exporting and plotting results.</h3>
+<p>The result of the reconstruction and analysis can be easily saved as an RDS file, using</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span>(HospiNet, <span class="st">"my_filename.RDS"</span>) </a></code></pre></div>
+<p>since they are all stored in the HospiNet object. This object does not include the raw database, just the edge list (which is basically the same as the contact matrix), the various network metrics for each hospital, and metrics on the size of the used database (number of patients, admissions, hospitals, etc.).</p>
+<p>Currently, the reconstructed network can be plotted as a matrix using <code><a href="https://rdrr.io/r/graphics/plot.html">plot(HospiNet)</a></code> or <code>plot(HospiNet, type=”matrix”)</code>. This can also be done as a clustered matrix: <code>plot(HospiNet, type=”clustered_matrix”)</code>. In addition, you can also visualize the degree distribution of the nodes in the network with <code>plot(HospiNet, type = “degree”)</code>. We will try to include easy ways to plot the network in other ways as well.</p>
+</div>
+<div id="example-of-use" class="section level3">
+<h3 class="hasAnchor">
+<a href="#example-of-use" class="anchor"></a>Example of use:</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="st">"devtools"</span>)    <span class="co"># install.packages only need to be run once </span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="co"># and can be commented after use</span></a>
+<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(devtools)       <span class="co"># load the library allowing the HospitalNetwork package </span></a>
+<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="co"># download and installation</span></a>
+<a class="sourceLine" id="cb5-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb5-6" data-line-number="6"><span class="kw"><a href="https://rdrr.io/pkg/devtools/man/remote-reexports.html">install_github</a></span>(<span class="st">"PascalCrepey/HospitalNetwork@*release"</span>) <span class="co"># can be commented once it is installed</span></a>
+<a class="sourceLine" id="cb5-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb5-8" data-line-number="8"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(HospitalNetwork)    <span class="co"># load the HospitalNetwork library</span></a>
+<a class="sourceLine" id="cb5-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb5-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb5-11" data-line-number="11"><span class="co"># Here, we create a dummy database for testing purposes,</span></a>
+<a class="sourceLine" id="cb5-12" data-line-number="12"><span class="co"># final users can directly use their own database. This one looks like: </span></a>
+<a class="sourceLine" id="cb5-13" data-line-number="13"><span class="co">#       sID fID      Adate      Ddate</span></a>
+<a class="sourceLine" id="cb5-14" data-line-number="14"><span class="co">#  1: s001 f09 2019-02-19 2019-02-26</span></a>
+<a class="sourceLine" id="cb5-15" data-line-number="15"><span class="co">#  2: s001 f10 2019-03-27 2019-03-31</span></a>
+<a class="sourceLine" id="cb5-16" data-line-number="16"><span class="co">#  3: s001 f09 2019-04-22 2019-04-25</span></a>
+<a class="sourceLine" id="cb5-17" data-line-number="17"><span class="co">#  4: s002 f08 2019-01-15 2019-01-20</span></a>
+<a class="sourceLine" id="cb5-18" data-line-number="18"><span class="co">#  5: s003 f11 2019-02-14 2019-02-19</span></a>
+<a class="sourceLine" id="cb5-19" data-line-number="19"><span class="co">#  ---                               </span></a>
+<a class="sourceLine" id="cb5-20" data-line-number="20"><span class="co"># 228: s098 f01 2019-02-08 2019-02-12</span></a>
+<a class="sourceLine" id="cb5-21" data-line-number="21">mydb =<span class="st"> </span><span class="kw"><a href="reference/create_fake_subjectDB.html">create_fake_subjectDB</a></span>(<span class="dt">n_subjects =</span> <span class="dv">1000</span>, <span class="dt">n_facilities =</span> <span class="dv">100</span>)</a>
+<a class="sourceLine" id="cb5-22" data-line-number="22"></a>
+<a class="sourceLine" id="cb5-23" data-line-number="23"><span class="co"># checking the database</span></a>
+<a class="sourceLine" id="cb5-24" data-line-number="24">mydb_checked =<span class="st"> </span><span class="kw"><a href="reference/checkBase.html">checkBase</a></span>(mydb)</a>
+<a class="sourceLine" id="cb5-25" data-line-number="25"></a>
+<a class="sourceLine" id="cb5-26" data-line-number="26"><span class="co"># building the hospital network in a HospiNet object</span></a>
+<a class="sourceLine" id="cb5-27" data-line-number="27">my_hosp_net =<span class="st"> </span><span class="kw"><a href="reference/hospinet_from_subject_database.html">hospinet_from_subject_database</a></span>(mydb_checked)</a>
+<a class="sourceLine" id="cb5-28" data-line-number="28"></a>
+<a class="sourceLine" id="cb5-29" data-line-number="29"><span class="co"># plot the network as a "contact matrix"</span></a>
+<a class="sourceLine" id="cb5-30" data-line-number="30"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(my_hosp_net)</a>
+<a class="sourceLine" id="cb5-31" data-line-number="31"><span class="co">#plot the network as a "contact matrix" ordered by clusters (if any)</span></a>
+<a class="sourceLine" id="cb5-32" data-line-number="32"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(my_hosp_net, <span class="dt">type =</span> <span class="st">"clustered_matrix"</span>)</a>
+<a class="sourceLine" id="cb5-33" data-line-number="33"><span class="co"># plot the degree (number of neighbors) distribution of hospitals in the network</span></a>
+<a class="sourceLine" id="cb5-34" data-line-number="34"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(my_hosp_net, <span class="dt">type =</span> <span class="st">"degree"</span>)</a>
+<a class="sourceLine" id="cb5-35" data-line-number="35"></a>
+<a class="sourceLine" id="cb5-36" data-line-number="36"><span class="co"># save the network (not the original database)</span></a>
+<a class="sourceLine" id="cb5-37" data-line-number="37"><span class="kw"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span>(my_hosp_net, <span class="dt">file =</span> <span class="st">"my_hosp_net.RDS"</span>)</a></code></pre></div>
+</div>
+</div>
+
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
@@ -97,20 +206,31 @@
 </ul>
 </div>
 
-  </div>
+  <div class="dev-status">
+<h2>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://travis-ci.com/PascalCrepey/HospitalNetwork"><img src="https://travis-ci.com/PascalCrepey/HospitalNetwork.svg?branch=master" alt="travis build status"></a></li>
+<li><a href="https://ci.appveyor.com/project/PascalCrepey/HospitalNetwork"><img src="https://ci.appveyor.com/api/projects/status/github/PascalCrepey/HospitalNetwork?branch=master&amp;svg=true" alt="AppVeyor build status"></a></li>
+<li><a href="https://codecov.io/gh/PascalCrepey/HospitalNetwork"><img src="https://codecov.io/gh/PascalCrepey/HospitalNetwork/branch/master/graphs/badge.svg" alt="codecov"></a></li>
+</ul>
 </div>
+</div>
+</div>
+
 
       <footer><div class="copyright">
   <p>Developed by Pascal Crépey, Tjibbe Donker, Clément Massonnaud.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.3.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
 </div>
+
       </footer>
 </div>
 
   
+
 
   </body>
 </html>

@@ -4,17 +4,22 @@
 \alias{get_metrics}
 \title{Compute network metrics}
 \usage{
-get_metrics(network, mode = "directed", weighted = TRUE,
-  transfers = TRUE, metrics = c("degree", "closeness", "clusters",
-  "betweenness"), clusters = c("cluster_fast_greedy", "cluster_infomap"),
-  hubs = "all_clusters", options = list(degree = list(modes = c("in",
-  "out", "total")), closeness = list(modes = "total"), betweenness =
-  list(), cluster_fast_greedy = list(undirected = "collapse"),
-  cluster_infomap = list(undirected = "collapse"), clusters = list(algos =
-  c("cluster_fast_greedy", "cluster_infomap"), undirected = "collapse")))
+get_metrics(
+  network,
+  mode = "directed",
+  weighted = TRUE,
+  transfers = TRUE,
+  metrics = c("degree", "closeness", "clusters", "betweenness"),
+  clusters = c("cluster_fast_greedy", "cluster_infomap"),
+  hubs = "all_clusters",
+  options = list(degree = list(modes = c("in", "out", "total")), closeness = list(modes
+    = "total"), betweenness = list(), cluster_fast_greedy = list(undirected = "collapse"),
+    cluster_infomap = list(undirected = "collapse"), clusters = list(algos =
+    c("cluster_fast_greedy", "cluster_infomap"), undirected = "collapse"))
+)
 }
 \arguments{
-\item{network}{the network to analyse. Must be an igraph, HospiNet or a square adjacency matrix (n*n).}
+\item{network}{the network to analyze. Must be an igraph, HospiNet or a square adjacency matrix (n*n).}
 
 \item{mode}{either "directed" or "undirected" network measures}
 

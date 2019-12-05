@@ -7,7 +7,7 @@
 #' 
 #' Function computing different network analysis metrics.
 #' 
-#' @param network the network to analyse. Must be an igraph, HospiNet or a square adjacency matrix (n*n).
+#' @param network the network to analyze. Must be an igraph, HospiNet or a square adjacency matrix (n*n).
 #' @param mode either "directed" or "undirected" network measures
 #' @param weighted TRUE if the network is weighted
 #' @param transfers TRUE if metrics specific to subject transfers must be computed
@@ -18,6 +18,7 @@
 #' 
 #' @import igraph
 #' @import checkmate
+#' @export
 #' 
 get_metrics <-
     function(network,
@@ -108,7 +109,7 @@ get_metrics <-
             ## instead of getting matrices by cluster, and getting graphs by group from the matrices:
             ## use the direct method, based on subgraph() to get graphs by cluster
             graph_byclust=get_graph_bycluster(graph=graph,
-                                DT = DT_list[[g]],
+                                DT = DT_list[["clusters"]],
                                 clusters = g)
             
             ## get hub scores by group
@@ -200,7 +201,7 @@ get_closeness <-
     return(DT_merged)
 }
 
-#' Compute the betweeness centrality
+#' Compute the betweenness centrality
 #'
 #' @param graph an igraph object
 #'

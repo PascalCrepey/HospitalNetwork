@@ -4,10 +4,17 @@
 \alias{matrix_from_base}
 \title{Compute the adjacency matrix of a network from a database of movements records.}
 \usage{
-matrix_from_base(base, window_threshold = 365,
-  count_option = "successive", condition = "dates", noloops = TRUE,
-  nmoves_threshold = NULL, flag_vars = NULL, flag_values = NULL,
-  verbose = FALSE)
+matrix_from_base(
+  base,
+  window_threshold = 365,
+  count_option = "successive",
+  condition = "dates",
+  noloops = TRUE,
+  nmoves_threshold = NULL,
+  flag_vars = NULL,
+  flag_values = NULL,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{base}{(data.table) A database of records of stays of subjects in
@@ -18,7 +25,7 @@ facilities. The table should have at least the following columns:
 \item\bold{disDate} (POSIXct) date of discharge of the facility }}
 
 \item{window_threshold}{(integer) A number of days. If two stays of a subject
-at two facilities occured within this window, this constitutes a
+at two facilities occurred within this window, this constitutes a
 connection between the two facilities (given that potential other
 conditions are met).}
 
@@ -60,7 +67,7 @@ A square matrix, the adjacency matrix of the network.
 }
 \description{
 This function computes the adjacency matrix of a network of facilities across
-which subjects can be transfered. The matrix is computed from a database that
+which subjects can be transferred. The matrix is computed from a database that
 contains the records of the subjects' stays in the facilities. This function
 is a simple wrapper around the two functions
 \code{\link{edgelist_from_base}}, which computes the edgelist of the network

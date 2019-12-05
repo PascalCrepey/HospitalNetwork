@@ -22,6 +22,7 @@
 #' plot(hn, type = "clustered_matrix")
 #' 
 #' @field edgelist (data.table) the list of edges (origin, target) and their associated number of movements (N) (read-only)
+#' @field edgelist_long (data.table) edgelist with additionnal informations (read-only)
 #' @field matrix (matrix) the transfer matrix (active binding, read-only)
 #' @field igraph (igraph) the igraph object corresponding to the network (active binding, read-only)
 #' @field n_facilities the number of facilities in the network (read-only)
@@ -32,10 +33,10 @@
 
 #' @field hist_degrees histogram data of the number of connections per facility 
 #' @field numFacilities the number of facilities in the network (read-only). Same as n_facilities, but with a different source (base instead of igraph), maybe useful as double-check
-#' @field TBAmean the mean time between admissions (read-only)
-#' @field TBAdistribution the distribution of time between admissions (read-only)
-#' @field LOSmean= the mean length of stay (read-only)
-#' @field LOSdistribution the distribution of length of stay (read-only)
+#' @field TBAmean the mean time between admissions (read-only) (not implemented yet)
+#' @field TBAdistribution the distribution of time between admissions (read-only) (not implemented yet)
+#' @field LOSmean the mean length of stay (read-only) (not implemented yet)
+#' @field LOSdistribution the distribution of length of stay (read-only) (not implemented yet)
 #' @field LOSPerHosp the mean length of stay for each facility (read-only)
 #' @field admissions the number of admissions in the entire data base (read-only)
 #' @field admissionsPerHosp the number of admissions to each facility (read-only)
@@ -46,10 +47,10 @@
 #' @field closenesss the closeness centrality of each facility (read-only)
 #' @field betweennesss the betweenness centrality of each facility (read-only)
 #' @field cluster_infomap the assigned community for each facility, based on the infomap algorithm (read-only)
-#' @field cluster_fast_greedy the assigned community for each facility, based on the greedy modularity optimisation algorithm (read-only)
+#' @field cluster_fast_greedy the assigned community for each facility, based on the greedy modularity optimization algorithm (read-only)
 #' @field hubs_global Kleinberg's hub centrality scores, based on the entire network (read-only)
-#' @field hubs_infomap same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)
-#' @field hubs_fast_greedy same as hubs_global, but calcuated per community based on the infomap algorithm (read-only)
+#' @field hubs_infomap same as hubs_global, but computed per community based on the infomap algorithm (read-only)
+#' @field hubs_fast_greedy same as hubs_global, but computed per community based on the infomap algorithm (read-only)
 #' @field metricsTable (data.table) all of the above metrics for each facility (read-only)
 #' 
 #' @section Methods:
@@ -64,8 +65,10 @@
 #'   \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default. 
 #'   The argument \code{type} can take the following values: 
 #'   \describe{
-#'   \item{matrix}{print the network matrix,}
-#'   \item{clustered_matrix}{identify and print cluster(s) in the matrix using the infomap algorithm (from igraph).}
+#'   \item{matrix}{plot the network matrix,}
+#'   \item{clustered_matrix}{identify and plot cluster(s) in the matrix using the infomap algorithm (from igraph),}
+#'   \item{degree}{plot the histogram of the number of neighbors by facility,}
+#'   \item{circular_network}{plot the network by clusters using a "spaghetti-like" layout. Only works when there are at least 2 clusters.}
 #'   }
 #'   }
 #' }
@@ -76,20 +79,13 @@ HospiNet <- R6::R6Class("HospiNet",
     .edgelist = NULL,
     .edgelist_long = NULL,
     .n_facilities = NULL,
-    .numFacilities = NULL, # Same as n_facilities, but with a different source, maybe useful as double-check
     .n_movements = NULL,
     .window_threshold = NULL,
     .nmoves_threshold = NULL,
     .noloops = NULL,
     .igraph = NULL,
-    .LOSmean= NULL,
-    .TBAmean = NULL,
-    .LOSdistribution = NULL,
-    .TBAdistribution = NULL,
     .LOSPerHosp = NULL,
-    .admissions= NULL, 
     .admissionsPerHosp = NULL,
-    .subjects= NULL, 
     .subjectsPerHosp = NULL,
     .metricsTable=NULL,
     .degrees = NULL,
@@ -129,21 +125,21 @@ HospiNet <- R6::R6Class("HospiNet",
                            plot.title = element_text(size = 12), 
                            panel.grid = element_blank())
     }, 
-    plot_spaghetti = function(plotLinks=5000, alphaSteps=15,alphaSet=0.1){
-      
+    plot_spaghetti = function(plotLinks=5000, alphaSteps=15, alphaSet=0.1){
+
       if(plotLinks>length(self$matrix)) plotLinks=length(self$matrix)
+
+      comms <- split(self$cluster_infomap,by = "cluster_infomap")
+      getComRow <- function(y){unlist(lapply(1:length(comms),function(x){sum(self$matrix[(c(comms[[x]][,"node"]))[[1]],(c(comms[[y]][,"node"]))[[1]]])}))}
+      absMat <- matrix(unlist(lapply(1:length(comms),getComRow)),nrow = length(comms), ncol = length(comms))
       
-      comms<-split(self$cluster_infomap,by="cluster_infomap")
-      getComRow<-function(y){unlist(lapply(1:length(comms),function(x){sum(self$matrix[(c(comms[[x]][,"node"]))[[1]],(c(comms[[y]][,"node"]))[[1]]])}))}
-      absMat<-matrix(unlist(lapply(1:length(comms),getComRow)),nrow = length(comms), ncol = length(comms))
-      
-      newDendro<-hclust(as.dist(1/(absMat+0.001)),method="average")
+      newDendro <- hclust(as.dist(1/(absMat+0.001)),method="average")
 
       levelData<-data.frame(firstLevel=cutree(newDendro,ceiling(length(newDendro$order)/4)),
                             secondLevel=cutree(newDendro,ceiling(length(newDendro$order)/6)),
                             thirdlevel=cutree(newDendro,ceiling(length(newDendro$order)/12))
       )
-      
+
       hierarchy<-rbind(
         (data.frame(from=rep("origin",max(levelData[,3])),to=unique(paste0("level3-",levelData[,3])))),
         unique(data.frame(from=paste0("level3-",levelData[,3]),to=paste0("level2-",levelData[,2]))),
@@ -155,25 +151,25 @@ HospiNet <- R6::R6Class("HospiNet",
       myleaves<-colnames(self$matrix)
       vertices <- data.frame(name = unique(c(as.character(hierarchy$from), as.character(hierarchy$to))) ) 
       mygraph <- igraph::graph_from_data_frame(hierarchy, vertices=vertices)
-
+      # set the number of duplication of strong connections
       maxStr=self$matrix[order(-self$matrix)][1]
       minStr=self$matrix[order(-self$matrix)][plotLinks]
-      steps=round((maxStr-minStr)/alphaSteps)
-      
-      strongConnections<-do.call("rbind", lapply(seq(minStr,maxStr,by=steps),function(x){data.frame(from=myleaves[which(self$matrix>x,arr.ind = T)[,1]],to=myleaves[which(self$matrix>x,arr.ind = T)[,2]])}))
+      steps=((maxStr-minStr)/alphaSteps)
 
+      #artificially duplicate strong connections so that they appear darker on the plot
+      strongConnections<-do.call("rbind", lapply(seq(minStr,maxStr,by=steps),function(x){data.frame(from=myleaves[which(self$matrix>x,arr.ind = T)[,1]],to=myleaves[which(self$matrix>x,arr.ind = T)[,2]])}))
       from <- match( strongConnections$from, vertices$name)
       to <- match( strongConnections$to, vertices$name)
       lay=ggraph::create_layout(mygraph, layout = 'dendrogram', circular = TRUE) 
 
       spaghetti<-
         ggraph::ggraph(lay) + 
-        ggraph::geom_conn_bundle(data = ggraph::get_con(from = from, to = to), aes(colour="black"),alpha=alphaSet, colour="black", tension = 0.80,n=150) + 
-        ggraph::geom_node_point(aes(filter = leaf, x = x*1.05, y=y*1.05),colour="black",size=2) +
-        ggraph::geom_node_point(aes(filter = leaf, x = x*1.05, y=y*1.05),colour="black",stroke=0.5,pch=21, size=2) +
+        ggraph::geom_conn_bundle(data = ggraph::get_con(from = from, to = to), aes(colour="black"),
+                                 alpha = alphaSet, colour = "black", tension = 0.80, n = 50) + 
+        ggraph::geom_node_point(aes(filter = leaf, x = x*1.05, y=y*1.05),colour="black",stroke=0.5,pch=16, size=2) +
         ggplot2::theme_void()+
         ggplot2::theme(legend.position = "none")
-      
+
       spaghetti
 
     },
@@ -217,7 +213,6 @@ HospiNet <- R6::R6Class("HospiNet",
                           nmoves_threshold,
                           noloops,
                           fsummary=NULL,
-                          dsummary=NULL,
                           create_MetricsTable=FALSE
                           ){
       private$.edgelist = edgelist
@@ -225,15 +220,6 @@ HospiNet <- R6::R6Class("HospiNet",
       private$.window_threshold = window_threshold
       private$.nmoves_threshold = nmoves_threshold
       private$.noloops = noloops
-      if (!is.null(dsummary)){
-        private$.LOSmean = dsummary$meanLOS
-        private$.TBAmean = dsummary$meanTBA
-        private$.admissions = dsummary$totalAdmissions
-        private$.subjects = dsummary$numSubjects
-        private$.numFacilities = dsummary$numFacilities # Same as n_facilities, but with a different source, maybe useful as double-check
-        private$.LOSdistribution = dsummary$LOSdistribution
-        private$.TBAdistribution = dsummary$TBAdistribution
-      }
       if (!is.null(fsummary)){
         private$.LOSPerHosp = fsummary[,.(node,LOS)]
         private$.subjectsPerHosp = fsummary[,.(node,subjects)]
@@ -326,58 +312,6 @@ HospiNet <- R6::R6Class("HospiNet",
         stop("`$noloops` is read only", call. = FALSE)
       }
     },
-    
-    LOSmean = function(value) {
-      if (missing(value)) {
-        private$.LOSmean
-      } else {
-        stop("`$LOSmean` is read only", call. = FALSE)
-      }
-    },
-    TBAmean = function(value) {
-      if (missing(value)) {
-        private$.TBAmean
-      } else {
-        stop("`$TBAmean` is read only", call. = FALSE)
-      }
-    },
-    admissions = function(value) {
-      if (missing(value)) {
-        private$.admissions
-      } else {
-        stop("`$admissions` is read only", call. = FALSE)
-      }
-    },
-    subjects = function(value) {
-      if (missing(value)) {
-        private$.subjects
-      } else {
-        stop("`$subjects` is read only", call. = FALSE)
-      }
-    },
-    numFacilities = function(value) {
-      if (missing(value)) {
-        private$.numFacilities
-      } else {
-        stop("`$numFacilities` is read only", call. = FALSE)
-      }
-    },
-    LOSdistribution = function(value) {
-      if (missing(value)) {
-        private$.LOSdistribution
-      } else {
-        stop("`$LOSdistribution` is read only", call. = FALSE)
-      }
-    },
-    
-    TBAdistribution = function(value) {
-      if (missing(value)) {
-        private$.TBAdistribution
-      } else {
-        stop("`$noloops` is read only", call. = FALSE)
-      }
-    },
-
     LOSPerHosp = function(value) {
       if (missing(value)) {
         private$.LOSPerHosp
@@ -517,6 +451,7 @@ HospiNet <- R6::R6Class("HospiNet",
            self$subjectsPerHosp,
            self$admissionsPerHosp,
            self$LOSPerHosp,
+           self$degrees,
            self$betweennesss,
            self$closenesss,
            self$cluster_fast_greedy,

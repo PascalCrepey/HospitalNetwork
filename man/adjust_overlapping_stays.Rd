@@ -4,8 +4,13 @@
 \alias{adjust_overlapping_stays}
 \title{Check and fix overlapping admissions.}
 \usage{
-adjust_overlapping_stays(report, maxIteration = 25, verbose = FALSE,
-  retainAuxData = TRUE, ...)
+adjust_overlapping_stays(
+  report,
+  maxIteration = 25,
+  verbose = FALSE,
+  retainAuxData = TRUE,
+  ...
+)
 }
 \arguments{
 \item{report}{(list).

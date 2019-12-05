@@ -1,9 +1,15 @@
+<!-- badges: start -->
+
+[![travis build status](https://travis-ci.com/PascalCrepey/HospitalNetwork.svg?branch=master)](https://travis-ci.com/PascalCrepey/HospitalNetwork) [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/PascalCrepey/HospitalNetwork?branch=master&svg=true)](https://ci.appveyor.com/project/PascalCrepey/HospitalNetwork) [![codecov](https://codecov.io/gh/PascalCrepey/HospitalNetwork/branch/master/graphs/badge.svg)](https://codecov.io/gh/PascalCrepey/HospitalNetwork)
+
+<!-- badges: end -->
+
 # HospitalNetwork
 *Building networks of hospitals through patients transfers*
 
 This R package contains functions to help interested researchers to build hospital networks from data on hospitalized patients transferred between hospitals. 
 
-The aim of the project is to provide a common framework to build and analyse hospital networks.
+The aim of the project is to provide a common framework to build and analyze hospital networks.
 
 This project is partly supported by the NeWIS (NetWorks to Improve Surveillance) initiative, funded by JPIAMR, and by Sphinx project, funded by ANR.
 
@@ -67,7 +73,7 @@ saveRDS(HospiNet, "my_filename.RDS")
 ```
 since they are all stored in the HospiNet object. This object does not include the raw database, just the edge list (which is basically the same as the contact matrix), the various network metrics for each hospital, and metrics on the size of the used database (number of patients, admissions, hospitals, etc.). 
 
-Currently, the reconstructed network can be plotted as a matrix using `plot(HospiNet)` or `plot(HospiNet, type=”matrix”)`. This can also be done as a clustered matrix: `plot(HospiNet, type=”clustered_matrix”)`. In addition, you can also visualise the degree distribution of the nodes in the network with `plot(HospiNet, type = “degree”)`. We will try to include easy ways to plot the network in other ways as well.
+Currently, the reconstructed network can be plotted as a matrix using `plot(HospiNet)` or `plot(HospiNet, type=”matrix”)`. This can also be done as a clustered matrix: `plot(HospiNet, type=”clustered_matrix”)`. In addition, you can also visualize the degree distribution of the nodes in the network with `plot(HospiNet, type = “degree”)`. We will try to include easy ways to plot the network in other ways as well.
 
 ### Example of use: 
 ```R
@@ -83,15 +89,15 @@ library(HospitalNetwork)	# load the HospitalNetwork library
 
 # Here, we create a dummy database for testing purposes,
 # final users can directly use their own database. This one looks like: 
-#       pID hID      Adate      Ddate
-#  1: p001 h09 2019-02-19 2019-02-26
-#  2: p001 h10 2019-03-27 2019-03-31
-#  3: p001 h09 2019-04-22 2019-04-25
-#  4: p002 h08 2019-01-15 2019-01-20
-#  5: p003 h11 2019-02-14 2019-02-19
+#       sID fID      Adate      Ddate
+#  1: s001 f09 2019-02-19 2019-02-26
+#  2: s001 f10 2019-03-27 2019-03-31
+#  3: s001 f09 2019-04-22 2019-04-25
+#  4: s002 f08 2019-01-15 2019-01-20
+#  5: s003 f11 2019-02-14 2019-02-19
 #  ---                               
-# 228: p098 h01 2019-02-08 2019-02-12
-mydb = create_fake_patientDB(n_patients = 1000, n_hospital = 100)
+# 228: s098 f01 2019-02-08 2019-02-12
+mydb = create_fake_subjectDB(n_subjects = 1000, n_facilities = 100)
 
 # checking the database
 mydb_checked = checkBase(mydb)
@@ -108,4 +114,5 @@ plot(my_hosp_net, type = "degree")
 
 # save the network (not the original database)
 saveRDS(my_hosp_net, file = "my_hosp_net.RDS")
+
 ```

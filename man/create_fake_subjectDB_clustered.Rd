@@ -4,9 +4,14 @@
 \alias{create_fake_subjectDB_clustered}
 \title{Create a fake subject database with clustering}
 \usage{
-create_fake_subjectDB_clustered(n_subjects = 50, n_facilities = 10,
-  avg_n_stays = 3, days_since_discharge = NULL,
-  length_of_stay = NULL, n_clusters = 3)
+create_fake_subjectDB_clustered(
+  n_subjects = 50,
+  n_facilities = 10,
+  avg_n_stays = 3,
+  days_since_discharge = NULL,
+  length_of_stay = NULL,
+  n_clusters = 3
+)
 }
 \arguments{
 \item{n_subjects}{the number of different subjects in the database}

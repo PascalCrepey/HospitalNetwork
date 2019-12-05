@@ -4,10 +4,21 @@
 \alias{checkBase}
 \title{General check function}
 \usage{
-checkBase(base, convertDates = F, dateFormat = NULL,
-  deleteMissing = NULL, deleteErrors = NULL, subjectID = "sID",
-  facilityID = "fID", disDate = "Ddate", admDate = "Adate",
-  maxIteration = 25, retainAuxData = TRUE, verbose = TRUE, ...)
+checkBase(
+  base,
+  convertDates = F,
+  dateFormat = NULL,
+  deleteMissing = NULL,
+  deleteErrors = NULL,
+  subjectID = "sID",
+  facilityID = "fID",
+  disDate = "Ddate",
+  admDate = "Adate",
+  maxIteration = 25,
+  retainAuxData = TRUE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{base}{(data.table).
@@ -17,9 +28,10 @@ A patient discharge database, in the form of a data.table. The data.table should
     Adate: admission date (POSIXct, but character can be converted to POSIXct)
     Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
 
-\item{convertDates}{boolean indicating if dates need to be converted to POSIXct if they are not}
+\item{convertDates}{(boolean) indicating if dates need to be converted to POSIXct if they are not}
 
-\item{dateFormat}{character giving the input format of the date character string}
+\item{dateFormat}{(character) giving the input format of the date character string (e.g. "ymd" for dates like "2019-10-30")
+See \code{\link[lubridate]{parse_date_time}} for more information on the format.}
 
 \item{deleteMissing}{(character) How to handle records that contain a missing value in at least one of the four mandatory variables:
 NULL (default): do not delete. Stops the function with an error message.
@@ -30,13 +42,13 @@ NULL (default): do not delete. Stops the function with an error message.
 "record" deletes just the incorrect record
 "patient" deletes all records of each patient with one or more incorrect records.}
 
-\item{subjectID}{(charachter) the columns name containing the subject ID. Default is "sID"}
+\item{subjectID}{(character) the columns name containing the subject ID. Default is "sID"}
 
-\item{facilityID}{(charachter) the columns name containing the facility ID. Default is "fID"}
+\item{facilityID}{(character) the columns name containing the facility ID. Default is "fID"}
 
-\item{disDate}{(charachter) the columns name containing the discharge date. Default is "Ddate"}
+\item{disDate}{(character) the columns name containing the discharge date. Default is "Ddate"}
 
-\item{admDate}{(charachter) the columns name containing the admission date. Default is "Adate"}
+\item{admDate}{(character) the columns name containing the admission date. Default is "Adate"}
 
 \item{maxIteration}{(integer) the maximum number of times the function will try and remove overlapping admissions}
 
@@ -47,8 +59,68 @@ NULL (default): do not delete. Stops the function with an error message.
 \item{...}{other parameters passed on to internal functions}
 }
 \value{
-The adjusted database as a data.table
+The adjusted database as a data.table with a new class attribute "hospinet.base" and an attribute "report" containing information related to the quality of the database.
 }
 \description{
-Function that performs various checks to ensure the database is correctly formatted, and adjusts overlapping patient records
+Function that performs various checks to ensure the database is correctly formatted, and adjusts overlapping patient records.
+}
+\examples{
+## create a "fake and custom" data base
+mydb = create_fake_subjectDB(n_subjects = 100, n_facilities = 100)
+setnames(mydb, 1:4, c("myPatientId", "myHealthCareCenterID", "DateOfAdmission", "DateOfDischarge"))
+mydb[,DateOfAdmission:= as.character(DateOfAdmission)]
+mydb[,DateOfDischarge:= as.character(DateOfDischarge)]
+
+head(mydb)
+#   myPatientId myHealthCareCenterID DateOfAdmission DateOfDischarge
+#1:        s001                 f078      2019-01-26      2019-02-01
+#2:        s002                 f053      2019-01-18      2019-01-21
+#3:        s002                 f049      2019-02-25      2019-03-05
+#4:        s002                 f033      2019-04-17      2019-04-21
+#5:        s003                 f045      2019-02-02      2019-02-04
+#6:        s003                 f087      2019-03-12      2019-03-19
+
+str(mydb)
+#Classes ‘data.table’ and 'data.frame':	262 obs. of  4 variables:
+# $ myPatientId         : chr  "s001" "s002" "s002" "s002" ...
+# $ myHealthCareCenterID: chr  "f078" "f053" "f049" "f033" ...
+# $ DateOfAdmission     : chr  "2019-01-26" "2019-01-18" "2019-02-25" "2019-04-17" ...
+# $ DateOfDischarge     : chr  "2019-02-01" "2019-01-21" "2019-03-05" "2019-04-21" ...
+#- attr(*, ".internal.selfref")=<externalptr> 
+
+my_checked_db = checkBase(mydb, 
+     subjectID = "myPatientId", 
+     facilityID = "myHealthCareCenterID", 
+     disDate = "DateOfDischarge",
+     admDate = "DateOfAdmission", 
+     convertDates = TRUE, 
+     dateFormat = "ymd")
+
+#Converting Adate, Ddate to Date format
+#Checking for missing values...
+#Checking for duplicated records...
+#Removed 0 duplicates
+#Done.
+
+head(my_checked_db)
+#    sID  fID      Adate      Ddate
+#1: s001 f078 2019-01-26 2019-02-01
+#2: s002 f053 2019-01-18 2019-01-21
+#3: s002 f049 2019-02-25 2019-03-05
+#4: s002 f033 2019-04-17 2019-04-21
+#5: s003 f045 2019-02-02 2019-02-04
+#6: s003 f087 2019-03-12 2019-03-19
+str(my_checked_db)
+#Classes ‘hospinet.base’, ‘data.table’ and 'data.frame':	262 obs. of  4 variables:
+#$ sID  : chr  "s001" "s002" "s002" "s002" ...
+#$ fID  : chr  "f078" "f053" "f049" "f033" ...
+#$ Adate: POSIXct, format: "2019-01-26" "2019-01-18" "2019-02-25" "2019-04-17" ...
+#$ Ddate: POSIXct, format: "2019-02-01" "2019-01-21" "2019-03-05" "2019-04-21" ...
+# ...
+
+## Show the quality report
+attr(my_checked_db, "report")
+}
+\seealso{
+\code{\link[lubridate]{parse_date_time}}
 }

@@ -226,7 +226,7 @@ report$base = copy(baseOver)
 test_that("adjust_overlapping_stays() works ok with admission leading", {
     baseOut = HospitalNetwork:::adjust_overlapping_stays(report)$base
     setkey(baseOut, sID, Adate)
-    expect_identical(baseCorrAdm, baseOut[!.N])
+    expect_identical(baseCorrAdm, baseOut)
 })
 
     

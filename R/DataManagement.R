@@ -7,7 +7,7 @@
 
 #' General check function
 #'
-#' Function that performs various checks to ensure the database is correctly formatted, and adjusts overlapping patient records
+#' Function that performs various checks to ensure the database is correctly formatted, and adjusts overlapping patient records.
 #'
 #' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
@@ -22,18 +22,77 @@
 #' @param deleteErrors (character) How incorrect records should be deleted:
 #'                     "record" deletes just the incorrect record
 #'                     "patient" deletes all records of each patient with one or more incorrect records.
-#' @param convertDates boolean indicating if dates need to be converted to POSIXct if they are not
-#' @param dateFormat character giving the input format of the date character string
-#' @param subjectID (charachter) the columns name containing the subject ID. Default is "sID"
-#' @param facilityID (charachter) the columns name containing the facility ID. Default is "fID"
-#' @param admDate (charachter) the columns name containing the admission date. Default is "Adate"
-#' @param disDate (charachter) the columns name containing the discharge date. Default is "Ddate"
+#' @param convertDates (boolean) indicating if dates need to be converted to POSIXct if they are not
+#' @param dateFormat (character) giving the input format of the date character string (e.g. "ymd" for dates like "2019-10-30")
+#' See \code{\link[lubridate]{parse_date_time}} for more information on the format.
+#' @param subjectID (character) the columns name containing the subject ID. Default is "sID"
+#' @param facilityID (character) the columns name containing the facility ID. Default is "fID"
+#' @param admDate (character) the columns name containing the admission date. Default is "Adate"
+#' @param disDate (character) the columns name containing the discharge date. Default is "Ddate"
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
 #' @param retainAuxData (boolean) allow retaining additional data provided in the database. Default is TRUE.
 #' @param verbose (boolean) print diagnostic messages. Default is TRUE.
 #' @param ... other parameters passed on to internal functions
+#' 
+#' @seealso \code{\link[lubridate]{parse_date_time}}
 #'
-#' @return The adjusted database as a data.table
+#' @return The adjusted database as a data.table with a new class attribute "hospinet.base" and an attribute "report" containing information related to the quality of the database.
+#' @examples
+#' ## create a "fake and custom" data base
+#' mydb = create_fake_subjectDB(n_subjects = 100, n_facilities = 100)
+#' setnames(mydb, 1:4, c("myPatientId", "myHealthCareCenterID", "DateOfAdmission", "DateOfDischarge"))
+#' mydb[,DateOfAdmission:= as.character(DateOfAdmission)]
+#' mydb[,DateOfDischarge:= as.character(DateOfDischarge)]
+#' 
+#' head(mydb)
+#' #   myPatientId myHealthCareCenterID DateOfAdmission DateOfDischarge
+#' #1:        s001                 f078      2019-01-26      2019-02-01
+#' #2:        s002                 f053      2019-01-18      2019-01-21
+#' #3:        s002                 f049      2019-02-25      2019-03-05
+#' #4:        s002                 f033      2019-04-17      2019-04-21
+#' #5:        s003                 f045      2019-02-02      2019-02-04
+#' #6:        s003                 f087      2019-03-12      2019-03-19
+#' 
+#' str(mydb)
+#' #Classes ‘data.table’ and 'data.frame':	262 obs. of  4 variables:
+#' # $ myPatientId         : chr  "s001" "s002" "s002" "s002" ...
+#' # $ myHealthCareCenterID: chr  "f078" "f053" "f049" "f033" ...
+#' # $ DateOfAdmission     : chr  "2019-01-26" "2019-01-18" "2019-02-25" "2019-04-17" ...
+#' # $ DateOfDischarge     : chr  "2019-02-01" "2019-01-21" "2019-03-05" "2019-04-21" ...
+#' #- attr(*, ".internal.selfref")=<externalptr> 
+#' 
+#' my_checked_db = checkBase(mydb, 
+#'      subjectID = "myPatientId", 
+#'      facilityID = "myHealthCareCenterID", 
+#'      disDate = "DateOfDischarge",
+#'      admDate = "DateOfAdmission", 
+#'      convertDates = TRUE, 
+#'      dateFormat = "ymd")
+#'
+#' #Converting Adate, Ddate to Date format
+#' #Checking for missing values...
+#' #Checking for duplicated records...
+#' #Removed 0 duplicates
+#' #Done.
+#' 
+#' head(my_checked_db)
+#' #    sID  fID      Adate      Ddate
+#' #1: s001 f078 2019-01-26 2019-02-01
+#' #2: s002 f053 2019-01-18 2019-01-21
+#' #3: s002 f049 2019-02-25 2019-03-05
+#' #4: s002 f033 2019-04-17 2019-04-21
+#' #5: s003 f045 2019-02-02 2019-02-04
+#' #6: s003 f087 2019-03-12 2019-03-19
+#' str(my_checked_db)
+#' #Classes ‘hospinet.base’, ‘data.table’ and 'data.frame':	262 obs. of  4 variables:
+#' #$ sID  : chr  "s001" "s002" "s002" "s002" ...
+#' #$ fID  : chr  "f078" "f053" "f049" "f033" ...
+#' #$ Adate: POSIXct, format: "2019-01-26" "2019-01-18" "2019-02-25" "2019-04-17" ...
+#' #$ Ddate: POSIXct, format: "2019-02-01" "2019-01-21" "2019-03-05" "2019-04-21" ...
+#' # ...
+#' 
+#' ## Show the quality report
+#' attr(my_checked_db, "report")
 #' @export
 #'
 checkBase <- function(base,
@@ -77,28 +136,43 @@ checkBase <- function(base,
                                 deleteMissing = deleteMissing,
                                 deleteErrors = deleteErrors,
                                 verbose = verbose)
-
+    
     report = adjust_overlapping_stays(report = report,
                                       maxIteration = maxIteration,
                                       retainAuxData=retainAuxData,
                                       verbose = verbose,
                                       ...)
     if (verbose) message("Done.")
+    
+    #add the class "hospinet.base" to the list of class so that we can easily
+    #identify whether the base has been checked or not.
+    if (!inherits(report$base, "hospinet.base")) class(report$base) <- c("hospinet.base", class(report$base))
+    
+    #Get the summary statistics of the dataset
+    dataSummary = all_admissions_summary(report$base)
+    
+    #export the "quality report"
     attr(report$base, "report") <- list(
       failedParse = report$failedParse,
       removedMissing = report$removedMissing,
       missing = report$missing,
       negativeLOS = report$negativeLOS,
-      removedErrors = report$removedErrors,
+      removedNegativeLOS = report$removedNegativeLOS,
       removedDuplicates = report$removedDuplicates,
       neededIterations = report$neededIterations,
       allIterations = report$allIterations,
-      addedAOS = report$addedAOS)
-
-    #add the class "hospinet.base" to the list of class so that we can easily
-    #identify whether the base has been checked or not.
-    if (!inherits(report$base, "hospinet.base")) class(report$base) <- c("hospinet.base", class(report$base))
-
+      addedAOS = report$addedAOS,
+      originalSize = report$originalSize,
+      finalSize = report$base[,.N],
+      
+      LOSmean = dataSummary$meanLOS,
+      TBAmean = dataSummary$meanTBA,
+      admissions = dataSummary$totalAdmissions,
+      subjects = dataSummary$numSubjects,
+      numFacilities = dataSummary$numFacilities, # Same as n_facilities, but with a different source, maybe useful as double-check
+      LOSdistribution = dataSummary$LOSdistribution,
+      TBAdistribution = dataSummary$TBAdistribution
+    )
     return(report$base)
 }
 
@@ -132,7 +206,8 @@ checkFormat <- function(report,
         setDT(report$base)
         if (verbose) message("Converting database to a data.table object")
     }
-
+    #--- Register the original size of the dataset --------------------------------------------------
+    report$originalSize = report$base[,.N]
 
     #--- Check format of "sID" and "fID" columns ----------------------------------------------------
     charCols = c("sID", "fID")
@@ -246,6 +321,7 @@ checkMissingErrors <- function(report,
         report$missing = length(missing)
     } else {
         report$missing = 0
+        report$removedMissing = 0
     }
 
     #--- Check errors -------------------------------------------------------------------
@@ -268,7 +344,10 @@ checkMissingErrors <- function(report,
                              option = deleteErrors)
         # Report
         report$negativeLOS = len_wrong
-        report$removedErrors = startN - report$base[, .N]
+        report$removedNegativeLOS = startN - report$base[, .N]
+    } else {
+      report$negativeLOS=0
+      report$removedNegativeLOS=0
     }
 
     ## # Delete single day cases if only overnight patients are defined
@@ -326,7 +405,7 @@ adjust_overlapping_stays = function(report,
 
   nbefore = nrow(base)
   if (verbose) message("Checking for duplicated records...")
-  base = unique(base)
+  base = unique(base, by = key(base))
   if (verbose) message(paste0("Removed ", nbefore-nrow(base), " duplicates"))
   report$removedDuplicates=nbefore-nrow(base)
 
@@ -341,7 +420,7 @@ adjust_overlapping_stays = function(report,
   C1A=(base[,sID] %in% probSubjects)
   probBase=base[C1A,]
   nonProbBase=base[!C1A,]
-
+  
   iterator=0
   while(iterator<maxIteration&sum(C1&C2)>0){
     if (verbose) message(paste0("Iteration ",iterator, ": Found ",sum(C1&C2)," overlapping facility stays\nSplitting database and correcting"))
@@ -375,6 +454,7 @@ adjust_overlapping_stays = function(report,
                    Adate=probBase[Nprob, Adate],
                    Ddate=probBase[Nprob, Ddate],
                    probBase[Nprob,..extraCols])
+      b=b[(b[, Adate] < b[, Ddate]),]
       probBase=rbind(a,b,c,d)
       setnames(probBase,c("sID","fID","Adate","Ddate",extraCols)) #might not be needed here
     }else{
@@ -382,6 +462,7 @@ adjust_overlapping_stays = function(report,
       b=data.table(sID=probBase[-Nprob][(C1&C2), sID],fID=probBase[-Nprob][(C1&C2), fID],Adate=probBase[-1][(C1&C2), Ddate],Ddate=probBase[-Nprob][(C1&C2), Ddate])
       c=data.table(sID=probBase[-Nprob][!(C1&C2), sID],fID=probBase[-Nprob][!(C1&C2), fID],Adate=probBase[-Nprob][!(C1&C2), Adate],Ddate=probBase[-Nprob][!(C1&C2), Ddate])
       d=data.table(sID=probBase[Nprob, sID],fID=probBase[Nprob, fID],Adate=probBase[Nprob, Adate],Ddate=probBase[Nprob, Ddate])
+      b=b[(b[, Adate] < b[, Ddate]),]
       probBase=rbind(a,b,c,d)
       setnames(probBase,c("sID","fID","Adate","Ddate")) #might not be needed here
     }
@@ -452,7 +533,7 @@ adjust_overlaps <- function(report,
     base[over[type == 'f', I-1], Ddate := base[over[type == 'f', I], Adate]]
     base = rbind(base, additional_stays)
     setkey(base, sID, Adate)
-    
+
     report$base = base
     report$addedAOS = nrow(additional_stays)
     return(report)

@@ -4,10 +4,17 @@
 \alias{edgelist_from_base}
 \title{Compute the edgelist of a network from a database of movements records.}
 \usage{
-edgelist_from_base(base, window_threshold = 365,
-  count_option = "successive", condition = "dates", noloops = TRUE,
-  nmoves_threshold = NULL, flag_vars = NULL, flag_values = NULL,
-  verbose = FALSE)
+edgelist_from_base(
+  base,
+  window_threshold = 365,
+  count_option = "successive",
+  condition = "dates",
+  noloops = TRUE,
+  nmoves_threshold = NULL,
+  flag_vars = NULL,
+  flag_values = NULL,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{base}{(data.table) A database of records of stays of subjects in
@@ -18,7 +25,7 @@ facilities. The table should have at least the following columns:
 \item\bold{disDate} (POSIXct) date of discharge of the facility }}
 
 \item{window_threshold}{(integer) A number of days. If two stays of a subject
-at two facilities occured within this window, this constitutes a
+at two facilities occurred within this window, this constitutes a
 connection between the two facilities (given that potential other
 conditions are met).}
 
@@ -61,7 +68,7 @@ A list of two data.tables, which are the edgelists. One in long
 }
 \description{
 This function computes the edgelist of a network of facilities across
-which subjects can be transfered. The edgelist is computed from a database that
+which subjects can be transferred. The edgelist is computed from a database that
 contains the records of the subjects' stays in the facilities.
 }
 \details{

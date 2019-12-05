@@ -7,8 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HospitalNetwork-Workflow • HospitalNetwork</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../pkgdown.js"></script><meta property="og:title" content="HospitalNetwork-Workflow">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
@@ -30,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">HospitalNetwork</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.3</span>
       </span>
     </div>
 
@@ -38,7 +39,7 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../index.html">
-    <span class="fa fa-home fa-lg"></span>
+    <span class="fas fa fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -67,6 +68,7 @@
 <!--/.navbar -->
 
       
+
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
@@ -83,53 +85,113 @@
 <div id="context" class="section level2">
 <h2 class="hasAnchor">
 <a href="#context" class="anchor"></a>Context</h2>
-<p>This document illustrates the way the <em>HospitalNetwork</em> package is intended to work. It describes the necessary datasets to provide, and the way they are analysed by the functions.</p>
+<p>This R package contains functions to help interested researchers construct networks from data on movement of individual between locations. Although this package was initially developed in the context of networks of healthcare facilities, where the links represent transfer of subjects between facilities, the process can be generalized to the movement of any type of subject between any type of locations.</p>
+<p>Formally, a network is composed of <em>nodes</em> which may or may not be connected by <em>edges</em> (or links). In the context of this package, the nodes are the facilities, and the links represent connections between facilities. Although the definition of a node is straightforward, one can define a <em>connection</em> between two facilities in different ways. This package allows to construct a network using various definition of a connection, which are discussed in detail here [ref].</p>
+<p>In terms of data structure, a common way of representing a network is with a simple <span class="math inline">\(n*n\)</span> matrix (often called adjacency matrix, or contact matrix). The rows and columns contain the nodes (which appear once in each), and each cell contains the information on whether or not the two nodes are connected.</p>
+<table class="table">
+<caption>Example of a matrix representation of a 5-nodes network. By convention, the rows contain the facilities of origin, and the columns contain the target facilities. Each cell contains the number of subjects transfered.</caption>
+<colgroup>
+<col width="12%">
+<col width="8%">
+<col width="8%">
+<col width="9%">
+<col width="8%">
+<col width="8%">
+</colgroup>
+<thead><tr class="header">
+<th align="center"> </th>
+<th align="center">A</th>
+<th align="center">B</th>
+<th align="center">C</th>
+<th align="center">D</th>
+<th align="center">E</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="center"><strong>A</strong></td>
+<td align="center">0</td>
+<td align="center">687</td>
+<td align="center">373</td>
+<td align="center">296</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>B</strong></td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1294</td>
+<td align="center">263</td>
+<td align="center">598</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>C</strong></td>
+<td align="center">602</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>D</strong></td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">718</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>E</strong></td>
+<td align="center">339</td>
+<td align="center">0</td>
+<td align="center">86</td>
+<td align="center">35</td>
+<td align="center">0</td>
+</tr>
+</tbody>
+</table>
+<p>At its core, the purpose of this package is to compute the contact matrix from raw data on movement between facilities. Additionally, this package provides the researcher with various tools to analyze and visualize the constructed network.</p>
 </div>
 <div id="data" class="section level2">
 <h2 class="hasAnchor">
 <a href="#data" class="anchor"></a>Data</h2>
-<p>The package requires a minimal set of information in order to build a network of hospitals. This set of data is describe under the section “Required data”. To proceed to further analysis, the package can use additional information in case they are available. These informations are listed under the section “Optional informations”. Each row must correspond to a patient stay. Patient stays are not allowed to overlap (see diagnostics functions). To ensure consistency of the network regarding potential yearly seasonality, at least one year of data should be provided.</p>
+<p>The package requires a minimal set of information in order to build a network of facilities. This set of data is describe under the section “Required data”. To proceed to further analysis, the package can use additional information in case they are available. These informations are listed under the section “Optional informations”.</p>
 <div id="required-data" class="section level3">
 <h3 class="hasAnchor">
 <a href="#required-data" class="anchor"></a>Required data</h3>
-<table class="table">
-<thead><tr class="header">
-<th>Item</th>
-<th align="center">Variable name</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>Patient ID</td>
-<td align="center">pID</td>
-<td>an anonymized identifier unique to each patient</td>
-</tr>
-<tr class="even">
-<td>Hospital ID</td>
-<td align="center">hID</td>
-<td>an anonymized identifier unique to each hospital</td>
-</tr>
-<tr class="odd">
-<td>Admission date</td>
-<td align="center">Adate</td>
-<td>the date of admission of the patient in a hospital</td>
-</tr>
-<tr class="even">
-<td>Discharge date</td>
-<td align="center">Ddate</td>
-<td>the date of discharge of the patient from a hospital</td>
-</tr>
-</tbody>
-</table>
+<p>The minimal data needed to construct the network is a simple table with four variables:</p>
+<ul>
+<li>
+<strong>subject ID:</strong> an identifier unique to each subject</li>
+<li>
+<strong>facility ID:</strong> an identifier unique to each facility</li>
+<li>
+<strong>admission date:</strong> the date of admission of the subject in the facility</li>
+<li>
+<strong>discharge date:</strong> the date of discharge of the subject from the facility</li>
+</ul>
+<p>Therefore, each row must correspond to a unique stay of a subject in a facility. Stays are not allowed to overlap (see <a href="#datamanagement">Data management</a>).</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(HospitalNetwork)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="co">#&gt; Loading required package: data.table</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">data =<span class="st"> </span><span class="kw"><a href="../reference/create_fake_subjectDB.html">create_fake_subjectDB</a></span>(<span class="dt">n_subjects =</span> <span class="dv">3</span>, <span class="dt">n_facilities =</span> <span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">data</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="co">#&gt;    sID fID      Adate      Ddate</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="co">#&gt; 1:  s1  f3 2019-02-13 2019-02-19</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="co">#&gt; 2:  s1  f1 2019-03-11 2019-03-21</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="co">#&gt; 3:  s1  f1 2019-04-27 2019-04-28</span></a>
+<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="co">#&gt; 4:  s2  f1 2019-02-01 2019-02-03</span></a>
+<a class="sourceLine" id="cb1-10" data-line-number="10"><span class="co">#&gt; 5:  s2  f3 2019-02-23 2019-02-28</span></a>
+<a class="sourceLine" id="cb1-11" data-line-number="11"><span class="co">#&gt; 6:  s3  f3 2019-02-03 2019-02-06</span></a>
+<a class="sourceLine" id="cb1-12" data-line-number="12"><span class="co">#&gt; 7:  s3  f2 2019-02-14 2019-02-21</span></a></code></pre></div>
 </div>
 <div id="optional-data-in-the-same-database" class="section level3">
 <h3 class="hasAnchor">
 <a href="#optional-data-in-the-same-database" class="anchor"></a>Optional data (in the same database)</h3>
+<p>TODO</p>
 <table class="table">
 <colgroup>
-<col width="22%">
-<col width="27%">
-<col width="41%">
+<col width="23%">
+<col width="30%">
+<col width="46%">
 </colgroup>
 <thead><tr class="header">
 <th>Item</th>
@@ -140,22 +202,22 @@
 <tr class="odd">
 <td>Mode of entry</td>
 <td align="center">entry</td>
-<td>a variable indicating whether the patient arrived from home (0), or from a hospital (1)</td>
+<td>a variable indicating whether the subject arrived from home (0), or from a facility (1)</td>
 </tr>
 <tr class="even">
 <td>Mode of discharge</td>
 <td align="center">discharge</td>
-<td>a variable indicating whether the patient is discharged back home (0), or to a hospital (1)</td>
+<td>a variable indicating whether the subject is discharged back home (0), or to a facility (1)</td>
 </tr>
 <tr class="odd">
-<td>Patient residential postcode</td>
+<td>Subject residential postcode</td>
 <td align="center">postcode </td>
-<td>a variable indicating the postalcode of the patient residency</td>
+<td>a variable indicating the postal code of the subject residency</td>
 </tr>
 <tr class="even">
-<td>Wards visited by the patient</td>
+<td>Wards visited by the subject</td>
 <td align="center">ward</td>
-<td>a single type of ward predominantly visited by the patient, coded as 1 for ICU or acute care and 0 for others</td>
+<td>a single type of ward predominantly visited by the subject, coded as 1 for ICU or acute care and 0 for others</td>
 </tr>
 </tbody>
 </table>
@@ -163,6 +225,7 @@
 <div id="optional-data-in-a-separate-database" class="section level3">
 <h3 class="hasAnchor">
 <a href="#optional-data-in-a-separate-database" class="anchor"></a>Optional data (in a separate database)</h3>
+<p>TODO</p>
 <table class="table">
 <thead><tr class="header">
 <th>Item</th>
@@ -171,19 +234,19 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>Hospital localization</td>
-<td align="center">localisation</td>
-<td>GPS coordinates of the hospital</td>
+<td>Facility localization</td>
+<td align="center">localization</td>
+<td>GPS coordinates of the facility</td>
 </tr>
 <tr class="even">
-<td>Hospital capacity</td>
+<td>Facility capacity</td>
 <td align="center">capacity</td>
-<td>the number of beds available in the hospital</td>
+<td>the number of beds available in the facility</td>
 </tr>
 <tr class="odd">
-<td>Hospital type</td>
+<td>Facility type</td>
 <td align="center">type</td>
-<td>the type of hospital (ECDC level definitions)</td>
+<td>the type of facility (ECDC level definitions)</td>
 </tr>
 </tbody>
 </table>
@@ -192,39 +255,88 @@
 <div id="workflow" class="section level2">
 <h2 class="hasAnchor">
 <a href="#workflow" class="anchor"></a>Workflow</h2>
-<ol start="0" style="list-style-type: decimal">
-<li>Run diagnostic tests on the data to ensure its compatibility.</li>
-<li>{Patient ID, Hospital ID, Admission date, Discharge date} -&gt; {Patient ID, Hospital ID, OriginID, sequence} where OriginID contains either <em>NA</em>, or the Hospital ID previously visited by the patient, according to the referral window, and sequence is the stay order, unique for each patient.</li>
-<li>{Patient ID, Hospital ID, OriginID, sequence} -&gt; <em>HospiNet</em> S3 object containing the hospital transfer matrix and the relevant measures.</li>
-</ol>
+<p>The main function of the package is <code><a href="../reference/hospinet_from_subject_database.html">hospinet_from_subject_database()</a></code>, which takes the database as argument. It will first performs various diagnostic tests by calling the function <code><a href="../reference/checkBase.html">checkBase()</a></code>, to check for possible issues, and to ensure that the data is formatted correctly.</p>
+<p>If the tests are successful, <code><a href="../reference/hospinet_from_subject_database.html">hospinet_from_subject_database()</a></code> will proceed with several operations and function calls to construct the network. The return value is an <code>HospiNet</code> R6 object that contains the network itself, as well as different metrics and information on the network.</p>
+<div id="diag" class="section level3">
+<h3 class="hasAnchor">
+<a href="#diag" class="anchor"></a>Diagnostic tests</h3>
+<p>The diagnostic tests on the database are performed by the function <code><a href="../reference/checkBase.html">checkBase()</a></code>.</p>
+<p>The function will check for possible errors in the database. It also offer the possibility to automatically correct the issues it may have found in the database. However, since we cannot guarantee having checked for every possible issue, we encourage you to ensure the data is in the correct format, and is free of errors, prior to run the function. By default, <code><a href="../reference/checkBase.html">checkBase()</a></code> will not modify the database, but return informative messages on the issues found. If you wish the function to try to autocorrect the database, you must set the corresponding arguments (see <a href="#datamanagement">Data management</a>). We recommend that you carefully check the result afterwards.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># Example</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(HospitalNetwork)</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">base =<span class="st"> </span><span class="kw"><a href="../reference/create_fake_subjectDB.html">create_fake_subjectDB</a></span>(<span class="dt">n_subjects =</span> <span class="dv">100</span>, <span class="dt">n_facilities =</span> <span class="dv">10</span>, <span class="dt">with_errors =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="kw"><a href="../reference/checkBase.html">checkBase</a></span>(base)</a>
+<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="co">#&gt; Error in checkBase(base): Column(s) sID, fID, Adate, Ddate provided as argument were not found in the database.</span></a></code></pre></div>
+<div id="requirements" class="section level4">
+<h4 class="hasAnchor">
+<a href="#requirements" class="anchor"></a>Requirements</h4>
+<p>The requirements to pass the diagnostic tests are the following:</p>
+<ul>
+<li><p>the database must be of class <code>data.frame</code> or <code>data.table</code>. The functions are implemented in the <code>data.table</code> framework, so if a <code>data.frame</code> is provided, it will be converted to a <code>data.table</code>.</p></li>
+<li><p>the database must have at least four columns. By default the column names must be: <code>c("sID", "fID", "Adate", "Ddate"</code>. Although we recommend using these column names, it is possible to use different names by providing them as arguments.</p></li>
+<li><p>columns <code>"sID"</code> and <code>"fID"</code> must be of type <code>character</code>.</p></li>
+<li><p>dates are handled using functions from the <code>lubridate</code> package. They should be <code>POSIXct date-time objects</code>. Alternatively, they can be provided as character strings. In that case, you can use <code><a href="../reference/checkBase.html">checkBase()</a></code> to try to parse them to date-time objects using <code>lubridate</code> functions (see <a href="#datamanagement">Data management</a>).</p></li>
+<li><p>stays should not overlap (see <a href="#datamanagement">Data management</a> for more details).</p></li>
+</ul>
 </div>
-<div id="the-hospinet-object" class="section level2">
-<h2 class="hasAnchor">
-<a href="#the-hospinet-object" class="anchor"></a>The <em>HospiNet</em> object</h2>
-<p><em>HospiNet</em> is an S3 object containing the hospital matrix as well as specific informations regarding the network. We have developped a <em>summary</em> and a <em>print</em> method for this object. The informations contained in an <em>HospiNet</em> objects are:</p>
+<div id="datamanagement" class="section level4">
+<h4 class="hasAnchor">
+<a href="#datamanagement" class="anchor"></a>Data management</h4>
+<p>The diagnostic functions of <code><a href="../reference/checkBase.html">checkBase()</a></code> will check for the following issues:</p>
+<ul>
+<li><p>missing values: the following values will be flagged as missing: actual missing values of the form <code>NA</code> or <code>NaN</code>, character strings <code>"NA", "na", "Na", "N/A", "n/a", "N/a", "NaN")</code>, and empty character strings or empty quotes <code>"", "''"</code>.</p></li>
+<li><p>discharge date of a stay anterior to its admission date.</p></li>
+<li><p>overlapping stays: <strong>TODO</strong></p></li>
+</ul>
+<p>You can use the function <code><a href="../reference/checkBase.html">checkBase()</a></code> to try to correct automatically the issues it has found by setting the corresponding arguments.</p>
+<ul>
+<li><p>missing values: to remove entries with missing values, set the argument <code>deleteMissing</code>. If set to <code>"record"</code>, the record with the missing value will be removed. If set to <code>"subject"</code>, all records of the same subject will be removed.</p></li>
+<li><p>errors: to remove errors, such as discharge date of a stay anterior to admission date, set the argument <code>deleteErrors</code>. If set to <code>"record"</code>, the record with the error will be removed. If set to <code>"subject"</code>, all records of the same subject will be removed.</p></li>
+<li><p>overlapping stays: <code><a href="../reference/checkBase.html">checkBase()</a></code> will automatically handle overlapping stays as follows: <strong>TODO</strong></p></li>
+<li><p>dates: if admission and discharge dates are provided as character strings, you can use <code><a href="../reference/checkBase.html">checkBase()</a></code> to try to parse them to a date-time object, which uses internally the <code>lubridate</code> functions. To do that, set the argument <code>convertDates = TRUE</code>. You must also specify in what format are the dates (“year-month-day”, “day-month-year”, etc.) by setting the argument <code>dateFormat = c("ymd", "ydm", "dmy", "dym", "mdy", "myd")</code>.</p></li>
+</ul>
+<p>##The <em>HospiNet</em> object</p>
+<p><em>HospiNet</em> is an S3 object containing the facility matrix as well as specific informations regarding the network. We have developed a <em>summary</em> and a <em>print</em> method for this object. The informations contained in an <em>HospiNet</em> objects are:</p>
 <ul>
 <li>
-<em>n_hospitals</em>, the number of hospitals in the network,</li>
+<em>n_facilities</em>, the number of facilities in the network,</li>
 <li>
-<em>n_patients</em>, the number of patients in the network,</li>
+<em>n_subjects</em>, the number of subjects in the network,</li>
 <li>
 <em>n_movements</em>, the number direct or indirect (depending on the window size) transfers,</li>
 <li>
-<em>window_threshold</em>, the size of the movement window in days (0 for direct transfers between hospitals),</li>
+<em>window_threshold</em>, the size of the movement window in days (0 for direct transfers between facilities),</li>
 <li>
-<em>hist_degrees</em>, <em>_in</em>, <em>_out</em>, are named vectors containing the number of nodes for each degree, indegree, or outdregree,</li>
+<em>hist_degrees</em>, <em>_in</em>, <em>_out</em>, are named vectors containing the number of nodes for each degree, indegree, or outdegree,</li>
 <li>…</li>
 </ul>
+</div>
+</div>
 </div>
 <div id="using-the-package" class="section level2">
 <h2 class="hasAnchor">
 <a href="#using-the-package" class="anchor"></a>Using the package</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(HospitalNetwork)
-<span class="co">#&gt; Loading required package: data.table</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(HospitalNetwork)</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">mydbmed =<span class="st"> </span><span class="kw"><a href="../reference/create_fake_subjectDB.html">create_fake_subjectDB</a></span>(<span class="dt">n_subjects =</span> <span class="dv">100</span>, <span class="dt">n_facilities =</span> <span class="dv">10</span>)</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">hn =<span class="st"> </span><span class="kw"><a href="../reference/hospinet_from_subject_database.html">hospinet_from_subject_database</a></span>(<span class="dt">base =</span> mydbmed, <span class="dt">noloops =</span> <span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">hn</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(hn)</a>
+<a class="sourceLine" id="cb3-7" data-line-number="7"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(hn, <span class="dt">type =</span> <span class="st">"degree"</span>)</a>
+<a class="sourceLine" id="cb3-8" data-line-number="8"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(hn , <span class="dt">type =</span> <span class="st">"clustered_matrix"</span>)</a>
+<a class="sourceLine" id="cb3-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb3-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb3-11" data-line-number="11">mydb =<span class="st"> </span><span class="kw"><a href="../reference/create_fake_subjectDB_clustered.html">create_fake_subjectDB_clustered</a></span>(<span class="dt">n_subjects =</span> <span class="dv">10000</span>, <span class="dt">n_facilities =</span> <span class="dv">500</span>, <span class="dt">n_clusters =</span> <span class="dv">5</span>)</a>
+<a class="sourceLine" id="cb3-12" data-line-number="12">hn =<span class="st"> </span><span class="kw"><a href="../reference/hospinet_from_subject_database.html">hospinet_from_subject_database</a></span>(<span class="dt">base =</span> mydb, <span class="dt">noloops =</span> <span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb3-13" data-line-number="13">hn</a>
+<a class="sourceLine" id="cb3-14" data-line-number="14"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(hn)</a>
+<a class="sourceLine" id="cb3-15" data-line-number="15"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(hn, <span class="dt">type =</span> <span class="st">"degree"</span>)</a>
+<a class="sourceLine" id="cb3-16" data-line-number="16"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(hn , <span class="dt">type =</span> <span class="st">"clustered_matrix"</span>)</a></code></pre></div>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+
         <div id="tocnav">
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
@@ -232,7 +344,6 @@
 <li><a href="#context">Context</a></li>
       <li><a href="#data">Data</a></li>
       <li><a href="#workflow">Workflow</a></li>
-      <li><a href="#the-hospinet-object">The <em>HospiNet</em> object</a></li>
       <li><a href="#using-the-package">Using the package</a></li>
       </ul>
 </div>
@@ -241,17 +352,20 @@
 </div>
 
 
+
       <footer><div class="copyright">
   <p>Developed by Pascal Crépey, Tjibbe Donker, Clément Massonnaud.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.3.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
 </div>
+
       </footer>
 </div>
 
   
+
 
   </body>
 </html>

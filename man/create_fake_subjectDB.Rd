@@ -4,10 +4,16 @@
 \alias{create_fake_subjectDB}
 \title{Create a fake subject database}
 \usage{
-create_fake_subjectDB(n_subjects = 100, n_facilities = 10,
-  avg_n_stays = 3, days_since_discharge = NULL,
-  length_of_stay = NULL, start_id_subjects = 1,
-  start_id_facilities = 1, with_errors = FALSE)
+create_fake_subjectDB(
+  n_subjects = 100,
+  n_facilities = 10,
+  avg_n_stays = 3,
+  days_since_discharge = NULL,
+  length_of_stay = NULL,
+  start_id_subjects = 1,
+  start_id_facilities = 1,
+  with_errors = FALSE
+)
 }
 \arguments{
 \item{n_subjects}{the number of different subjects in the database}

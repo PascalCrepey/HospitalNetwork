@@ -1,7 +1,7 @@
 Package: HospitalNetwork
 Type: Package
 Title: Building networks of hospitals through patients transfers
-Version: 0.9.1
+Version: 0.9.2
 Authors@R: c(
   person("Pascal", "Crépey", email = "pascal.crepey@ehesp.fr", role = c("aut", "cre")),
   person("Tjibbe", "Donker", email = "tjibbe.donker@uniklinik-freiburg.de", role = "aut"),
@@ -20,13 +20,26 @@ Imports:
     ggplot2,
     magrittr,
     kableExtra,
-    pander
+    pander,
+    vdiffr,
+    ggraph,
+    glue,
+    golem,
+    htmltools,
+    shiny,
+    shinyWidgets,
+    shinydashboard,
+    DT,
+    shinyalert,
+    shinyjs
 Depends: 
   data.table
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.1
 Suggests:
     knitr,
     qpdf,
     rmarkdown,
-    testthat (>= 2.1.0)
+    testthat (>= 2.1.0),
+    shinytest
 VignetteBuilder: knitr
+Language: en-US

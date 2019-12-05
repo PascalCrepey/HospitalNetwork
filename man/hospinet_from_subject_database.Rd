@@ -4,10 +4,20 @@
 \alias{hospinet_from_subject_database}
 \title{Create HospiNet object from subject database}
 \usage{
-hospinet_from_subject_database(base, window_threshold = 365,
-  count_option = "successive", condition = "dates", noloops = TRUE,
-  nmoves_threshold = NULL, flag_vars = NULL, flag_values = NULL,
-  create_MetricsTable = TRUE, verbose = FALSE, ...)
+hospinet_from_subject_database(
+  base,
+  window_threshold = 365,
+  count_option = "successive",
+  condition = "dates",
+  noloops = TRUE,
+  nmoves_threshold = NULL,
+  flag_vars = NULL,
+  flag_values = NULL,
+  create_MetricsTable = TRUE,
+  verbose = FALSE,
+  shinySession = NULL,
+  ...
+)
 }
 \arguments{
 \item{base}{(hospinet.base) A database of records of stays of subjects in
@@ -47,6 +57,8 @@ respectively. See details.}
 Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.}
 
 \item{verbose}{TRUE to print computation steps}
+
+\item{shinySession}{(NULL) internal variable to deal with the progress bar}
 
 \item{...}{Additional parameters to be sent to checkBase in case the database has not been checked yet.}
 }

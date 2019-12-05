@@ -4,8 +4,13 @@
 \alias{matrix_from_edgelist}
 \title{Compute the adjacency matrix of a network from its edgelist}
 \usage{
-matrix_from_edgelist(edgelist, origin_name = "origin",
-  target_name = "target", count, format_long = F)
+matrix_from_edgelist(
+  edgelist,
+  origin_name = "origin",
+  target_name = "target",
+  count,
+  format_long = F
+)
 }
 \arguments{
 \item{edgelist}{(data.table) A table containing the edges (or links) of the
@@ -27,7 +32,7 @@ each row corresponding to a single movement. If TRUE, the edgelist will
 be aggregated by unique pairs of facilities to compute the matrix.}
 }
 \value{
-A square numeric matrix, the ajacency matrix of the network.
+A square numeric matrix, the adjacency matrix of the network.
 }
 \description{
 Compute the adjacency matrix of a network from its edgelist

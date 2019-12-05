@@ -2,7 +2,7 @@
 % Please edit documentation in R/NetworkAnalysis.R
 \name{get_betweenness}
 \alias{get_betweenness}
-\title{Compute the betweeness centrality}
+\title{Compute the betweenness centrality}
 \usage{
 get_betweenness(graph)
 }
@@ -13,5 +13,5 @@ get_betweenness(graph)
 a data.table containing the centrality measure
 }
 \description{
-Compute the betweeness centrality
+Compute the betweenness centrality
 }
