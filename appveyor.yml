@@ -8,8 +8,9 @@ init:
         Import-Module '..\appveyor-tool.ps1'
 
 install:
-  ps: Bootstrap
   - cinst phantomjs
+  ps: Bootstrap
+
 
 
 cache:
