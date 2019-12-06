@@ -9,6 +9,7 @@ init:
 
 install:
   ps: Bootstrap
+  - cinst phantomjs
 
 cache:
   - C:\RLibrary -> appveyor.yml
@@ -24,7 +25,8 @@ environment:
 
 build_script:
   - travis-tool.sh install_deps
-  - travis-tool.sh install_github ariya/phantomjs
+  - travis-tool.sh install_github rstudio/webdriver
+#  - travis-tool.sh install_github ariya/phantomjs
   
 test_script:
   - travis-tool.sh run_tests
