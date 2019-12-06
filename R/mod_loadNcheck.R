@@ -73,12 +73,10 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     ## Reactive value to store the checked database
     base = reactiveVal()
     
-    # output$checked = reactive({!is.null(base())}) 
-    # outputOptions(output, 'checked', suspendWhenHidden = FALSE)
-    
     output$intro_md <- renderUI({
       includeMarkdown("inst/intro.md")
     })
+
     #--- Load file ----------------------------------------------------    
     dataset = reactive({
         req(input$dataset)
@@ -149,7 +147,9 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                                            input$fd_n_facilities, " facilities, and ",
                                            input$fd_n_clusters, " clusters has been built."),
                              type = "success")
+      
       shinyjs::show(id = "downloadNgoto")
+
     })
 
     previously_checked = eventReactive(input$filetype, {
@@ -251,11 +251,9 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     
     output$downloadNgoto <- renderUI({
       dgUI = div(style="display: inline-block;vertical-align:top;padding-top:10px",
-          #conditionalPanel(paste0("output['", ns("checked"), "']"),
                            downloadButton(ns("downloadCheckedBase"),
                                           label = "Download checked base"),
                            actionButton(ns("goToConstruct"), "go to network", icon = icon("forward"))
-          #)
       )
       return(dgUI)
     })
@@ -383,6 +381,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
 
     ##--- RETURN ------------------------------------------------------
     return(reactive({base()}))
+
 
 }
     
