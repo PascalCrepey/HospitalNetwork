@@ -9,7 +9,7 @@ init:
 
 install:
   - cinst phantomjs
-  ps: Bootstrap
+  - ps: Bootstrap
 
 
 
