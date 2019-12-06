@@ -1,3 +1,3 @@
 library(HospitalNetwork)
-setwd("../../..")
+#setwd("../../..")
 shiny_app()
