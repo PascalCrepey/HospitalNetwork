@@ -49,12 +49,12 @@ mod_loadNcheck_ui <- function(id) {
                )
       )
     ),
-    uiOutput(ns("downloadNgoto"))
+    shinyjs::hidden(uiOutput(ns("downloadNgoto")))
   )
 
   sidebarLayout(
       mainPanel = mainPanel(
-          includeMarkdown("inst/intro.md")
+        uiOutput(ns("intro_md"))
       ),          
       sidebarPanel = sbPan,
       position = "right")
@@ -73,6 +73,10 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     ## Reactive value to store the checked database
     base = reactiveVal()
     
+    output$intro_md <- renderUI({
+      includeMarkdown("inst/intro.md")
+    })
+
     #--- Load file ----------------------------------------------------    
     dataset = reactive({
         req(input$dataset)
@@ -136,13 +140,16 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                                                                input$fd_n_subjects,"/",
                                                                input$fd_n_facilities,"/",
                                                                input$fd_n_clusters))
-      #browser()
+
       shinyalert::shinyalert(title = "Fake database built successfully",
                              text = paste0("The database containing ",
                                            input$fd_n_subjects, " subjects, ",
                                            input$fd_n_facilities, " facilities, and ",
                                            input$fd_n_clusters, " clusters has been built."),
                              type = "success")
+      
+      shinyjs::show(id = "downloadNgoto")
+
     })
 
     previously_checked = eventReactive(input$filetype, {
@@ -244,11 +251,9 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     
     output$downloadNgoto <- renderUI({
       dgUI = div(style="display: inline-block;vertical-align:top;padding-top:10px",
-          conditionalPanel(paste0("output['", ns("checked"), "']"),
                            downloadButton(ns("downloadCheckedBase"),
                                           label = "Download checked base"),
                            actionButton(ns("goToConstruct"), "go to network", icon = icon("forward"))
-          )
       )
       return(dgUI)
     })
@@ -312,6 +317,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
             shinyalert::shinyalert(title = "Database previously checked",
                                    text = "The database was not checked again",
                                    type = "success")
+            shinyjs::show(id = "downloadNgoto")
         } else if ("try-error" %in% class(out)) {
             shinyalert::shinyalert(title = "Error",
                                    text = paste0("<div align=left>",
@@ -344,12 +350,12 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                                                       paste0("<b>Total number of deleted records: ", totaldeleted, "</b>"))),
                                    type = "success",
                                    html = T)
+            shinyjs::show(id = "downloadNgoto")
         }
     })
 
     ## ##--- Propose to download cleaned data ---------------------------
-    output$checked = reactive({ !is.null(base()) }) 
-    outputOptions(output, 'checked', suspendWhenHidden=FALSE)
+
     
     observeEvent(input$goToConstruct, {
       shinydashboard::updateTabItems(session = parent, inputId = "mainSidebar", selected = "construct")
@@ -374,7 +380,8 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
 
 
     ##--- RETURN ------------------------------------------------------
-    return(reactive({ base() }))
+    return(reactive({base()}))
+
 
 }
     
