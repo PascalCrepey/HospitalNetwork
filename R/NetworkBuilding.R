@@ -209,7 +209,7 @@ edgelist_from_base <- function(base,
     checks = makeAssertCollection()
     assertDataFrame(base, add = checks)
     assertTRUE(ncol(base) >= 4, add = checks)
-    assertCount(window_threshold, add = checks)
+    assertNumber(window_threshold, lower = 0, add = checks)
     assertChoice(count_option, c("all", "successive"), add = checks)
     assertLogical(noloops, add = checks)
     assertCount(nmoves_threshold, null.ok = T, add = checks)
