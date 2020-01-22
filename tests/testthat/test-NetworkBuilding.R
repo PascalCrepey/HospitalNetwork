@@ -209,3 +209,12 @@ test_that("matrix_from_base() computes the right matrix", {
     expect_equal(c(mC["f1", "f2"], mC["f2", "f3"], mC["f3", "f4"]), c(6, 1, 1))
 })
 
+test_that("non-integer window threshold gives the same as integer", {
+    minteger = matrix_from_base(checkBase(base),
+                                window_threshold = 1)
+    mnoninteger = matrix_from_base(checkBase(base),
+                                   window_threshold = 1.5)
+    
+    expect_equal(minteger, mnoninteger)
+})
+
