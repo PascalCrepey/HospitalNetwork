@@ -125,10 +125,28 @@ HospiNet <- R6::R6Class("HospiNet",
                            plot.title = element_text(size = 12), 
                            panel.grid = element_blank())
     }, 
-    plot_spaghetti = function(plotLinks=5000, alphaSteps=15, alphaSet=0.1){
+    plot_spaghetti = function(plotLinks=5000, alphaSet=0.1, edgeColourNode=FALSE, facilityColours=NULL,firstCircleCol=NULL,secondCircleCol=NULL){
 
+      #function to average the color of two nodes for the edge colour. Currently takes 
+      meanColor<-function(col1,col2){
+        paste0("#",
+               stringr::str_pad(sprintf("%x", floor((as.integer(as.hexmode(stringr::str_sub(col1,2,3)))+
+                                                       as.integer(as.hexmode(stringr::str_sub(col2,2,3))))/2)),2,side="left",pad="0"),
+               stringr::str_pad(sprintf("%x", floor((as.integer(as.hexmode(stringr::str_sub(col1,4,5)))+
+                                                       as.integer(as.hexmode(stringr::str_sub(col2,4,5))))/2)),2,side="left",pad="0"),
+               stringr::str_pad(sprintf("%x", floor((as.integer(as.hexmode(stringr::str_sub(col1,6,7)))+
+                                                       as.integer(as.hexmode(stringr::str_sub(col2,6,7))))/2)),2,side="left",pad="0"))
+      }
+      
+      #checking the parameters
+      if(alphaSet>1||alphaSet<0){
+        warning("alphaSet should be between 0 and 1, set to 1.0")
+        alphaSet<-1
+      }
       if(plotLinks>length(self$matrix)) plotLinks=length(self$matrix)
 
+      #Creating underlying hierarchy
+      myleaves<-colnames(self$matrix)
       comms <- split(self$cluster_infomap,by = "cluster_infomap")
       getComRow <- function(y){unlist(lapply(1:length(comms),function(x){sum(self$matrix[(c(comms[[x]][,"node"]))[[1]],(c(comms[[y]][,"node"]))[[1]]])}))}
       absMat <- matrix(unlist(lapply(1:length(comms),getComRow)),nrow = length(comms), ncol = length(comms))
@@ -139,7 +157,6 @@ HospiNet <- R6::R6Class("HospiNet",
                             secondLevel=cutree(newDendro,ceiling(length(newDendro$order)/6)),
                             thirdlevel=cutree(newDendro,ceiling(length(newDendro$order)/12))
       )
-
       hierarchy<-rbind(
         (data.frame(from=rep("origin",max(levelData[,3])),to=unique(paste0("level3-",levelData[,3])))),
         unique(data.frame(from=paste0("level3-",levelData[,3]),to=paste0("level2-",levelData[,2]))),
@@ -147,31 +164,90 @@ HospiNet <- R6::R6Class("HospiNet",
         data.frame(from=paste0("level1-",levelData[,1]),to=paste0("comms-",names(comms))),
         data.frame(from=paste0("comms-",data.frame(self$cluster_infomap)[,"cluster_infomap"]),to=(self$cluster_infomap[,"node"])[[1]])
       )
-
-      myleaves<-colnames(self$matrix)
       vertices <- data.frame(name = unique(c(as.character(hierarchy$from), as.character(hierarchy$to))) ) 
+
+      #Create the graph and extract the layout
       mygraph <- igraph::graph_from_data_frame(hierarchy, vertices=vertices)
-      # set the number of duplication of strong connections
-      maxStr=self$matrix[order(-self$matrix)][1]
-      minStr=self$matrix[order(-self$matrix)][plotLinks]
-      steps=((maxStr-minStr)/alphaSteps)
-
-      #artificially duplicate strong connections so that they appear darker on the plot
-      strongConnections<-do.call("rbind", lapply(seq(minStr,maxStr,by=steps),function(x){data.frame(from=myleaves[which(self$matrix>x,arr.ind = T)[,1]],to=myleaves[which(self$matrix>x,arr.ind = T)[,2]])}))
-      from <- match( strongConnections$from, vertices$name)
-      to <- match( strongConnections$to, vertices$name)
       lay=ggraph::create_layout(mygraph, layout = 'dendrogram', circular = TRUE) 
-
+      
+      #Set the node colours, standard node colour is black
+      #lay$nodecol=rgb(0,0,0)
+      #if(!is.null(facilityColours)){
+      #  for(ii in 1:length(facilityColours)) lay$nodecol[lay$name %in% facilityColours[[ii]]$facility]<-facilityColours[[ii]]$colour
+      #}
+      lay$nodecol=rgb(0,0,0)
+      lay$firstCircle=rgb(0,0,0)
+      lay$secondCircle=rgb(0,0,0)
+      
+      if(!is.null(facilityColours)){
+        for(ii in 1:length(facilityColours)) lay$nodecol[lay$name %in% facilityColours[[ii]]$facility]<-facilityColours[[ii]]$colour
+      }
+      if(!is.null(firstCircleCol)){
+        for(ii in 1:length(firstCircleCol)) lay$firstCircle[lay$name %in% firstCircleCol[[ii]]$facility]<-firstCircleCol[[ii]]$colour
+      }
+      if(!is.null(secondCircleCol)){
+        for(ii in 1:length(secondCircleCol)) lay$secondCircle[lay$name %in% secondCircleCol[[ii]]$facility]<-secondCircleCol[[ii]]$colour
+      }
+      
+      #create the connections
+      #set the minimum number of shared patients for an edge to be plotted
+      minShares=self$matrix[order(-self$matrix)][plotLinks]
+      strongConnections<-data.frame(
+        to=myleaves[which(self$matrix>minShares,arr.ind = T)[,1]],
+        from=myleaves[which(self$matrix>minShares,arr.ind = T)[,2]],
+        weight=(self$matrix[self$matrix>minShares])
+        )
+        
+      #artificially duplicate strong connections so that they appear darker on the plot
+      #strongConnections<-do.call("rbind", lapply(seq(minStr,maxStr,by=steps),function(x){data.frame(from=myleaves[which(self$matrix>x,arr.ind = T)[,1]],to=myleaves[which(self$matrix>x,arr.ind = T)[,2]])}))
+      fromVert <- match( strongConnections$from, vertices$name)
+      toVert <- match( strongConnections$to, vertices$name)
+      weights<-strongConnections$weight
+      #Create the edge colouring, which is a combination of bnode colours and alpha for number of shares.
+      if(edgeColourNode){
+        strWeights<-paste0(
+          meanColor(lay[toVert,]$nodecol,lay[fromVert,]$nodecol),
+          stringr::str_pad(as.hexmode(floor(255.0*alphaSet*weights/max(weights))),2,side="left",pad="0")
+        )
+      }else{
+        strWeights<-paste0(
+          "#000000",
+          stringr::str_pad(as.hexmode(floor(255.0*alphaSet*weights/max(weights))),2,side="left",pad="0")
+        )
+      }
+      
+      #calculate the coordiantes for the outer rings
+      nLeafs<-sum(lay$leaf)
+      lay$angle<-atan2(lay$x,lay$y)
+      lay$circleIndex<-0
+      lay$arcstart<-0
+      lay$arcend<-0
+      lay[lay$leaf==T,]$circleIndex<-order(order(lay[lay$leaf==T,]$angle))
+      lay[lay$leaf==T,]$arcstart<-((2*pi*(lay[lay$leaf==T,]$circleIndex-1.25))/nLeafs)+pi
+      lay[lay$leaf==T,]$arcend<-((2*pi*(lay[lay$leaf==T,]$circleIndex-0.25))/nLeafs)+pi
+      
+      #Create the full plot
       spaghetti<-
         ggraph::ggraph(lay) + 
-        ggraph::geom_conn_bundle(data = ggraph::get_con(from = from, to = to), aes(colour="black"),
-                                 alpha = alphaSet, colour = "black", tension = 0.80, n = 50) + 
-        ggraph::geom_node_point(aes(filter = leaf, x = x*1.05, y=y*1.05),colour="black",stroke=0.5,pch=16, size=2) +
+        ggraph::geom_conn_bundle(data = ggraph::get_con( to = toVert, from = fromVert,valueF=strWeights), 
+                                 aes(color=valueF),
+                                 tension = 0.80, n = 50) + 
+        ggraph::scale_edge_color_manual(limits=strWeights, values = strWeights)+
+        ggraph::geom_node_point(aes(filter = leaf, x = x*1.00, y=y*1.00,color=nodecol),stroke=0.5,pch=16, size=2) +
+        ggplot2::scale_colour_manual(limits=unique(lay$nodecol), values = unique(lay$nodecol))+
         ggplot2::theme_void()+
-        ggplot2::theme(legend.position = "none")
-
+        ggplot2::theme(legend.position = "none")+
+        ggplot2::scale_fill_manual(limits=unique(c(lay$firstCircle,lay$secondCircle)), values = unique(c(lay$firstCircle,lay$secondCircle)))
+      
+      
+      if(!is.null(firstCircleCol)){
+        spaghetti<-spaghetti+ggforce::geom_arc_bar(aes(x0 = 0, y0 = 0, r = 1.05,r0=1.1, start = arcstart, end = arcend,fill=firstCircle),linetype=0)
+      }
+      if(!is.null(secondCircleCol)){
+        spaghetti<-spaghetti+ggforce::geom_arc_bar(aes(x0 = 0, y0 = 0, r = 1.11,r0=1.16, start = arcstart, end = arcend,fill=secondCircle),linetype=0)
+      }
+      
       spaghetti
-
     },
     
     plot_clustered_matrix = function(){
@@ -238,11 +314,11 @@ HospiNet <- R6::R6Class("HospiNet",
         cat("Matrix too big to be printed on screen.")
       }
     },
-    plot = function(type = "matrix", plotLinks=5000, alphaSteps=15,alphaSet=0.1){
+    plot = function(type = "matrix",...){
       if (type == "degree") private$plot_hist_degree()
       else if (type == "matrix") private$plot_matrix()
       else if (type == "clustered_matrix") private$plot_clustered_matrix()
-      else if (type == "circular_network") private$plot_spaghetti(plotLinks=plotLinks,alphaSteps=alphaSteps,alphaSet=alphaSet)
+      else if (type == "circular_network") private$plot_spaghetti(...)
       else message("Unknown plot type for HospiNet")
       
     }
