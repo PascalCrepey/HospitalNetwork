@@ -169,12 +169,7 @@ plot(hn, type = "clustered_matrix")
 \if{html}{\out{<a id="method-plot"></a>}}
 \subsection{Method \code{plot()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{HospiNet$plot(
-  type = "matrix",
-  plotLinks = 5000,
-  alphaSteps = 15,
-  alphaSet = 0.1
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{HospiNet$plot(type = "matrix", ...)}\if{html}{\out{</div>}}
 }
 
 }
