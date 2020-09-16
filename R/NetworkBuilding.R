@@ -116,6 +116,7 @@ matrix_from_edgelist <- function(edgelist,
 matrix_from_base <- function(base,
                              window_threshold=365,
                              count_option="successive",
+                             prob_params=c(0.0036,1/365,0.128),
                              condition="dates",
                              noloops = TRUE,
                              nmoves_threshold = NULL,
@@ -126,6 +127,7 @@ matrix_from_base <- function(base,
     # First, compute edgelist from base
     edgelists = edgelist_from_base(base = base,
                                    window_threshold = window_threshold,
+                                   prob_params=prob_params,
                                    count_option = count_option,
                                    condition = condition,
                                    noloops = noloops,
@@ -160,10 +162,20 @@ matrix_from_base <- function(base,
 #'     at two facilities occurred within this window, this constitutes a
 #'     connection between the two facilities (given that potential other
 #'     conditions are met).
-#' @param count_option (character) How to count connections. Either "successive"
-#'     or "all". See details.
+#' @param count_option (character) How to count connections. Options are 
+#'     "successive", "probability" or "all". See details.
 #' @param condition (character) Condition(s) used to decide what constitutes a
 #'     connection. Can be "dates", "flags", or "both". See details.
+#' @param prob_params (vector of numeric) Three numerical values to calculate 
+#'     the probability that a movement causes an introduction from hospital A 
+#'     to hospital B. See Donker et al. (PLoS CB 2010) for more details. 
+#'     For use with count_option="probability".
+#'     prob_params[1] is the rate of acquisition in hospital A (related to LOS 
+#'     in hospital A). Default: 0.0036
+#'     prob_params[2] is the rate of loss of colonisation (related to time 
+#'     between admissions). Default: 1/365
+#'     prob_params[4] is the rate of transmission to other patients in hospital 
+#'     B (related to LOS in hospital B). Default: 0.128
 #' @param noloops (boolean). Should transfers within the same nodes (loops) be
 #'     kept or set to 0. Defaults to TRUE, removing loops (setting matrix
 #'     diagonal to 0).
@@ -197,6 +209,7 @@ matrix_from_base <- function(base,
 edgelist_from_base <- function(base,
                                window_threshold=365,
                                count_option="successive",
+                               prob_params=c(0.0036,1/365,0.128),
                                condition="dates",
                                noloops = TRUE,
                                nmoves_threshold = NULL,
@@ -210,7 +223,7 @@ edgelist_from_base <- function(base,
     assertDataFrame(base, add = checks)
     assertTRUE(ncol(base) >= 4, add = checks)
     assertNumber(window_threshold, lower = 0, add = checks)
-    assertChoice(count_option, c("all", "successive"), add = checks)
+    assertChoice(count_option, c("all", "successive","probability"), add = checks)
     assertLogical(noloops, add = checks)
     assertCount(nmoves_threshold, null.ok = T, add = checks)
     assertChoice(condition, c("dates", "flags", "both"), add = checks)
@@ -315,7 +328,8 @@ edgelist_from_base <- function(base,
         ## this is the edgelist, by individual connections
         if (verbose) cat("Compute frequencies...\n")
         el_long = data.table(cbind(origin, target))
-
+        data.table::setkey(el_long, origin, target)
+        el_aggr = el_long[, .N, by = c("origin", "target")]
     } else if (count_option == "all") {
         #--- Count for all stays ---------------------------------------------------------
         ## Compute time between admissions between EACH PAIR of facilities, for one
@@ -347,12 +361,43 @@ edgelist_from_base <- function(base,
         ## Filter according to the window threshold
         ## this creates the edgelist, by individual connections
         el_long = tba[between(diff, 0, window_threshold, incbounds = TRUE), .(sID, origin, target)]
+        data.table::setkey(el_long, origin, target)
+        el_aggr = el_long[, .N, by = c("origin", "target")]
+    } else if(count_option == "probability"){
+      numAdm=max(as.data.frame(table(base$sID))$Freq)
+      el_long<-Reduce(rbind,lapply(1:(numAdm-1),
+                                    function(it){
+                                      C1 = base[, sID][-((1+N-it):N)] == base[, sID][-(1:it)]
+                                      LOS1=as.numeric(difftime(time1 = base[, Ddate][-(1:it)],
+                                                               time2 = base[, Adate][-(1:it)],
+                                                               units = "days")[C1])
+                                      LOS2=as.numeric(difftime(time1 = base[, Ddate][-((1+N-it):N)],
+                                                               time2 = base[, Adate][-((1+N-it):N)],
+                                                               units = "days")[C1])
+                                      timebtw = as.numeric(difftime(time1 = base[, Adate][-(1:it)],
+                                                                 time2 = base[, Ddate][-((1+N-it):N)],
+                                                                 units = "days")[C1])
+                                      origin = base[-((1+N-it):N)][C1 , .("sID" = sID, "origin" = fID)]
+                                      target = base[-(1:it)][C1 , .("target" = fID)]
+                                      probTr=(1-exp(-prob_params[1]*LOS1))*exp(-prob_params[2]*timebtw)*(1-exp(-prob_params[3]*LOS2))
+                                      el_long_temp = data.table(cbind(origin, target,timebtw,LOS1,LOS2,probTr))
+                                      return((el_long_temp))
+                                    }
+      )
+      )
+      data.table::setkey(el_long, origin, target)
+      
+      orderOfMagn = max(el_long$probTr)
+      el_long = subset(el_long, probTr > orderOfMagn/(10^10)) #To avoid crashes, if the movements probability is 10 orders of magnitude less than the maximum, remove it.
+      el_aggr = el_long[, sum(probTr), by = c("origin", "target")]
+      colnames(el_aggr)<-c("origin", "target","N")
+      el_aggr = subset(el_aggr, N > 0)
     }
 
     #--- Aggregate edgelist by node ----------------------------------------------------
     if (verbose) cat("Compute edgelist...\n")
     data.table::setkey(el_long, origin, target)
-    el_aggr = el_long[, .N, by = c("origin", "target")]
+    #el_aggr = el_long[, .N, by = c("origin", "target")]
 
     #--- Deal with loops ---------------------------------------------------------------
     if (noloops) {
@@ -385,6 +430,15 @@ edgelist_from_base <- function(base,
 #' @param condition (character) TODO. Default is "dates".
 #' @param nmoves_threshold (numeric)
 #'     A threshold for the minimum number of subject transfer between two facilities. Set to NULL to deactivate, default to NULL.
+#' @param prob_params (vector of numeric) Three numerical values to calculate 
+#'     the probability that a movement causes an introduction from hospital A 
+#'     to hospital B. See Donker et al. (PLoS CB 2010) for more details. 
+#'     prob_params[1] is the rate of acquisition in hospital A (related to LOS 
+#'     in hospital A). Default: 0.0036
+#'     prob_params[2] is the rate of loss of colonisation (related to time 
+#'     between admissions). Default: 1/365
+#'     prob_params[4] is the rate of transmission to other patients in hospital 
+#'     B (related to LOS in hospital B). Default: 0.128
 #' @param flag_vars (list) Additional variables that can help flag a transfer,
 #'     besides the dates of admission and discharge. Must be a named list of two
 #'     character vectors which are the names of the columns that can flag a
@@ -417,6 +471,7 @@ hospinet_from_subject_database <- function(base,
                                            window_threshold=365,
                                            count_option="successive",
                                            condition="dates",
+                                           prob_params=c(0.0036,1/365,0.128),
                                            noloops = TRUE,
                                            nmoves_threshold = NULL,
                                            flag_vars = NULL,
@@ -439,6 +494,7 @@ hospinet_from_subject_database <- function(base,
     ## Compute the edgelists (long and aggregated format)
     edgelists = edgelist_from_base(base = base,
                                    window_threshold = window_threshold,
+                                   prob_params=prob_params,
                                    count_option = count_option,
                                    condition = condition,
                                    noloops = noloops,
@@ -463,6 +519,7 @@ hospinet_from_subject_database <- function(base,
   hn = HospiNet$new(edgelist = edgelists$el_aggr,
                edgelist_long = edgelists$el_long,
                window_threshold = window_threshold, 
+               prob_params = prob_params,
                nmoves_threshold = nmoves_threshold, 
                noloops = noloops,
                fsummary = facilitySummary,
@@ -473,3 +530,4 @@ hospinet_from_subject_database <- function(base,
   }
   hn
 }
+

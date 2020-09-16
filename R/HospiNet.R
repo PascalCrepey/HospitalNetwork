@@ -10,7 +10,7 @@
 #' @format \code{\link{R6Class}} object.
 #' @examples
 #' mydbsmall = create_fake_subjectDB(n_subjects = 1000, n_facilities = 10)
-#'   
+#'  
 #' hn = hospinet_from_subject_database(base = mydbsmall,
 #'                                     window_threshold = 10,
 #'                                     count_option = "successive",
@@ -288,6 +288,7 @@ HospiNet <- R6::R6Class("HospiNet",
                           window_threshold,
                           nmoves_threshold,
                           noloops,
+                          prob_params,
                           fsummary=NULL,
                           create_MetricsTable=FALSE
                           ){
