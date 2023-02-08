@@ -24,7 +24,7 @@ mod_map_server <- function(id){
     # Join the two datasets using the "origin" and "target" variables
     data_flow <- merge(net()$edgelist, net()$facilities, by.x = "origin", by.y = "beds")
     data_flow <- merge(data_flow, net()$facilities, by.x = "target", by.y = "beds",
-                       suffixes = c("_origin", "_target"
+                       suffixes = c("_origin", "_target"))
 
     # output$mymap <- renderLeaflet({
     #   leaflet(net()$facilities) %>%
