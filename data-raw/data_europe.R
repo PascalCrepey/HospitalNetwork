@@ -1,7 +1,7 @@
 #' @title Preparation du jeu de données `data_europe`
 #' @description Ce script prépare le jeu de données `data_europe` en mentionnant les coordonnées GPS et les capacités de lit des hôpitaux générés par distr de Poisson et mean=200
 #' @param data_europe un data.frame contenant les données sur les hôpitaux en Europe
-#' @return un objet de type data.frame contenant les données sur les hôpitaux en Europe avec les inform
+#' @return un objet de type data.frame contenant les données sur les localisations des hôpitaux en Europe & simulation des capacités de lits
 
 #################################################################################
 ## 1-                    TELECHARGEMENT DES PACKAGES                           ##
