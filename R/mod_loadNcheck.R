@@ -32,8 +32,21 @@ mod_loadNcheck_ui <- function(id) {
                                                         size = "sm",
                                                         selected = NA)
                  )
-               ),
-               uiOutput(ns("checkUI"))
+               )
+               # fileInput(ns("geoloc_dataset"),
+               #           "File with GPS coord. and beds",
+               #           buttonLabel = HTML(paste(icon("upload",  ), "Browse"))),
+               # uiOutput(ns("checkUI")),
+               # fluidRow(
+               #   column(5, HTML("<b>File format for GPS</b>")),
+               #   column(7, 
+               #          shinyWidgets::radioGroupButtons(ns("geoloc_filetype"),
+               #                                          choices = c("CSV", "Rdata", "RDS"),
+               #                                          status = "default",
+               #                                          size = "sm",
+               #                                          selected = NA)
+               #   )
+               # )
       ),
       tabPanel(title = "Fake dataset", 
                sliderInput(ns("fd_n_subjects"), "Number of subjects", 
@@ -72,12 +85,13 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
 
     ## Reactive value to store the checked database
     base = reactiveVal()
+    # geoloc_dataset = reactiveVal()
     
     output$intro_md <- renderUI({
       includeMarkdown("inst/intro.md")
     })
 
-    #--- Load file ----------------------------------------------------    
+    #--- Load files ----------------------------------------------------    
     dataset = reactive({
         req(input$dataset)
     })
@@ -86,6 +100,14 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     })
     outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
     
+    # geoloc_dataset = reactive({
+    #   req(input$geoloc_dataset)
+    # })
+    # output$fileUploaded_geoloc <- reactive({
+    #   return(!is.null(geoloc_dataset()))
+    # })
+    # outputOptions(output, 'fileUploaded_geoloc', suspendWhenHidden=FALSE)
+    # 
     #where we put the main datatable
     datatable = reactiveVal(NULL)
     #--- Read file depending on type ----------------------------------
@@ -107,6 +129,27 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
       }
     })
     
+    # #Same for GPS coordinates and beds
+    # geoloc_datatable = reactiveVal(NULL)
+    # #--- Read file depending on type ----------------------------------
+    # observeEvent(input$geoloc_filetype,{
+    #   req(input$geoloc_filetype)
+    #   #reset the base
+    #   geoloc_dataset(NULL)
+    #   geoloc_user_file = geoloc_dataset()$datapath
+    #   if (input$filetype == "CSV") {
+    #     datatable(fread(geoloc_user_file))
+    #   }
+    #   else if (input$geoloc_filetype == "Rdata") {
+    #     e = new.env()
+    #     dtb = load(geoloc_user_file, envir = e)
+    #     datatable(e[[dtb]])
+    #   }
+    #   else {
+    #     datatable(readRDS(geoloc_user_file))
+    #   }
+    # })
+    
     # Generate the fake data ----
     observeEvent(input$buildFD, {
       withProgress(message = "Building fake data...",{
@@ -123,7 +166,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                                                n_clusters = input$fd_n_clusters)
           incProgress(amount = 0.5, detail = "clustered data generated")
         }
-        #output the base
+        #output the two bases
         base(HospitalNetwork::checkBase(base = db))
         
         incProgress(amount = 0.5, detail = "data checked")

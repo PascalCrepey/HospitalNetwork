@@ -110,9 +110,9 @@ checkBase <- function(base,
                       ...)
 {
     report = list()
-    report$base = copy(base)
+    report$base = copy(base$all_s_stays)
     
-    #--- Check columns names ------------------------------------------------------------------------
+    #--- Check columns names for all_s_stays ------------------------------------------------------------------------
     tableCols = colnames(report$base)
     inputCols = c(subjectID, facilityID, admDate, disDate)
     foundCols = intersect(tableCols, inputCols)
@@ -171,7 +171,10 @@ checkBase <- function(base,
       subjects = dataSummary$numSubjects,
       numFacilities = dataSummary$numFacilities, # Same as n_facilities, but with a different source, maybe useful as double-check
       LOSdistribution = dataSummary$LOSdistribution,
-      TBAdistribution = dataSummary$TBAdistribution
+      TBAdistribution = dataSummary$TBAdistribution,
+      
+      # GPS data
+      gps = base$gps_facilities
     )
     return(report$base)
 }

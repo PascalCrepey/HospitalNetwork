@@ -11,7 +11,7 @@
 #' @param start_id_subjects,start_id_facilities change starting ids (used for clustered network)
 #' @param with_errors (boolean) introduce or not random errors in the database. Default to FALSE.
 #'
-#' @return a data.table containing all subjects stays
+#' @return a list of two data.tables containing all subjects stays and gps coordinates with beds capacities
 #' @export
 #' 
 #' @importFrom stats rnorm
@@ -27,6 +27,7 @@ create_fake_subjectDB <- function(n_subjects = 100,
   #create subjects IDs
   sIDs = paste0("s", formatC((1 + start_id_subjects - 1):(start_id_subjects + n_subjects - 1), 
                              width = nchar(n_subjects), flag = "0"))
+  
   #create facility IDs
   fIDs = paste0("f", formatC((1 + start_id_facilities - 1):(start_id_facilities + n_facilities - 1), 
                              width = nchar(n_facilities), flag = "0"))
@@ -53,7 +54,7 @@ create_fake_subjectDB <- function(n_subjects = 100,
     s_stays
   })
     all_s_stays = rbindlist(all_s_stays)
-    
+   
     ## Generate errors in the database
     if (with_errors) {
         N = nrow(all_s_stays)
@@ -97,8 +98,15 @@ create_fake_subjectDB <- function(n_subjects = 100,
         all_s_stays[10, Adate := "NaN"]
         colnames(all_s_stays) = c("subject", "facility", "admission", "discharge")
     }
+    
+    ## Generate GPS coordinates and beds capacities ##
+    # Random selection in data from dataset_europe #
+    gps_facilities = cbind(all_s_stays[, .(fID = unique(fID))],
+                           dataset_europe[sample(1:dataset_europe[,.N], 
+                                                         n_facilities),])
 
-    return(all_s_stays)
+    return(list(all_s_stays = all_s_stays,
+                gps_facilities = gps_facilities))
 }
 
 #' Create a fake subject database with clustering
@@ -163,8 +171,8 @@ create_fake_subjectDB_clustered <- function(n_subjects = 50,
     trFID = data.table(curr_fid = unique(all_s_stays$fID))
     trFID[, new_fid := sample(curr_fid, .N, replace = FALSE)]
     all_s_stays[trFID, fID := new_fid ,on = c("fID" = "curr_fid")]
-
-    return(all_s_stays)              
+    
+    return(all_s_stays)       
 }
 
 #' Create a fake subject stay

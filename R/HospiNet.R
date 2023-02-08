@@ -40,6 +40,7 @@
 #' @field LOSPerHosp the mean length of stay for each facility (read-only)
 #' @field admissions the number of admissions in the entire data base (read-only)
 #' @field admissionsPerHosp the number of admissions to each facility (read-only)
+#' @field facilities (data.table) the facilities id with their geolocalisation (read-only)
 #' @field subjects the number of unique subjects in the data base (read-only)
 #' @field subjectsPerHosp the number of unique subjects admitted to each facility (read-only)
 
@@ -97,6 +98,7 @@ HospiNet <- R6::R6Class("HospiNet",
     .hubs_global=NULL,
     .hubs_infomap=NULL,
     .hubs_fast_greedy=NULL,
+    .facilities = NULL,
 
     plot_hist_degree = function(){
       hd_long = melt(self$hist_degrees, id.vars = "degree")
@@ -301,6 +303,7 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.LOSPerHosp = fsummary[,.(node,LOS)]
         private$.subjectsPerHosp = fsummary[,.(node,subjects)]
         private$.admissionsPerHosp = fsummary[,.(node,admissions)]
+        private$.facilities = fsummary[,.(node, lat, long, beds)]
       }
       if(create_MetricsTable){
         private$.metricsTable=self$metricsTable
@@ -432,6 +435,13 @@ HospiNet <- R6::R6Class("HospiNet",
         
       } else {
         stop("`$n_movements` is read only", call. = FALSE)
+      }
+    },
+    facilities = function(value) {
+      if (missing(value)) {
+        private$.facilities
+      } else {
+        stop("`$facilities` is read only", call. = FALSE)
       }
     },
     

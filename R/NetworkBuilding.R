@@ -510,8 +510,15 @@ hospinet_from_subject_database <- function(base,
       message("No connections satisfying the conditions were found in the database. Aborting.")
       return(NULL)
     }
+    
+    facilitySummary = per_facility_summary(base)
 
-  facilitySummary = per_facility_summary(base)
+    ## Adding geolocalisation and capacities data ##
+    facilitySummary = merge(facilitySummary,
+                            attr(base, "report")$gps,
+                            by.x = "node",
+                            by.y = "fID")
+  
   
   if (!is.null(shinySession)){
     incProgress(session = shinySession, amount = 0.3)
