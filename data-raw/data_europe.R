@@ -15,10 +15,11 @@ library(roxygen2)
 ## 2-          LONG, LAT AND BEDS INFO BY CONTRIES IN EUROPE                   ##
 #################################################################################
 data_europe = fread("./inst/extdata/healthcareCsv/all.csv")
-summary(data)
+summary(data_europe)
 usethis::use_data_raw("data_europe")
-data$beds <- rpois(data[,.N], lambda= 200) #imputation of the nb od beds sinc we had a lot of NA in the initial beds info
+data_europe$beds <- rpois(data_europe[,.N], lambda= 200) #imputation of the nb od beds sinc we had a lot of NA in the initial beds info
 usethis::use_data(data_europe, overwrite = TRUE)
+save(data_europe, file = "./inst/extdata/healthcareCsv/data_europe.RData")
 
 # devtools::document() #to generate the documentation
 
