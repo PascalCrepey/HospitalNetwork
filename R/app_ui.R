@@ -13,23 +13,23 @@ app_ui <- function() {
       shinydashboard::dashboardSidebar(
         shinydashboard::sidebarMenu(id = "mainSidebar",
                                     shinydashboard::menuItem("Upload and check",
-                         tabName = "upload",
-                         icon = icon("upload")),
+                                                             tabName = "upload",
+                                                             icon = icon("upload")),
                          shinydashboard::menuItem("Construct network",
-                         tabName = "construct",
-                         icon = icon("wrench")),
+                                                  tabName = "construct",
+                                                  icon = icon("wrench")),
                          shinydashboard::menuItem("Database",
-                         tabName = "database",
-                         icon = icon("database")),
+                                                  tabName = "database",
+                                                  icon = icon("database")),
                          shinydashboard::menuItem("Network",
-                         tabName = "network",
-                         icon = icon("connectdevelop")),
+                                                  tabName = "network",
+                                                  icon = icon("connectdevelop")),
+                         shinydashboard::menuItem("Map visualisation",
+                                                  tabName = "map",
+                                                  icon = icon("map")),
                          shinydashboard::menuItem("Statistics and metrics",
-                         tabName = "stat",
-                         icon = icon("clipboard-list")),
-                         shinydashboard::menuItem("Beds geolocalisation",
-                                                  tabName = "Map",
-                                                  icon = icon("map"))
+                                                  tabName = "stat",
+                                                  icon = icon("clipboard-list"))
                 ), width = "200px"
         ),
       shinydashboard::dashboardBody(
@@ -52,7 +52,7 @@ app_ui <- function() {
                         mod_statmet_ui("statmet_ui_1")
                         ),
               shinydashboard::tabItem(tabName = "map",
-                                      mod_map_ui("mod_map_ui_1")
+                                      mod_map_ui("map_ui_1")
               )
 
                  )

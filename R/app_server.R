@@ -18,7 +18,7 @@ app_server <- function(input, output, session) {
     net = callModule(mod_construct_network_server, "construct_network_ui_1", base)
     callModule(mod_network_server, "network_ui_1", net)
     callModule(mod_statmet_server, "statmet_ui_1", net)
-    callModule(mod_map_server, "mod_map_ui_1", net)
+    callModule(mod_map_server, "map_ui_1", net)
 
     output$messageMenu <- renderMenu({
         # Code to generate each of the messageItems here, in a list. This assumes

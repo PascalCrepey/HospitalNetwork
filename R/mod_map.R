@@ -2,32 +2,51 @@
 #'
 #' @description A shiny Module to create the map of the network using leaflet.
 #'
-#' @param id,input,output,session Internal parameters for {shiny}.
+#' @param id shiny id
+#' @param input internal
+#' @param output internal
+#' @param session internal
 #'
-#' @noRd
+#' @rdname mod_map
 #'
-#' @importFrom shiny NS tagList
+#' @keywords internal
+#' @export 
+#' @importFrom shiny NS tagList 
+#' @import leaflet
 mod_map_ui <- function(id){
   ns <- NS(id)
   tagList(
-    leafletOutput("mymap")
+    div(id = ns("hideUI"),
+        "The network has not been constructed yet"),
+    div(id = ns("showUI"),
+        fluidPage(
+          leafletOutput(ns("mymap")))
+        )
   )
 }
 
 #' map Server Functions
 #'
-#' @noRd
-mod_map_server <- function(id){
-  moduleServer( id, function(input, output, session){
+#' @rdname mod_map
+#' @export
+#' @keywords internal
+#' @import leaflet
+#' @importFrom leaflet.minicharts addFlows
+mod_map_server <- function(input, output, session, net){
     ns <- session$ns
 
-    # Join the two datasets using the "origin" and "target" variables
-    data_flow <- merge(net()$edgelist, net()$facilities, by.x = "origin", by.y = "beds")
-    data_flow <- merge(data_flow, net()$facilities, by.x = "target", by.y = "beds",
-                       suffixes = c("_origin", "_target"))
-
+    observe({
+      shinyjs::toggle("hideUI", condition = is.null(net()))
+      shinyjs::toggle("showUI", condition = !is.null(net()))
+    })
+    
+    # # Join the two datasets using the "origin" and "target" variables
+    # data_flow <- merge(net()$edgelist, net()$facilities, by.x = "origin", by.y = "beds")
+    # data_flow <- merge(data_flow, net()$facilities, by.x = "target", by.y = "beds",
+    #                    suffixes = c("_origin", "_target"))
+    
     # output$mymap <- renderLeaflet({
-    #   leaflet(net()$facilities) %>%
+    #   leaflet(dataset_europe[country == "France"]) %>%
     #     addTiles() %>%
     #     addCircleMarkers(lng = ~long,
     #                      lat = ~lat,
@@ -35,27 +54,30 @@ mod_map_server <- function(id){
     #                      popup = paste(#"Nom de l'hôpital:", hospital_name, "<br>",
     #                                    "Nombre de lits:", ~beds),
     #                      color = "#20B2AA",
-    #                      fillOpacity = 0.7) #%>%
+    #                      fillOpacity = 0.7)
     # })
-
+    # 
     output$mymap <- renderLeaflet({
+      data_flow <- merge(net()$edgelist, net()$facilities, by.x = "origin", by.y = "node")
+      data_flow <- merge(data_flow, net()$facilities, by.x = "target", by.y = "node",
+                         suffixes = c("_origin", "_target"))
       leaflet(data_flow) %>%
         addTiles() %>%
-        addCircleMarkers(lng = ~longitude_origin,
-                         lat = ~latitude_origin,
+        addCircleMarkers(lng = ~long_origin,
+                         lat = ~lat_origin,
                          radius = ~beds_origin/1000,
-                         popup = paste("Nombre de lits (origine):", ~beds_origin),
+                         popup = paste0("Capacity = ", ~beds_origin, " beds"),
                          color = "#20B2AA",
                          fillOpacity = 0.7) %>%
-        addArrows(lng0 = ~longitude_origin,
-                  lat0 = ~latitude_origin,
-                  lng1 = ~longitude_target,
-                  lat1 = ~latitude_target,
-                  arrowLength = 5,
-                  color = "blue",
-                  weight = 2)
+        addFlows(lng0 = data_flow$long_origin,
+                 lat0 = data_flow$lat_origin,
+                 lng1 = data_flow$long_target,
+                 lat1 = data_flow$lat_target,
+                 flow = data_flow$N,
+                 color = "blue",
+                 maxThickness = 1,
+                 opacity = 0.4)
     })
-  })
 }
 
 ## To be copied in the UI
