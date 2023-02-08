@@ -20,7 +20,8 @@ mod_map_ui <- function(id){
         "The network has not been constructed yet"),
     div(id = ns("showUI"),
         fluidPage(
-          leafletOutput(ns("mymap")))
+          leafletOutput(ns("mymap")),
+          uiOutput(ns("min_flow_UI")))
         )
   )
 }
@@ -39,44 +40,41 @@ mod_map_server <- function(input, output, session, net){
       shinyjs::toggle("hideUI", condition = is.null(net()))
       shinyjs::toggle("showUI", condition = !is.null(net()))
     })
-    
-    # # Join the two datasets using the "origin" and "target" variables
-    # data_flow <- merge(net()$edgelist, net()$facilities, by.x = "origin", by.y = "beds")
-    # data_flow <- merge(data_flow, net()$facilities, by.x = "target", by.y = "beds",
-    #                    suffixes = c("_origin", "_target"))
-    
-    # output$mymap <- renderLeaflet({
-    #   leaflet(dataset_europe[country == "France"]) %>%
-    #     addTiles() %>%
-    #     addCircleMarkers(lng = ~long,
-    #                      lat = ~lat,
-    #                      radius = ~beds/1000,
-    #                      popup = paste(#"Nom de l'hôpital:", hospital_name, "<br>",
-    #                                    "Nombre de lits:", ~beds),
-    #                      color = "#20B2AA",
-    #                      fillOpacity = 0.7)
-    # })
-    # 
-    output$mymap <- renderLeaflet({
-      data_flow <- merge(net()$edgelist, net()$facilities, by.x = "origin", by.y = "node")
-      data_flow <- merge(data_flow, net()$facilities, by.x = "target", by.y = "node",
+
+    output$mymap = renderLeaflet({
+      data_flow = merge(net()$edgelist, 
+                         net()$facilities, 
+                         by.x = "origin", by.y = "node")
+      data_flow = merge(data_flow, 
+                         net()$facilities, 
+                         by.x = "target", by.y = "node",
                          suffixes = c("_origin", "_target"))
+      
       leaflet(data_flow) %>%
         addTiles() %>%
         addCircleMarkers(lng = ~long_origin,
                          lat = ~lat_origin,
                          radius = ~beds_origin/1000,
-                         popup = paste0("Capacity = ", ~beds_origin, " beds"),
+                         popup = paste("Capacity = ", data_flow$beds_origin, " beds"),
                          color = "#20B2AA",
                          fillOpacity = 0.7) %>%
-        addFlows(lng0 = data_flow$long_origin,
-                 lat0 = data_flow$lat_origin,
-                 lng1 = data_flow$long_target,
-                 lat1 = data_flow$lat_target,
-                 flow = data_flow$N,
+        addFlows(lng0 = data_flow[N >= input$min_flow, long_origin],
+                 lat0 = data_flow[N >= input$min_flow, lat_origin],
+                 lng1 = data_flow[N >= input$min_flow, long_target],
+                 lat1 = data_flow[N >= input$min_flow, lat_target],
+                 flow = data_flow[N >= input$min_flow, N],
                  color = "blue",
                  maxThickness = 1,
-                 opacity = 0.4)
+                 opacity = 0.3)
+    })
+    
+    # UI for minimal flow ----
+    output$min_flow_UI <- renderUI({
+      sliderInput(ns("min_flow"), "Minimal flow to be shown", 
+                  min = 1, 
+                  max = max(net()$edgelist$N), 
+                  step = 1,
+                  value = max(net()$edgelist$N))
     })
 }
 

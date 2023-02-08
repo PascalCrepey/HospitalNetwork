@@ -296,7 +296,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
       dgUI = div(style="display: inline-block;vertical-align:top;padding-top:10px",
                            downloadButton(ns("downloadCheckedBase"),
                                           label = "Download checked base"),
-                           actionButton(ns("goToConstruct"), "go to network", icon = icon("forward"))
+                           actionButton(ns("goToConstruct"), "Go to network", icon = icon("forward"))
       )
       return(dgUI)
     })
