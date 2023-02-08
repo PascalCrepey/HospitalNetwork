@@ -1,6 +1,6 @@
 #' @import shiny
 #' @import shinydashboard
-#' 
+#'
 app_ui <- function() {
   tagList(
     # Leave this function for adding external resources
@@ -8,7 +8,7 @@ app_ui <- function() {
     # List the first level UI elements here
     shinydashboard::dashboardPage(
       shinydashboard::dashboardHeader(title = "HospitalNetwork",
-                        titleWidth = "200px", 
+                        titleWidth = "200px",
                         shinydashboard::dropdownMenuOutput("messageMenu")),
       shinydashboard::dashboardSidebar(
         shinydashboard::sidebarMenu(id = "mainSidebar",
@@ -26,7 +26,10 @@ app_ui <- function() {
                          icon = icon("connectdevelop")),
                          shinydashboard::menuItem("Statistics and metrics",
                          tabName = "stat",
-                         icon = icon("clipboard-list"))
+                         icon = icon("clipboard-list")),
+                         shinydashboard::menuItem("Beds geolocalisation",
+                                                  tabName = "Map",
+                                                  icon = icon("map"))
                 ), width = "200px"
         ),
       shinydashboard::dashboardBody(
@@ -47,7 +50,11 @@ app_ui <- function() {
                         ),
               shinydashboard::tabItem(tabName = "stat",
                         mod_statmet_ui("statmet_ui_1")
-                        )
+                        ),
+              shinydashboard::tabItem(tabName = "map",
+                                      mod_map_ui("mod_map_ui_1")
+              )
+
                  )
         )
     )
@@ -56,11 +63,11 @@ app_ui <- function() {
 
 #' @import shiny
 golem_add_external_resources <- function(){
-  
+
   addResourcePath(
     'www', system.file('app/www', package = 'HospitalNetwork')
   )
-  
+
   tags$head(
     golem::activate_js(),
     golem::favicon()
