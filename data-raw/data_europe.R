@@ -1,17 +1,24 @@
-## code to prepare `data_europe` dataset goes here
+#' @title Preparation du jeu de données `data_europe`
+#' @description Ce script prépare le jeu de données `data_europe` en mentionnant les coordonnées GPS et les capacités de lit des hôpitaux générés par distr de Poisson et mean=200
+#' @param data_europe un data.frame contenant les données sur les hôpitaux en Europe
+#' @return un objet de type data.frame contenant les données sur les hôpitaux en Europe avec les inform
+
+#################################################################################
+## 1-                    TELECHARGEMENT DES PACKAGES                           ##
+#################################################################################
 library(data.table)
 library(readr)
 library(ggplot2)
+library(roxygen2)
 
-
-## Loading of GPS coordinates and capacity beds of hospitals ##
-data_europe = fread("./inst/extdata/heltcareCsv/all.csv")
+#################################################################################
+## 2-          LONG, LAT AND BEDS INFO BY CONTRIES IN EUROPE                   ##
+#################################################################################
+data_europe = fread("./inst/extdata/healthcareCsv/all.csv")
 summary(data)
 usethis::use_data_raw("data_europe")
-
 data$beds <- rpois(data[,.N], lambda= 200) #imputation of the nb od beds sinc we had a lot of NA in the initial beds info
-
 usethis::use_data(data_europe, overwrite = TRUE)
 
-
+# devtools::document() #to generate the documentation
 
