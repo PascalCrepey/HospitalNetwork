@@ -31,7 +31,9 @@ Imports:
     shinydashboard,
     DT,
     shinyalert,
-    shinyjs
+    shinyjs,
+    leaflet,
+    leaflet.minicharts
 Depends: 
     data.table,
     R (>= 2.10)
