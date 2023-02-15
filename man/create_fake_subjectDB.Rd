@@ -31,7 +31,7 @@ create_fake_subjectDB(
 \item{with_errors}{(boolean) introduce or not random errors in the database. Default to FALSE.}
 }
 \value{
-a data.table containing all subjects stays
+a list of two data.tables containing all subjects stays and gps coordinates with beds capacities
 }
 \description{
 Create a fake subject database

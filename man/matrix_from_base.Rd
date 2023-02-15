@@ -8,6 +8,7 @@ matrix_from_base(
   base,
   window_threshold = 365,
   count_option = "successive",
+  prob_params = c(0.0036, 1/365, 0.128),
   condition = "dates",
   noloops = TRUE,
   nmoves_threshold = NULL,
@@ -29,8 +30,19 @@ at two facilities occurred within this window, this constitutes a
 connection between the two facilities (given that potential other
 conditions are met).}
 
-\item{count_option}{(character) How to count connections. Either "successive"
-or "all". See details.}
+\item{count_option}{(character) How to count connections. Options are 
+"successive", "probability" or "all". See details.}
+
+\item{prob_params}{(vector of numeric) Three numerical values to calculate 
+the probability that a movement causes an introduction from hospital A 
+to hospital B. See Donker et al. (PLoS CB 2010) for more details. 
+For use with count_option="probability".
+prob_params[1] is the rate of acquisition in hospital A (related to LOS 
+in hospital A). Default: 0.0036
+prob_params[2] is the rate of loss of colonisation (related to time 
+between admissions). Default: 1/365
+prob_params[4] is the rate of transmission to other patients in hospital 
+B (related to LOS in hospital B). Default: 0.128}
 
 \item{condition}{(character) Condition(s) used to decide what constitutes a
 connection. Can be "dates", "flags", or "both". See details.}
