@@ -16,13 +16,17 @@
 mod_map_ui <- function(id){
   ns <- NS(id)
   tagList(
-    div(id = ns("hideUI"),
+    div(id = ns("hideUI_net"),
         "The network has not been constructed yet"),
+    div(id = ns("hideUI_gps"),
+        "You did not provide GPS coordinates"),
     div(id = ns("showUI"),
-        fluidPage(
-          leafletOutput(ns("mymap")),
-          uiOutput(ns("min_flow_UI")))
-        )
+        fluidPage(fluidRow(
+          column(9,leafletOutput(ns("mymap"),
+                                 height = 800)),
+          column(3,uiOutput(ns("min_flow_UI"))))
+        ))
+        
   )
 }
 
@@ -37,8 +41,11 @@ mod_map_server <- function(input, output, session, net){
     ns <- session$ns
 
     observe({
-      shinyjs::toggle("hideUI", condition = is.null(net()))
-      shinyjs::toggle("showUI", condition = !is.null(net()))
+      shinyjs::toggle("hideUI_net", condition = is.null(net()))
+      shinyjs::toggle("hideUI_gps", condition = (!is.null(net()) & 
+                                                   all(is.na(net()$facilities$lat))))
+      shinyjs::toggle("showUI", condition = (!is.null(net()) & 
+                                               any(!is.na(net()$facilities$lat))))
     })
 
     output$mymap = renderLeaflet({
@@ -49,23 +56,31 @@ mod_map_server <- function(input, output, session, net){
                          net()$facilities, 
                          by.x = "target", by.y = "node",
                          suffixes = c("_origin", "_target"))
+      req(input$min_flow)
+      data_flow = data_flow[N >= input$min_flow,]
+      
+      flows <- gcIntermediate(data_flow[, .(long_origin, lat_origin)], 
+                              data_flow[, .(long_target, lat_target)], 
+                              sp = TRUE, addStartEnd = TRUE)
+      flows$counts <- data_flow$N
+      flows$origins <- data_flow$origin
+      flows$destinations <- data_flow$target
       
       leaflet(data_flow) %>%
         addTiles() %>%
         addCircleMarkers(lng = ~long_origin,
                          lat = ~lat_origin,
                          radius = ~beds_origin/1000,
-                         popup = paste("Capacity = ", data_flow$beds_origin, " beds"),
+                         popup = paste("Capacity = ", data_flow$beds_origin, " beds", sep = ""),
                          color = "#20B2AA",
-                         fillOpacity = 0.7) %>%
-        addFlows(lng0 = data_flow[N >= input$min_flow, long_origin],
-                 lat0 = data_flow[N >= input$min_flow, lat_origin],
-                 lng1 = data_flow[N >= input$min_flow, long_target],
-                 lat1 = data_flow[N >= input$min_flow, lat_target],
-                 flow = data_flow[N >= input$min_flow, N],
-                 color = "blue",
-                 maxThickness = 1,
-                 opacity = 0.3)
+                         fillOpacity = 0.9) %>%
+        addArrowhead(data = flows,
+                     weight = 1,
+                     label = paste("From ", flows$origins, " to ", flows$destinations, " (n=", 
+                                   flows$counts, ")", sep = ""),
+                     opacity = 0.5, 
+                     options = arrowheadOptions(yawn = 40, frequency = "endonly", 
+                                                fill = TRUE))
     })
     
     # UI for minimal flow ----
@@ -74,7 +89,7 @@ mod_map_server <- function(input, output, session, net){
                   min = 1, 
                   max = max(net()$edgelist$N), 
                   step = 1,
-                  value = max(net()$edgelist$N))
+                  value = pmax(1, max(net()$edgelist$N) - 2))
     })
 }
 
