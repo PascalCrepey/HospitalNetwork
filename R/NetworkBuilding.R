@@ -517,7 +517,8 @@ hospinet_from_subject_database <- function(base,
     facilitySummary = merge(facilitySummary,
                             attr(base, "report")$gps,
                             by.x = "node",
-                            by.y = "fID")
+                            by.y = "fID",
+                            all.x = TRUE)
   
   
   if (!is.null(shinySession)){

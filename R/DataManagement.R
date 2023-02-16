@@ -9,12 +9,17 @@
 #'
 #' Function that performs various checks to ensure the database is correctly formatted, and adjusts overlapping patient records.
 #'
-#' @param base (data.table).
+#' @param base (list).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
 #'         sID: patientID (character)
 #'         fID: facilityID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
+#'     An optional database with GPS coordinates of facilities and bed capacities. The data.table should have at least the following columns:
+#'         fID: facilityID (character)
+#'         lat: latitude of the facility (double)
+#'         long: longitude of the facility (double)
+#'         beds: bed capacity in the facility (integer)
 #' @param deleteMissing (character) How to handle records that contain a missing value in at least one of the four mandatory variables:
 #' NULL (default): do not delete. Stops the function with an error message.
 #' "record": deletes just the incorrect record.
@@ -104,6 +109,9 @@ checkBase <- function(base,
                       facilityID = "fID",
                       disDate = "Ddate",
                       admDate = "Adate",
+                      facilityLat = "lat",
+                      facilityLong = "long",
+                      facilityBed = "beds",
                       maxIteration = 25,
                       retainAuxData = TRUE,
                       verbose = TRUE,
@@ -111,6 +119,7 @@ checkBase <- function(base,
 {
     report = list()
     report$base = copy(base$all_s_stays)
+    report$gps_base = copy(base$gps_facilities)
     
     #--- Check columns names for all_s_stays ------------------------------------------------------------------------
     tableCols = colnames(report$base)
@@ -144,6 +153,31 @@ checkBase <- function(base,
                                       ...)
     if (verbose) message("Done.")
     
+    #--- Check columns names for gps data ------------------------------------------------------------------------
+    if(!is.null(report$gps_base)){ # A datatable with gps coordinates is provided
+      gps_tableCols = colnames(report$gps_base)
+      gps_inputCols = c(facilityID, facilityLat, facilityLong, facilityBed)
+      gps_foundCols = intersect(gps_tableCols, gps_inputCols)
+      
+      if (length(gps_foundCols) != 4) {
+        notfound = setdiff(gps_inputCols, gps_foundCols)
+        stop("Column(s) ", paste(notfound, collapse = ", "), " provided as argument were not found in the database.")
+      }
+      # Set column names to default
+      setnames(report$gps_base,
+               old = c(facilityID, facilityLat, facilityLong, facilityBed),
+               new = c("fID", "lat", "long", "beds"))
+      
+      # Check variable format
+      report = checkFormat_gps(report = report,
+                               verbose = verbose)
+    } else { # No datatable is provided
+      report$gps_base = data.table(fID = NA_character_,
+                                         lat = NA_real_,
+                                         long = NA_real_,
+                                         beds = NA_integer_)
+    }
+    
     #add the class "hospinet.base" to the list of class so that we can easily
     #identify whether the base has been checked or not.
     if (!inherits(report$base, "hospinet.base")) class(report$base) <- c("hospinet.base", class(report$base))
@@ -174,7 +208,7 @@ checkBase <- function(base,
       TBAdistribution = dataSummary$TBAdistribution,
       
       # GPS data
-      gps = base$gps_facilities
+      gps = report$gps_base
     )
     return(report$base)
 }
@@ -540,4 +574,63 @@ adjust_overlaps <- function(report,
     report$base = base
     report$addedAOS = nrow(additional_stays)
     return(report)
+}
+
+
+
+#' Check database format for GPS coordinates and bed capacities
+#'
+#' Function that performs various generic checks to ensure that the GPS database has the correct format
+#'
+#' @param report (list).
+#'     A list containing the base and in which will be stored reporting variables.
+#'     The database with GPS coordinates of facilities and bed capacities. The data.table should have at least the following columns:
+#'         fID: facilityID (character)
+#'         lat: latitude of the facility (double)
+#'         long: longitude of the facility (double)
+#'         beds: bed capacity in the facility (integer)
+#' @param verbose (boolean) print diagnostic messages. Default is FALSE.
+#'
+#' @return Returns either an error message, or the database (modified if need be).
+#'
+checkFormat_gps <- function(report,
+                            verbose = TRUE)
+{
+  #--- Check data format -------------------------------------------------------------------------
+  if (!"data.frame" %in% class(report$gps_base)) {
+    stop("The database must be either a data.frame or a data.table object")
+  } else if (!"data.table" %in% class(report$gps_base)) {
+    setDT(report$gps_base)
+    if (verbose) message("Converting database to a data.table object")
+  }
+  #--- Register the original size of the dataset --------------------------------------------------
+  report$originalSize = report$gps_base[,.N]
+  
+  #--- Check format of columns ----------------------------------------------------
+  charCols = "fID"
+  types = sapply(charCols, function(x) typeof(report$gps_base[[x]]))
+  wrong = names(types[types != "character"])
+  if (length(wrong)) {
+    if (verbose) message("Converting column(s) ", paste(wrong, collapse = ", "), " to type character")
+    report$gps_base[, `:=`(fID = as.character(fID))]
+  }
+  
+  doubleCols = c("lat","long")
+  types = sapply(doubleCols, function(x) typeof(report$gps_base[[x]]))
+  wrong = names(types[types != "double"])
+  if (length(wrong)) {
+    if (verbose) message("Converting column(s) ", paste(wrong, collapse = ", "), " to type double")
+    report$gps_base[, `:=`(lat = as.numeric(lat),
+                           long = as.numeric(long))]
+  }
+  
+  intCols = "beds"
+  types = sapply(intCols, function(x) typeof(report$gps_base[[x]]))
+  wrong = names(types[types != "integer"])
+  if (length(wrong)) {
+    if (verbose) message("Converting column(s) ", paste(wrong, collapse = ", "), " to type integer")
+    report$gps_base[, `:=`(beds = as.integer(beds))]
+  }
+  
+  return(report)
 }

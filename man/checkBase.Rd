@@ -14,6 +14,9 @@ checkBase(
   facilityID = "fID",
   disDate = "Ddate",
   admDate = "Adate",
+  facilityLat = "lat",
+  facilityLong = "long",
+  facilityBed = "beds",
   maxIteration = 25,
   retainAuxData = TRUE,
   verbose = TRUE,
@@ -21,12 +24,17 @@ checkBase(
 )
 }
 \arguments{
-\item{base}{(data.table).
+\item{base}{(list).
 A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
     sID: patientID (character)
     fID: facilityID (character)
     Adate: admission date (POSIXct, but character can be converted to POSIXct)
-    Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
+    Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
+An optional database with GPS coordinates of facilities and bed capacities. The data.table should have at least the following columns:
+    fID: facilityID (character)
+    lat: latitude of the facility (double)
+    long: longitude of the facility (double)
+    beds: bed capacity in the facility (integer)}
 
 \item{convertDates}{(boolean) indicating if dates need to be converted to POSIXct if they are not}
 

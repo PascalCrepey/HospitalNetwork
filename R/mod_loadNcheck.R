@@ -467,7 +467,6 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
         out = checked()
         if (previously_checked()) {
             base(datatable())
-          #browser()
             #update message board
             mainData$notifications = makeNotification(mainData$notifications, 
                                                       mtype = "database", 
