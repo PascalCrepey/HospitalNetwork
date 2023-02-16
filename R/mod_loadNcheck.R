@@ -147,7 +147,13 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
       # Hospital stays
       user_file = dataset()$datapath
       extension_file = unlist(strsplit(user_file, split = "\\."))[2]
-      if (extension_file == "csv") {
+      if(!extension_file %in% c("csv", "xlsx", "xls", "Rdata", "RData", "rds")){
+        shinyalert::shinyalert(title = "Error",
+                               text = paste0("<div align=left>Error reading file. <br>Format must be one of csv, xlsx, xls, Rdata, RData or rds</div>"),
+                               type = "error",
+                               html = T)
+      }
+      else if (extension_file == "csv") {
         datatable(fread(user_file))
       }
       else if (extension_file == "xlsx") {
@@ -163,13 +169,19 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
       }
       else {
         datatable(readRDS(user_file))
-      } # Add an error if not one of xlsx, xls, Rdata, RData, rds or csv
+      }
       
       if(input$gps_load){
         # GPS and beds data
         gps_user_file = gps_dataset()$datapath
         gps_extension_file = unlist(strsplit(gps_user_file, split = "\\."))[2]
-        if (gps_extension_file == "csv") {
+        if(!gps_extension_file %in% c("csv", "xlsx", "xls", "Rdata", "RData", "rds")){
+          shinyalert::shinyalert(title = "Error",
+                                 text = paste0("<div align=left>Error reading GPS file. <br>Format must be one of csv, xlsx, xls, Rdata, RData or rds</div>"),
+                                 type = "error",
+                                 html = T)
+        }
+        else if (gps_extension_file == "csv") {
           datatable_gps(fread(gps_user_file))
         }
         else if (gps_extension_file == "xlsx") {
@@ -185,9 +197,8 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
         }
         else {
           datatable_gps(readRDS(gps_user_file))
-        } # Add an error if not one of xlsx, xls, Rdata, RData, rds or csv
+        }
       }
-        
     })
     
     previously_checked = eventReactive(input$loadfiles, {
