@@ -36,7 +36,8 @@ mod_map_ui <- function(id){
 #' @export
 #' @keywords internal
 #' @import leaflet
-#' @importFrom leaflet.minicharts addFlows
+#' @importFrom leaflet.extras2 addArrowhead
+#' @importFrom geosphere gcIntermediate
 mod_map_server <- function(input, output, session, net){
     ns <- session$ns
 

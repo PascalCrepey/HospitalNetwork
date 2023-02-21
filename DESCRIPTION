@@ -5,7 +5,8 @@ Version: 0.9.2
 Authors@R: c(
   person("Pascal", "Crépey", email = "pascal.crepey@ehesp.fr", role = c("aut", "cre")),
   person("Tjibbe", "Donker", email = "tjibbe.donker@uniklinik-freiburg.de", role = "aut"),
-  person("Clément", "Massonnaud", email = "clement.massonnaud@gmail.com", role = "aut")
+  person("Clément", "Massonnaud", email = "clement.massonnaud@gmail.com", role = "aut"),
+  person("Jonathan", "Roux", email = "jonathan.roux@santepubliquefrance.fr", role = "aut")
   )
 Description: This R package contains functions to help interested researchers to build 
       hospital networks from data on hospitalized patients transferred between hospitals. 
@@ -33,7 +34,8 @@ Imports:
     shinyalert,
     shinyjs,
     leaflet,
-    leaflet.minicharts
+    leaflet.extras2,
+    geosphere
 Depends: 
     data.table,
     R (>= 2.10)
