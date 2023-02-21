@@ -21,7 +21,7 @@ mod_loadNcheck_ui <- function(id) {
     tabsetPanel(
       tabPanel(title = "Upload and check dataset",
                fileInput(ns("dataset"),
-                         "File",
+                         "File (transfers or already checked database)",
                          buttonLabel = "Browse"),
                checkboxInput(ns("gps_load"), HTML("<b>Add dataset with GPS coordinates and bed capacities</b>")),
                uiOutput(ns("gps_loadUI")),
@@ -147,7 +147,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
       # Hospital stays
       user_file = dataset()$datapath
       extension_file = unlist(strsplit(user_file, split = "\\."))[2]
-      if(!extension_file %in% c("csv", "xlsx", "xls", "Rdata", "RData", "rds")){
+      if(!extension_file %in% c("csv", "xlsx", "xls", "Rdata", "RData", "rds", "RDS")){
         shinyalert::shinyalert(title = "Error",
                                text = paste0("<div align=left>Error reading file. <br>Format must be one of csv, xlsx, xls, Rdata, RData or rds</div>"),
                                type = "error",
@@ -175,7 +175,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
         # GPS and beds data
         gps_user_file = gps_dataset()$datapath
         gps_extension_file = unlist(strsplit(gps_user_file, split = "\\."))[2]
-        if(!gps_extension_file %in% c("csv", "xlsx", "xls", "Rdata", "RData", "rds")){
+        if(!gps_extension_file %in% c("csv", "xlsx", "xls", "Rdata", "RData", "rds", "RDS")){
           shinyalert::shinyalert(title = "Error",
                                  text = paste0("<div align=left>Error reading GPS file. <br>Format must be one of csv, xlsx, xls, Rdata, RData or rds</div>"),
                                  type = "error",
@@ -202,7 +202,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     })
     
     previously_checked = eventReactive(input$loadfiles, {
-        inherits(base(), "hospinet.base")
+        inherits(datatable(), "hospinet.base")
     })
 
     
@@ -476,7 +476,6 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                                                       mtype = "datafile", 
                                                       micon = "file", 
                                                       mtext = paste0("dataset: ",dataset()$name))
-            #browser()
             shinyalert::shinyalert(title = "Database previously checked",
                                    text = "The database was not checked again",
                                    type = "success")
