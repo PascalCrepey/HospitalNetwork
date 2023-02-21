@@ -14,7 +14,14 @@ This first page allows you to upload and check your database. It must contains a
 * **admission date** (Adate): the date of admission of the subject in the facility
 * **discharge date** (Ddate): the date of discharge of the subject from the facility
 
-The database can be in one of three formats: a *csv* file, *Rdata*, or *RDS* files of *data.table* or *data.frame* objects. Columns `sID` and `fID` must be of type *character*, columns `Adate` and `Ddate` must be date-time objects of class *POSIXct*.
+You can also upload another optional database with GPS coordinates and bed capacitie for map visualisation. It must contains at least four columns, corresponding to the minimal variables needed to construct the map:
+
+* **facility ID** (fID): an identifier unique to each facility
+* **latitude** (lat): the latitude of the facility
+* **longitude** (long): the longitude of the facility
+* **bed capacity** (beds): bed capacity in the facility
+
+The databases can be in one of five formats: a *csv*, *xls*, *xlsx* files, *Rdata*, or *RDS* files of *data.table* or *data.frame* objects. Columns `sID` and `fID` must be of type *character*, columns `Adate` and `Ddate` must be date-time objects of class *POSIXct*. Columns `fID` must be of type *character*, columns `lat` and `long` must be of type *double* and column `beds` must be of type *integer*.
 
 #### Upload and check: workflow
 
