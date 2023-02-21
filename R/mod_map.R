@@ -69,12 +69,14 @@ mod_map_server <- function(input, output, session, net){
       
       leaflet(data_flow) %>%
         addTiles() %>%
-        addCircleMarkers(lng = ~long_origin,
-                         lat = ~lat_origin,
-                         radius = ~beds_origin/1000,
-                         popup = paste("Capacity = ", data_flow$beds_origin, " beds", sep = ""),
+        addCircleMarkers(data = net()$facilities,
+                         lng = ~long,
+                         lat = ~lat,
+                         radius = ~beds/100,
+                         popup = paste("Facility ", net()$facilities$node, 
+                                       " (n=", net()$facilities$beds, ")", sep = ""),
                          color = "#20B2AA",
-                         fillOpacity = 0.9) %>%
+                         fillOpacity = 0.1) %>%
         addArrowhead(data = flows,
                      weight = 1,
                      label = paste("From ", flows$origins, " to ", flows$destinations, " (n=", 
