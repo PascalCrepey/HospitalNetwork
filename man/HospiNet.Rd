@@ -4,7 +4,9 @@
 \name{HospiNet}
 \alias{HospiNet}
 \title{Class providing the HospiNet object with its methods}
-\format{\code{\link{R6Class}} object.}
+\format{
+\code{\link{R6Class}} object.
+}
 \value{
 Object of \code{\link{R6Class}} with methods for accessing facility networks.
 }
@@ -37,7 +39,7 @@ For ease of use, it is preferable to use the function \code{\link{hospinet_from_
 
 \examples{
 mydbsmall = create_fake_subjectDB(n_subjects = 1000, n_facilities = 10)
-  
+ 
 hn = hospinet_from_subject_database(base = mydbsmall,
                                     window_threshold = 10,
                                     count_option = "successive",
@@ -143,6 +145,7 @@ plot(hn, type = "clustered_matrix")
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HospiNet$new(
@@ -151,6 +154,7 @@ plot(hn, type = "clustered_matrix")
   window_threshold,
   nmoves_threshold,
   noloops,
+  prob_params,
   fsummary = NULL,
   create_MetricsTable = FALSE
 )}\if{html}{\out{</div>}}
@@ -159,6 +163,7 @@ plot(hn, type = "clustered_matrix")
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-print"></a>}}
+\if{latex}{\out{\hypertarget{method-print}{}}}
 \subsection{Method \code{print()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HospiNet$print()}\if{html}{\out{</div>}}
@@ -167,6 +172,7 @@ plot(hn, type = "clustered_matrix")
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-plot}{}}}
 \subsection{Method \code{plot()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HospiNet$plot(type = "matrix", ...)}\if{html}{\out{</div>}}
@@ -175,6 +181,7 @@ plot(hn, type = "clustered_matrix")
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

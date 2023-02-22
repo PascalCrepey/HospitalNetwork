@@ -37,6 +37,7 @@
 #' matrix_from_edgelist(hn$edgelist, count = "N")
 #' @export
 #' @import data.table
+#' @import checkmate
 #'
 matrix_from_edgelist <- function(edgelist,
                                  origin_name = "origin",

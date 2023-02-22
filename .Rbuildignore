@@ -6,3 +6,4 @@
 ^docs$
 ^.covrignore$
 ^cran-comments\.md$
+^.github$

@@ -51,6 +51,12 @@ The edgelist contains the information on the connections between
     recorded for the pair. If the edgelist is provided in long format, it
     will be aggregated to compute the matrix.
 }
+\examples{
+mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+myBase <- checkBase(mydb)
+hospinet <- hospinet_from_subject_database(myBase)
+matrix_from_edgelist(hn$edgelist, count = "N")
+}
 \seealso{
 \code{\link{edgelist_from_base}}, \code{\link{matrix_from_base}}
 }

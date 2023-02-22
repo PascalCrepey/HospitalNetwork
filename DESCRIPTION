@@ -25,13 +25,7 @@ Imports:
     ggraph,
     glue,
     golem,
-    htmltools,
-    shiny,
-    shinyWidgets,
-    shinydashboard,
-    DT,
-    shinyalert,
-    shinyjs
+    htmltools
 Depends: 
   data.table
 RoxygenNote: 7.2.1
@@ -40,6 +34,11 @@ Suggests:
     qpdf,
     rmarkdown,
     testthat (>= 2.1.0),
-    shinytest
+    shiny,
+    shinyWidgets,
+    shinydashboard,
+    DT,
+    shinyalert,
+    shinyjs
 VignetteBuilder: knitr
 Language: en-US
