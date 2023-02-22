@@ -126,9 +126,9 @@ create_fake_subjectDB <- function(n_subjects = 100,
 #' @param n_clusters the number of cluster in the network
 #'
 #' @return a data.table containing all subjects stays
+#' @examples
 #' mydb <- create_fake_subjectDB_clustered(n_subjects = 100, n_facilities = 10)
 #' mydb
-#'
 #' @export
 #'
 create_fake_subjectDB_clustered <- function(n_subjects = 50,
