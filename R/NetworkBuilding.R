@@ -530,7 +530,7 @@ edgelist_from_base <- function(base,
 #' @examples
 #' mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
 #' myBase <- checkBase(mydb)
-#' hospinet_from_subject_databasse(myBase)
+#' hospinet_from_subject_database(myBase)
 hospinet_from_subject_database <- function(base,
                                            window_threshold = 365,
                                            count_option = "successive",
