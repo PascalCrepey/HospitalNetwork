@@ -30,6 +30,11 @@
 #'     recorded for the pair. If the edgelist is provided in long format, it
 #'     will be aggregated to compute the matrix.
 #' @seealso \code{\link{edgelist_from_base}}, \code{\link{matrix_from_base}}
+#' @examples
+#' mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+#' myBase <- checkBase(mydb)
+#' hospinet <- hospinet_from_subject_database(myBase)
+#' matrix_from_edgelist(hn$edgelist, count = "N")
 #' @export
 #' @import data.table
 #'
@@ -113,8 +118,23 @@ matrix_from_edgelist <- function(edgelist,
 #'
 #' @inheritParams edgelist_from_base
 #' @return A square matrix, the adjacency matrix of the network.
-#' @details TODO
+#' @details The edgelist contains the information on the connections between
+#'     nodes of the network, that is the movements of subjects between
+#'     facilities. The edgelist can be in two different formats: long or
+#'     aggregated. In long format, each row corresponds to a single movement
+#'     between two facilities, therefore only two columns are needed, one
+#'     containing the origin facilities of a movement, the other containing the
+#'     target facilities. In aggregated format, the edgelist is aggregated by
+#'     unique pairs of origin-target facilities. Thus, each row corresponds to a
+#'     unique connection between two facilities, and the table contains an
+#'     additional variable which is the count of the number of movements
+#'     recorded for the pair. If the edgelist is provided in long format, it
+#'     will be aggregated to compute the matrix.
 #' @seealso \code{\link{edgelist_from_base}}, \code{\link{matrix_from_edgelist}}
+#' @examples
+#' mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+#' myBase <- checkBase(mydb)
+#' matrix_from_base(myBase)
 #' @export
 matrix_from_base <- function(base,
                              window_threshold = 365,
@@ -207,7 +227,18 @@ matrix_from_base <- function(base,
 #' @return A list of two data.tables, which are the edgelists. One in long
 #'     format (el_long), and one aggregated by pair of nodes (el_aggr).
 #'
-#' @details TODO
+#' @details The edgelist contains the information on the connections between
+#'     nodes of the network, that is the movements of subjects between
+#'     facilities. The edgelist can be in two different formats: long or
+#'     aggregated. In long format, each row corresponds to a single movement
+#'     between two facilities, therefore only two columns are needed, one
+#'     containing the origin facilities of a movement, the other containing the
+#'     target facilities. In aggregated format, the edgelist is aggregated by
+#'     unique pairs of origin-target facilities.
+#' @examples
+#' mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+#' myBase <- checkBase(mydb)
+#' edgelist_from_base(myBase)
 #' @seealso \code{\link{matrix_from_edgelist}}, \code{\link{matrix_from_base}}
 #' @export
 #'
@@ -484,12 +515,21 @@ edgelist_from_base <- function(base,
 #' @param verbose TRUE to print computation steps
 #' @param shinySession (NULL) internal variable to deal with the progress bar
 #'
+#' @details This function will build a HospiNet object from a line-listed
+#' subject database. The HospiNet object has all of the functions stored as
+#' active bindings which can be accessed in the usual way. For more info, see
+#' \code{\link{HospiNet}}.
+#' Note that the subject database will need to be run through \code{\link{checkBase}}
+#' before going into this function.
+#'
 #' @seealso \code{\link{HospiNet}}
 #'
 #' @return The function returns a HospiNet object.
 #' @export
 #' @examples
-#' # TODO
+#' mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+#' myBase <- checkBase(mydb)
+#' hospinet_from_subject_databasse(myBase)
 hospinet_from_subject_database <- function(base,
                                            window_threshold = 365,
                                            count_option = "successive",
