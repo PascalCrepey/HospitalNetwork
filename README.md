@@ -14,7 +14,14 @@ The aim of the project is to provide a common framework to build and analyze hos
 This project is partly supported by the NeWIS (NetWorks to Improve Surveillance) initiative, funded by JPIAMR, and by Sphinx project, funded by ANR.
 
 ### Step 0: Installing the package:
-- To install packages from GitHub, the package “devtools” needs to be installed first
+
+You can install the release version of this package from CRAN as follows:
+```R
+install.packages("HospitalNetwork")
+```
+
+Or you can install the development version from GitHub:
+- The package `devtools` needs to be installed first
 ```R
 install.packages("devtools")
 library(“devtools”)
