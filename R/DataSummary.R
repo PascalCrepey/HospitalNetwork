@@ -21,7 +21,7 @@
 #'         Ddate: discharge date (date)
 #' @param verbose (boolean) print diagnostic messages. Default is TRUE.
 #' @param ... other parameters passed on to internal functions
-#' 
+#'
 #' @return a list of summary statistics:
 #'         -   meanLOS: The mean length of stay, in days
 #'         -   meanTBA: The mean time between admissions, in days
@@ -30,26 +30,30 @@
 #'         -   numFacilities: Number of unique facilities
 #'         -   LOSdistribution: Distribution of length of stay
 #'         -   TBAdistribution: Distribution of time between admissions
-#'         
+#'
+#' @examples
+#' mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+#' myBase <- checkBase(mydb)
+#' all_admissions_summary(myBase)
 #' @export
-#' 
-all_admissions_summary<-function(base,
-                                 verbose = FALSE,
-                                 ...){
+#'
+all_admissions_summary <- function(base,
+                                   verbose = FALSE,
+                                   ...) {
   if (!inherits(base, "hospinet.base")) {
     stop("Cannot compute admission summary: the database must first be checked with the
              function 'checkBase()'. See the vignettes for more details on the
              workflow of the package.")
   }
-  
-  sumStats<-list()
-  
-  LOS = difftime(base[,Ddate], base[,Adate], units = "days")
 
-  N = base[, .N]
-  C1 = base[, sID][-N] == base[, sID][-1]
-  TBA = difftime(base[,Adate][-1], base[,Ddate][-N], units = "days")[C1]
-  
+  sumStats <- list()
+
+  LOS <- difftime(base[, Ddate], base[, Adate], units = "days")
+
+  N <- base[, .N]
+  C1 <- base[, sID][-N] == base[, sID][-1]
+  TBA <- difftime(base[, Adate][-1], base[, Ddate][-N], units = "days")[C1]
+
   sumStats$meanLOS <- mean(LOS)
   sumStats$meanTBA <- mean(TBA)
   sumStats$totalAdmissions <- nrow(base)
@@ -58,9 +62,9 @@ all_admissions_summary<-function(base,
   sumStats$LOSdistribution <- table(LOS)
   sumStats$TBAdistribution <- table(TBA)
 
-  if(verbose) print(paste("Average LOS, overnight stays ",mean(LOS)))
-  if(verbose) print(paste("Average TBA ",mean(TBA)))
-  
+  if (verbose) print(paste("Average LOS, overnight stays ", mean(LOS)))
+  if (verbose) print(paste("Average TBA ", mean(TBA)))
+
   return(sumStats)
 }
 
@@ -74,38 +78,45 @@ all_admissions_summary<-function(base,
 #'         Ddate: discharge date (date)
 #' @param verbose (boolean) print diagnostic messages. Default is TRUE.
 #' @param ... other parameters passed on to internal functions
-#' 
+#'
 #' @return a data table with one row per facility, showing mean LOS, number of subjects, and number of admissions
-#' 
+#' @examples
+#' mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+#' myBase <- checkBase(mydb)
+#' per_facility_summary(myBase)
 #' @export
 
-per_facility_summary<-function(base,
-                               verbose = FALSE,
-                               ...){
+per_facility_summary <- function(base,
+                                 verbose = FALSE,
+                                 ...) {
   if (!inherits(base, "hospinet.base")) {
     stop("Cannot compute facility summary: the database must first be checked with the
              function 'checkBase()'. See the vignettes for more details on the
              workflow of the package.")
   }
-  
-  losPerHosp<-(base[, .(mean(difftime(Ddate,Adate,units="days"))), by = fID])
-  #losPerHosp<-as.numeric(losPerHosp,units="days")
-  
-  setnames(losPerHosp,c("node","LOS"))
-  data.table::setkey(losPerHosp,node)
-  
-  subjectsPerHosp<- base[,uniqueN(.SD), .SDcols="sID", by = fID]
-  setnames(subjectsPerHosp,c("node","subjects"))
-  data.table::setkey(subjectsPerHosp,node)
-  
-  admissionsPerHosp<-(base[, .N, by = fID])
-  setnames(admissionsPerHosp,c("node","admissions"))
-  data.table::setkey(admissionsPerHosp,node)
 
-  sumStats<-Reduce(function(x,y) merge(x = x, y = y, all = TRUE),
-                   list(losPerHosp,
-                        admissionsPerHosp,
-                        subjectsPerHosp))
-  
+  losPerHosp <- (base[, .(mean(difftime(Ddate, Adate, units = "days"))), by = fID])
+  # losPerHosp<-as.numeric(losPerHosp,units="days")
+
+  setnames(losPerHosp, c("node", "LOS"))
+  data.table::setkey(losPerHosp, node)
+
+  subjectsPerHosp <- base[, uniqueN(.SD), .SDcols = "sID", by = fID]
+  setnames(subjectsPerHosp, c("node", "subjects"))
+  data.table::setkey(subjectsPerHosp, node)
+
+  admissionsPerHosp <- (base[, .N, by = fID])
+  setnames(admissionsPerHosp, c("node", "admissions"))
+  data.table::setkey(admissionsPerHosp, node)
+
+  sumStats <- Reduce(
+    function(x, y) merge(x = x, y = y, all = TRUE),
+    list(
+      losPerHosp,
+      admissionsPerHosp,
+      subjectsPerHosp
+    )
+  )
+
   return(sumStats)
 }
