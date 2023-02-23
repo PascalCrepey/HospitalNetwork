@@ -9,6 +9,7 @@ hospinet_from_subject_database(
   window_threshold = 365,
   count_option = "successive",
   condition = "dates",
+  prob_params = c(0.0036, 1/365, 0.128),
   noloops = TRUE,
   nmoves_threshold = NULL,
   flag_vars = NULL,
@@ -29,6 +30,16 @@ A threshold for the number of days between discharge and admission to be counted
 \item{count_option}{(character) TODO. Default is "successive".}
 
 \item{condition}{(character) TODO. Default is "dates".}
+
+\item{prob_params}{(vector of numeric) Three numerical values to calculate
+the probability that a movement causes an introduction from hospital A
+to hospital B. See Donker et al. (PLoS CB 2010) for more details.
+prob_params[1] is the rate of acquisition in hospital A (related to LOS
+in hospital A). Default: 0.0036
+prob_params[2] is the rate of loss of colonisation (related to time
+between admissions). Default: 1/365
+prob_params[4] is the rate of transmission to other patients in hospital
+B (related to LOS in hospital B). Default: 0.128}
 
 \item{noloops}{(boolean).
 Should transfers within the same nodes (loops) be kept or set to 0. Defaults to TRUE, removing loops (setting matrix diagonal to 0).}
@@ -68,9 +79,18 @@ The function returns a HospiNet object.
 \description{
 This function creates a HospiNet object from the database containing subjects stays.
 }
+\details{
+This function will build a HospiNet object from a line-listed
+subject database. The HospiNet object has all of the functions stored as
+active bindings which can be accessed in the usual way. For more info, see
+\code{\link{HospiNet}}.
+Note that the subject database will need to be run through \code{\link{checkBase}}
+before going into this function.
+}
 \examples{
-#TODO
-
+mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+myBase <- checkBase(mydb)
+hospinet_from_subject_database(myBase)
 }
 \seealso{
 \code{\link{HospiNet}}

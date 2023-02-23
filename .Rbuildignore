@@ -5,3 +5,5 @@
 ^\.travis\.yml$
 ^docs$
 ^.covrignore$
+^cran-comments\.md$
+^.github$

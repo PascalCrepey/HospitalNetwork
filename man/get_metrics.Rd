@@ -13,8 +13,8 @@ get_metrics(
   clusters = c("cluster_fast_greedy", "cluster_infomap"),
   hubs = "all_clusters",
   options = list(degree = list(modes = c("in", "out", "total")), closeness = list(modes
-    = "total"), betweenness = list(), cluster_fast_greedy = list(undirected = "collapse"),
-    cluster_infomap = list(undirected = "collapse"), clusters = list(algos =
+    = "total"), betweenness = list(), cluster_fast_greedy = list(undirected =
+    "collapse"), cluster_infomap = list(undirected = "collapse"), clusters = list(algos =
     c("cluster_fast_greedy", "cluster_infomap"), undirected = "collapse"))
 )
 }

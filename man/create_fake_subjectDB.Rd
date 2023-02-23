@@ -36,3 +36,7 @@ a data.table containing all subjects stays
 \description{
 Create a fake subject database
 }
+\examples{
+mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+mydb
+}
