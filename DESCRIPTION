@@ -12,7 +12,7 @@ Description: This R package contains functions to help interested researchers to
       hospital networks from data on hospitalized patients transferred between hospitals. 
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
+LazyLoad: true
 Imports: 
     checkmate,
     igraph,

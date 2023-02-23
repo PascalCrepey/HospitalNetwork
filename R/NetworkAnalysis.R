@@ -178,13 +178,13 @@ get_closeness <-
     ## CHECK ARGUMENTS
     coll = checkmate::makeAssertCollection()
     checkmate::assertClass(graph, classes = "igraph", add = coll)
-    if(!class(modes) %in% c("list", "character")) {
+    if(!inherits(modes, c("list", "character"))) {
         stop("Argument 'modes' must be either a character vector or a list of character elements")
     }
-    if(class(modes) == "list") {
+    if(inherits(modes,"list")) {
         checkmate::assertList(modes, types = "character", unique = T, add = coll)
     }
-    if(class(modes) == "character") {
+    if(inherits(modes, "character")) {
         checkmate::assertCharacter(modes, unique = T, add = coll)
     }
     ## END OF CHECK
@@ -240,13 +240,13 @@ get_clusters <-
     ## CHECK ARGUMENTS
     coll = checkmate::makeAssertCollection()
     checkmate::assertClass(graph, classes = "igraph", add = coll)
-    if(!class(algos) %in% c("list", "character")) {
+    if(!inherits(algos, c("list", "character"))) {
       stop("Argument 'algo' must be either a character vector or a list of character elements")
     }
-    if(class(algos) == "list") {
+    if(inherits(algos, "list")) {
       checkmate::assertList(algos, types = "character", unique = T, add = coll)
     }
-    if(class(algos) == "character") {
+    if(inherits(algos, "character")) {
       checkmate::assertCharacter(algos, unique = T, add = coll)
     }
     ## END OF CHECK
