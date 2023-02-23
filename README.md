@@ -1,7 +1,5 @@
 <!-- badges: start -->
 
-[![travis build status](https://travis-ci.com/PascalCrepey/HospitalNetwork.svg?branch=master)](https://travis-ci.com/PascalCrepey/HospitalNetwork) [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/PascalCrepey/HospitalNetwork?branch=master&svg=true)](https://ci.appveyor.com/project/PascalCrepey/HospitalNetwork) [![codecov](https://codecov.io/gh/PascalCrepey/HospitalNetwork/branch/master/graphs/badge.svg)](https://codecov.io/gh/PascalCrepey/HospitalNetwork)
-
 <!-- badges: end -->
 
 # HospitalNetwork
