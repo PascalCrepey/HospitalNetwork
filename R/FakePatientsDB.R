@@ -1,6 +1,3 @@
-# fake subject database
-# library(data.table)
-
 #' Create a fake subject database
 #'
 #' @param n_subjects the number of different subjects in the database
