@@ -58,7 +58,7 @@ plot(hn, type = "clustered_matrix")
 \describe{
 \item{\code{edgelist}}{(data.table) the list of edges (origin, target) and their associated number of movements (N) (read-only)}
 
-\item{\code{edgelist_long}}{(data.table) edgelist with additionnal informations (read-only)}
+\item{\code{edgelist_long}}{(data.table) edgelist with additional information (read-only)}
 
 \item{\code{matrix}}{(matrix) the transfer matrix (active binding, read-only)}
 
@@ -105,15 +105,15 @@ plot(hn, type = "clustered_matrix")
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{HospiNet$new()}}
-\item \href{#method-print}{\code{HospiNet$print()}}
-\item \href{#method-plot}{\code{HospiNet$plot()}}
-\item \href{#method-clone}{\code{HospiNet$clone()}}
+\item \href{#method-HospiNet-new}{\code{HospiNet$new()}}
+\item \href{#method-HospiNet-print}{\code{HospiNet$print()}}
+\item \href{#method-HospiNet-plot}{\code{HospiNet$plot()}}
+\item \href{#method-HospiNet-clone}{\code{HospiNet$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-HospiNet-new"></a>}}
+\if{latex}{\out{\hypertarget{method-HospiNet-new}{}}}
 \subsection{Method \code{new()}}{
 Create a new HospiNet object.
 \subsection{Usage}{
@@ -156,8 +156,8 @@ A new `HospiNet` object
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-print"></a>}}
-\if{latex}{\out{\hypertarget{method-print}{}}}
+\if{html}{\out{<a id="method-HospiNet-print"></a>}}
+\if{latex}{\out{\hypertarget{method-HospiNet-print}{}}}
 \subsection{Method \code{print()}}{
 Prints a basic description of the number of facilities and movements of
 a HospiNet object.
@@ -170,8 +170,8 @@ NULL
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-plot"></a>}}
-\if{latex}{\out{\hypertarget{method-plot}{}}}
+\if{html}{\out{<a id="method-HospiNet-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-HospiNet-plot}{}}}
 \subsection{Method \code{plot()}}{
 Plots various representations of the HospiNet network
 \subsection{Usage}{
@@ -194,8 +194,8 @@ a `ggplot2` object
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-HospiNet-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-HospiNet-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

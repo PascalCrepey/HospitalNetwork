@@ -3,7 +3,7 @@ Type: Package
 Title: Building Networks of Hospitals Through Patients Transfers
 Version: 0.9.3
 Authors@R: c(
-  person("Pascal", "Crépey", email = "pascal.crepey@ehesp.fr", role = c("aut", "cre")),
+  person("Pascal", "Crépey", email = "pascal.crepey@ehesp.fr", role = c("aut", "cre", "cph")),
   person("Tjibbe", "Donker", email = "tjibbe.donker@uniklinik-freiburg.de", role = "aut"),
   person("Clément", "Massonnaud", email = "clement.massonnaud@gmail.com", role = "aut"),
   person("Michael", "Lydeamore", email="michael.lydeamore@monash.edu", role=c("aut"))
@@ -22,7 +22,7 @@ Imports:
     ggraph
 Depends: 
   data.table
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Suggests:
     knitr,
     rmarkdown,

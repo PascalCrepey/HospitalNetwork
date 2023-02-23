@@ -24,7 +24,7 @@
 #' plot(hn)
 #' plot(hn, type = "clustered_matrix")
 #' @field edgelist (data.table) the list of edges (origin, target) and their associated number of movements (N) (read-only)
-#' @field edgelist_long (data.table) edgelist with additionnal informations (read-only)
+#' @field edgelist_long (data.table) edgelist with additional information (read-only)
 #' @field matrix (matrix) the transfer matrix (active binding, read-only)
 #' @field igraph (igraph) the igraph object corresponding to the network (active binding, read-only)
 #' @field n_facilities the number of facilities in the network (read-only)
