@@ -32,3 +32,7 @@ a data.table containing all subjects stays
 \description{
 Create a fake subject database with clustering
 }
+\examples{
+mydb <- create_fake_subjectDB_clustered(n_subjects = 100, n_facilities = 10)
+mydb
+}

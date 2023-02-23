@@ -24,3 +24,8 @@ a data table with one row per facility, showing mean LOS, number of subjects, an
 \description{
 Function that extracts summary statistics from entire database
 }
+\examples{
+mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+myBase <- checkBase(mydb)
+per_facility_summary(myBase)
+}
