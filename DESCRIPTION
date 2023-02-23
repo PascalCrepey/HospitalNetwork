@@ -19,16 +19,12 @@ Imports:
     lubridate,
     R6,
     ggplot2,
-    ggraph,
-    glue,
-    golem,
-    htmltools
+    ggraph
 Depends: 
   data.table
 RoxygenNote: 7.2.1
 Suggests:
     knitr,
-    qpdf,
     rmarkdown,
     testthat (>= 2.1.0),
     shiny,
@@ -38,6 +34,9 @@ Suggests:
     shinyalert,
     shinyjs,
     vdiffr,
-    pander
+    pander,
+    glue,
+    golem,
+    htmltools
 VignetteBuilder: knitr
 Language: en-US
