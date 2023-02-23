@@ -34,7 +34,7 @@
 #' mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
 #' myBase <- checkBase(mydb)
 #' hospinet <- hospinet_from_subject_database(myBase)
-#' matrix_from_edgelist(hn$edgelist, count = "N")
+#' matrix_from_edgelist(hospinet$edgelist, count = "N")
 #' @export
 #' @import data.table
 #' @import checkmate
