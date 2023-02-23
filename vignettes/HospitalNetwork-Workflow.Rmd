@@ -131,10 +131,10 @@ You can use the function ```checkBase()``` to try to correct automatically the i
 * dates: if admission and discharge dates are provided as character strings, you can use ```checkBase()``` to try to parse them to a date-time object, which uses internally the ```lubridate``` functions. To do that, set the argument ```convertDates = TRUE```. You must also specify in what format are the dates ("year-month-day", "day-month-year", etc.) by setting the argument ```dateFormat = c("ymd", "ydm", "dmy", "dym", "mdy", "myd")```.
 
 
-##The *HospiNet* object
+## The *HospiNet* object
 
-*HospiNet* is an S3 object containing the facility matrix as well as specific informations regarding the network. We have developed a *summary* and a *print* method for this object. 
-The informations contained in an *HospiNet* objects are: 
+*HospiNet* is an R6 object containing the facility matrix as well as specific information regarding the network. We have developed a *summary* and a *print* method for this object. 
+The information contained in an *HospiNet* objects are: 
 
 * *n_facilities*, the number of facilities in the network,
 * *n_subjects*, the number of subjects in the network,
@@ -149,20 +149,37 @@ The informations contained in an *HospiNet* objects are:
 ```{r setup, eval = F}
 library(HospitalNetwork)
 
+```
+```{r setup2, eval = T}
 mydbmed = create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
 hn = hospinet_from_subject_database(base = mydbmed, noloops = FALSE)
 hn
+```
+```{r setup3, eval = T}
 plot(hn)
+```
+```{r setup4, eval = T}
 plot(hn, type = "degree")
-plot(hn , type = "clustered_matrix")
-
-
-mydb = create_fake_subjectDB_clustered(n_subjects = 10000, n_facilities = 500, n_clusters = 5)
-hn = hospinet_from_subject_database(base = mydb, noloops = FALSE)
-hn
-plot(hn)
-plot(hn, type = "degree")
+```
+```{r setup5, eval = T}
 plot(hn , type = "clustered_matrix")
 ```
+```{r setup6, cache = F, eval = T}
 
+mydb = create_fake_subjectDB_clustered(n_subjects = 10000, n_facilities = 100, n_clusters = 5)
+hn = hospinet_from_subject_database(base = mydb, noloops = FALSE)
+hn
+```
+```{r setup7, eval = T}
+plot(hn)
+```
+```{r setup8, eval = T}
+plot(hn, type = "degree")
+```
+```{r setup9, eval = T}
+plot(hn , type = "clustered_matrix")
+```
+```{r setup10, eval = T}
+plot(hn , type = "circular_network")
+```
 
