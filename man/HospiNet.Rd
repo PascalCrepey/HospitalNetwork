@@ -38,7 +38,7 @@ For ease of use, it is preferable to use the function \code{\link{hospinet_from_
 }
 
 \examples{
-mydbsmall <- create_fake_subjectDB(n_subjects = 1000, n_facilities = 10)
+mydbsmall <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
 
 hn <- hospinet_from_subject_database(
   base = checkBase(mydbsmall),

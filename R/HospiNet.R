@@ -10,7 +10,7 @@
 #' @return Object of \code{\link{R6Class}} with methods for accessing facility networks.
 #' @format \code{\link{R6Class}} object.
 #' @examples
-#' mydbsmall <- create_fake_subjectDB(n_subjects = 1000, n_facilities = 10)
+#' mydbsmall <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
 #'
 #' hn <- hospinet_from_subject_database(
 #'   base = checkBase(mydbsmall),
