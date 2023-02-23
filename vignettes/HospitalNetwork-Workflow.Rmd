@@ -170,15 +170,19 @@ mydb = create_fake_subjectDB_clustered(n_subjects = 10000, n_facilities = 100, n
 hn = hospinet_from_subject_database(base = mydb, noloops = FALSE)
 hn
 ```
+
 ```{r setup7, eval = T}
 plot(hn)
 ```
+
 ```{r setup8, eval = T}
 plot(hn, type = "degree")
 ```
+
 ```{r setup9, eval = T}
 plot(hn , type = "clustered_matrix")
 ```
+
 ```{r setup10, eval = T}
 plot(hn , type = "circular_network")
 ```
