@@ -16,6 +16,7 @@ test_that("No loop option", {
 context("HospiNet plotting")
 #' @importFrom vdiffr expect_doppelganger
 test_that("plotting non-clustered network", {
+  skip_on_cran()
   set.seed(42)
   db <- create_fake_subjectDB(n_subjects = 100, with_errors = FALSE)
   checked_db <- checkBase(db)
@@ -33,6 +34,7 @@ test_that("plotting non-clustered network", {
 # vdiffr::expect_doppelganger("Circular plot 100", plot_circular_network100)
 
 test_that("plotting clustered network", {
+  skip_on_cran()
   set.seed(42)
   db <- create_fake_subjectDB_clustered(n_subjects = 500, n_facilities = 30)
   checked_db <- checkBase(db)
