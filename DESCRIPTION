@@ -19,10 +19,6 @@ Imports:
     lubridate,
     R6,
     ggplot2,
-    magrittr,
-    kableExtra,
-    pander,
-    vdiffr,
     ggraph,
     glue,
     golem,
@@ -40,6 +36,8 @@ Suggests:
     shinydashboard,
     DT,
     shinyalert,
-    shinyjs
+    shinyjs,
+    vdiffr,
+    pander
 VignetteBuilder: knitr
 Language: en-US
