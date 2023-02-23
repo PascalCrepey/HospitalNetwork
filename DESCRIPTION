@@ -3,9 +3,10 @@ Type: Package
 Title: Building Networks of Hospitals Through Patients Transfers
 Version: 0.9.2
 Authors@R: c(
-  person("Pascal", "Crépey", email = "pascal.crepey@ehesp.fr", role = c("aut", "cre")),
+  person("Pascal", "Crépey", email = "pascal.crepey@ehesp.fr", role = c("aut", "cph")),
   person("Tjibbe", "Donker", email = "tjibbe.donker@uniklinik-freiburg.de", role = "aut"),
-  person("Clément", "Massonnaud", email = "clement.massonnaud@gmail.com", role = "aut")
+  person("Clément", "Massonnaud", email = "clement.massonnaud@gmail.com", role = "aut"),
+  person("Michael", "Lydeamore", email="michael.lydeamore@monash.edu", role=c("aut", "cre"))
   )
 Description: This R package contains functions to help interested researchers to build 
       hospital networks from data on hospitalized patients transferred between hospitals. 

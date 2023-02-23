@@ -55,7 +55,7 @@ The edgelist contains the information on the connections between
 mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
 myBase <- checkBase(mydb)
 hospinet <- hospinet_from_subject_database(myBase)
-matrix_from_edgelist(hn$edgelist, count = "N")
+matrix_from_edgelist(hospinet$edgelist, count = "N")
 }
 \seealso{
 \code{\link{edgelist_from_base}}, \code{\link{matrix_from_base}}

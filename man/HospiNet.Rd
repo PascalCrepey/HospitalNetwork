@@ -185,7 +185,7 @@ Plots various representations of the HospiNet network
 Choose what you would like to plot - the connectivity matrix, degree
 distribution, the clusters, or the network in a circle.}
 
-\item{\code{...}}{Additional arguments to be provided. Only supported for `type == 'circular_network`'.'}
+\item{\code{...}}{Additional arguments to be provided. Only supported for `type == 'circular_network`'.}
 }
 \if{html}{\out{</div>}}
 }
