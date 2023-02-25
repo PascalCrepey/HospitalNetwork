@@ -1,5 +1,5 @@
 <!-- badges: start -->
-
+[![codecov](https://codecov.io/github/PascalCrepey/HospitalNetwork/branch/master/graph/badge.svg?token=SxcaPZ2JJZ)](https://codecov.io/github/PascalCrepey/HospitalNetwork)
 <!-- badges: end -->
 
 # HospitalNetwork
