@@ -6,7 +6,7 @@
 \usage{
 checkBase(
   base,
-  convertDates = F,
+  convertDates = FALSE,
   dateFormat = NULL,
   deleteMissing = NULL,
   deleteErrors = NULL,

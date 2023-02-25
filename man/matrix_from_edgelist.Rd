@@ -9,7 +9,7 @@ matrix_from_edgelist(
   origin_name = "origin",
   target_name = "target",
   count,
-  format_long = F
+  format_long = FALSE
 )
 }
 \arguments{

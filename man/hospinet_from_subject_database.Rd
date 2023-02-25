@@ -33,7 +33,7 @@ A threshold for the number of days between discharge and admission to be counted
 
 \item{prob_params}{(vector of numeric) Three numerical values to calculate
 the probability that a movement causes an introduction from hospital A
-to hospital B. See Donker et al. (PLoS CB 2010) for more details.
+to hospital B. See Donker T, Wallinga J, Grundmann H. (2010) <doi:10.1371/journal.pcbi.1000715> for more details.
 prob_params[1] is the rate of acquisition in hospital A (related to LOS
 in hospital A). Default: 0.0036
 prob_params[2] is the rate of loss of colonisation (related to time
