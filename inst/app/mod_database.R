@@ -102,9 +102,9 @@ mod_database_server <- function(input, output, session, base)
             title = HTML("<b>Database statistics</b>"),
             icon = icon("clipboard-list"),
             width = NULL,
-            collapsible = T,
+            collapsible = TRUE,
             status = "info",
-            solidHeader = T)
+            solidHeader = TRUE)
     })
     
 }

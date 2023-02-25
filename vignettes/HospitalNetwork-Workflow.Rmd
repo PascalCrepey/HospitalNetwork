@@ -23,7 +23,7 @@ Formally, a network is composed of *nodes* which may or may not be connected by 
 In terms of data structure, a common way of representing a network is with a simple $n*n$ matrix (often called adjacency matrix, or contact matrix). The rows and columns contain the nodes (which appear once in each), and each cell contains the information on whether or not the two nodes are connected.
 
 
-```{r adjacency-matrix, echo = F, dev = 'svg', results = 'asis'}
+```{r adjacency-matrix, echo = FALSE, dev = 'svg', results = 'asis'}
 data = c(0,0,602,0,339,687,0,0,0,0,373,1294,0,718,86,296,263,0,0,35,0,598,0,0,0)
 mat = matrix(data, nrow = 5, ncol = 5)
 colnames(mat) = LETTERS[1:5]
@@ -146,44 +146,44 @@ The information contained in an *HospiNet* objects are:
 
 ## Using the package
 
-```{r setup, eval = F}
+```{r setup, eval = FALSE}
 library(HospitalNetwork)
 
 ```
-```{r setup2, eval = T}
+```{r setup2, eval = TRUE}
 mydbmed = create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
 hn = hospinet_from_subject_database(base = mydbmed, noloops = FALSE)
 hn
 ```
-```{r setup3, eval = T}
+```{r setup3, eval = TRUE}
 plot(hn)
 ```
-```{r setup4, eval = T}
+```{r setup4, eval = TRUE}
 plot(hn, type = "degree")
 ```
-```{r setup5, eval = T}
+```{r setup5, eval = TRUE}
 plot(hn , type = "clustered_matrix")
 ```
-```{r setup6, cache = F, eval = T}
+```{r setup6, cache = FALSE, eval = TRUE}
 
 mydb = create_fake_subjectDB_clustered(n_subjects = 10000, n_facilities = 100, n_clusters = 5)
 hn = hospinet_from_subject_database(base = mydb, noloops = FALSE)
 hn
 ```
 
-```{r setup7, eval = T}
+```{r setup7, eval = TRUE}
 plot(hn)
 ```
 
-```{r setup8, eval = T}
+```{r setup8, eval = TRUE}
 plot(hn, type = "degree")
 ```
 
-```{r setup9, eval = T}
+```{r setup9, eval = TRUE}
 plot(hn , type = "clustered_matrix")
 ```
 
-```{r setup10, eval = T}
+```{r setup10, eval = TRUE}
 plot(hn , type = "circular_network")
 ```
 

@@ -226,13 +226,13 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                                              choices = c("No" = "No",
                                                          "Remove record" = "record",
                                                          "Remove patient" = "patient"),
-                                             inline = T),
+                                             inline = TRUE),
                                 shinyWidgets::awesomeRadio(ns("deleteerrors"),
                                              "Remove erroneous records?",
                                              choices = c("No" = "No",
                                                          "Remove record" = "record",
                                                          "Remove patient" = "patient"),
-                                             inline = T)
+                                             inline = TRUE)
                             )
                         } else {
                             NULL
@@ -273,7 +273,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
         if (!previously_checked()) {
         out = withCallingHandlers(
             try(HospitalNetwork::checkBase(base = datatable(),
-                                           convertDates = T,
+                                           convertDates = TRUE,
                                            dateFormat = args()$datetimeformat,
                                            deleteMissing = args()$deleteMissing,
                                            deleteErrors = args()$deleteErrors,
@@ -281,8 +281,8 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                                            facilityID = input$fID,
                                            admDate = input$adate,
                                            disDate = input$ddate,
-                                           returnReport = T,
-                                           verbose = T)),
+                                           returnReport = TRUE,
+                                           verbose = TRUE)),
             message = function(e) {
                 savedMsg <<- c(savedMsg, conditionMessage(e))
             },
@@ -326,7 +326,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                                                        "</br><b>", out[[1]], "</b>"),
                                                  "</div><br/>"),
                                    type = "error",
-                                   html = T)
+                                   html = TRUE)
         } else {
             base(checked())
             totaldeleted = sum(unlist(attr(base(), "report")[c("removedErrors",
@@ -349,7 +349,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
                                                       "<p style='color:salmon'><b>",savedWar[[1]], "</b></p></br>",
                                                       paste0("<b>Total number of deleted records: ", totaldeleted, "</b>"))),
                                    type = "success",
-                                   html = T)
+                                   html = TRUE)
             shinyjs::show(id = "downloadNgoto")
         }
     })

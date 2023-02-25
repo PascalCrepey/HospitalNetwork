@@ -8,8 +8,12 @@ Authors@R: c(
   person("Clément", "Massonnaud", email = "clement.massonnaud@gmail.com", role = "aut"),
   person("Michael", "Lydeamore", email="michael.lydeamore@monash.edu", role=c("aut"))
   )
-Description: This R package contains functions to help interested researchers to build 
-      hospital networks from data on hospitalized patients transferred between hospitals. 
+Description: Set of tools to help interested researchers to build hospital networks 
+  from data on hospitalized patients transferred between hospitals. Methods provided 
+  have been used in Donker T, Wallinga J, Grundmann H. (2010) <doi:10.1371/journal.pcbi.1000715>, 
+  and Nekkab N, Crépey P, Astagneau P, Opatowski L, Temime L. (2020) <doi:10.1038/s41598-020-71212-6>.
+URL: https://pascalcrepey.github.io/HospitalNetwork/
+BugReports: https://github.com/PascalCrepey/HospitalNetwork/issues
 License: GPL-3
 Encoding: UTF-8
 LazyLoad: true

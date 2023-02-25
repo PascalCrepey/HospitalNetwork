@@ -96,7 +96,7 @@
 #' @export
 #'
 checkBase <- function(base,
-                      convertDates = F,
+                      convertDates = FALSE,
                       dateFormat = NULL,
                       deleteMissing = NULL,
                       deleteErrors = NULL,

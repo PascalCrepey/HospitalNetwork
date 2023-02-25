@@ -74,9 +74,9 @@ mod_statmet_server <- function(input, output, session, net) {
             title = HTML("<b>Network statistics</b>"),
             icon = icon("clipboard-list"),
             width = NULL,
-            collapsible = T,
+            collapsible = TRUE,
             status = "info",
-            solidHeader = T)
+            solidHeader = TRUE)
     })
 
     output$metrics_table = DT::renderDT(net()$metricsTable,

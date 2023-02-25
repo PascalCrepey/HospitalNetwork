@@ -43,7 +43,7 @@ matrix_from_edgelist <- function(edgelist,
                                  origin_name = "origin",
                                  target_name = "target",
                                  count,
-                                 format_long = F) {
+                                 format_long = FALSE) {
     #--- Check arguments -----------------------------------------------------------
     checks <- makeAssertCollection()
     cols <- colnames(edgelist)
@@ -53,8 +53,8 @@ matrix_from_edgelist <- function(edgelist,
     assertChoice(origin_name, cols, add = checks)
     assertCharacter(target_name, len = 1, add = checks)
     assertChoice(target_name, cols, add = checks)
-    assertCharacter(count, len = 1, null.ok = T, add = checks)
-    assertChoice(count, cols, null.ok = T, add = checks)
+    assertCharacter(count, len = 1, null.ok = TRUE, add = checks)
+    assertChoice(count, cols, null.ok = TRUE, add = checks)
     assertLogical(format_long, add = checks)
     reportAssertions(checks)
     if (!"data.table" %in% class(edgelist)) {
@@ -95,7 +95,7 @@ matrix_from_edgelist <- function(edgelist,
 
     DT_trans <- data.table::dcast.data.table(complete,
         origin ~ target,
-        drop = F,
+        drop = FALSE,
         fill = 0,
         count = "N", value.var = "N"
     )
@@ -194,7 +194,7 @@ matrix_from_base <- function(base,
 #'     connection. Can be "dates", "flags", or "both". See details.
 #' @param prob_params (vector of numeric) Three numerical values to calculate
 #'     the probability that a movement causes an introduction from hospital A
-#'     to hospital B. See Donker et al. (PLoS CB 2010) for more details.
+#'     to hospital B. See Donker T, Wallinga J, Grundmann H. (2010) <doi:10.1371/journal.pcbi.1000715> for more details.
 #'     For use with count_option="probability".
 #'     prob_params[1] is the rate of acquisition in hospital A (related to LOS
 #'     in hospital A). Default: 0.0036
@@ -260,16 +260,16 @@ edgelist_from_base <- function(base,
     assertNumber(window_threshold, lower = 0, add = checks)
     assertChoice(count_option, c("all", "successive", "probability"), add = checks)
     assertLogical(noloops, add = checks)
-    assertCount(nmoves_threshold, null.ok = T, add = checks)
+    assertCount(nmoves_threshold, null.ok = TRUE, add = checks)
     assertChoice(condition, c("dates", "flags", "both"), add = checks)
     assertLogical(verbose, add = checks)
     if (any(!is.null(flag_vars), !is.null(flag_values))) {
         if (is.null(flag_vars)) stop("If flag_values is provided, flag_vars must be provided too.")
         if (is.null(flag_values)) stop("If flag_vars is provided, flag_values must be provided too.")
-        assertList(flag_vars, len = 2, unique = T, names = "strict", null.ok = T, add = checks)
+        assertList(flag_vars, len = 2, unique = TRUE, names = "strict", null.ok = TRUE, add = checks)
         assertSetEqual(names(flag_vars), c("origin", "target"), add = checks)
         assertSubset(unlist(flag_vars), colnames(base), add = checks)
-        assertList(flag_values, len = 2, names = "strict", null.ok = T, add = checks)
+        assertList(flag_values, len = 2, names = "strict", null.ok = TRUE, add = checks)
         assertSetEqual(names(flag_values), c("origin", "target"), add = checks)
         assertSubset(flag_values$origin, base[[flag_vars$origin]], add = checks)
         if (count_option == "all") message("Count option is all, therefore ignoring flags")
@@ -488,7 +488,7 @@ edgelist_from_base <- function(base,
 #'     A threshold for the minimum number of subject transfer between two facilities. Set to NULL to deactivate, default to NULL.
 #' @param prob_params (vector of numeric) Three numerical values to calculate
 #'     the probability that a movement causes an introduction from hospital A
-#'     to hospital B. See Donker et al. (PLoS CB 2010) for more details.
+#'     to hospital B. See Donker T, Wallinga J, Grundmann H. (2010) <doi:10.1371/journal.pcbi.1000715> for more details.
 #'     prob_params[1] is the rate of acquisition in hospital A (related to LOS
 #'     in hospital A). Default: 0.0036
 #'     prob_params[2] is the rate of loss of colonisation (related to time

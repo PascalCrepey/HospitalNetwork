@@ -201,13 +201,13 @@ HospiNet <- R6::R6Class("HospiNet",
       # set the minimum number of shared patients for an edge to be plotted
       minShares <- self$matrix[order(-self$matrix)][plotLinks]
       strongConnections <- data.frame(
-        to = myleaves[which(self$matrix > minShares, arr.ind = T)[, 1]],
-        from = myleaves[which(self$matrix > minShares, arr.ind = T)[, 2]],
+        to = myleaves[which(self$matrix > minShares, arr.ind = TRUE)[, 1]],
+        from = myleaves[which(self$matrix > minShares, arr.ind = TRUE)[, 2]],
         weight = (self$matrix[self$matrix > minShares])
       )
 
       # artificially duplicate strong connections so that they appear darker on the plot
-      # strongConnections<-do.call("rbind", lapply(seq(minStr,maxStr,by=steps),function(x){data.frame(from=myleaves[which(self$matrix>x,arr.ind = T)[,1]],to=myleaves[which(self$matrix>x,arr.ind = T)[,2]])}))
+      # strongConnections<-do.call("rbind", lapply(seq(minStr,maxStr,by=steps),function(x){data.frame(from=myleaves[which(self$matrix>x,arr.ind = TRUE)[,1]],to=myleaves[which(self$matrix>x,arr.ind = TRUE)[,2]])}))
       fromVert <- match(strongConnections$from, vertices$name)
       toVert <- match(strongConnections$to, vertices$name)
       weights <- strongConnections$weight
@@ -230,9 +230,9 @@ HospiNet <- R6::R6Class("HospiNet",
       lay$circleIndex <- 0
       lay$arcstart <- 0
       lay$arcend <- 0
-      lay[lay$leaf == T, ]$circleIndex <- order(order(lay[lay$leaf == T, ]$angle))
-      lay[lay$leaf == T, ]$arcstart <- ((2 * pi * (lay[lay$leaf == T, ]$circleIndex - 1.25)) / nLeafs) + pi
-      lay[lay$leaf == T, ]$arcend <- ((2 * pi * (lay[lay$leaf == T, ]$circleIndex - 0.25)) / nLeafs) + pi
+      lay[lay$leaf == TRUE, ]$circleIndex <- order(order(lay[lay$leaf == TRUE, ]$angle))
+      lay[lay$leaf == TRUE, ]$arcstart <- ((2 * pi * (lay[lay$leaf == TRUE, ]$circleIndex - 1.25)) / nLeafs) + pi
+      lay[lay$leaf == TRUE, ]$arcend <- ((2 * pi * (lay[lay$leaf == TRUE, ]$circleIndex - 0.25)) / nLeafs) + pi
 
       # Create the full plot
       spaghetti <-
