@@ -6,5 +6,5 @@
 ^docs$
 ^.covrignore$
 ^cran-comments\.md$
-^.github$
 ^CRAN-SUBMISSION$
+^\.github$
