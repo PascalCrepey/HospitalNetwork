@@ -44,7 +44,7 @@ matrix_from_edgelist <- function(edgelist,
                                  target_name = "target",
                                  count,
                                  format_long = FALSE) {
-    #--- Check arguments -----------------------------------------------------------
+    #--- Check arguments ---
     checks <- makeAssertCollection()
     cols <- colnames(edgelist)
     assertDataFrame(edgelist, add = checks)
@@ -253,7 +253,7 @@ edgelist_from_base <- function(base,
                                flag_vars = NULL,
                                flag_values = NULL,
                                verbose = FALSE) {
-    #--- Check arguments ---------------------------------------------------------------
+    #--- Check arguments ---
     checks <- makeAssertCollection()
     assertDataFrame(base, add = checks)
     assertTRUE(ncol(base) >= 4, add = checks)
@@ -310,7 +310,7 @@ edgelist_from_base <- function(base,
 
 
 
-    # === GET MOVEMENTS OF SUBJECTS =====================================================
+    # === GET MOVEMENTS OF SUBJECTS ===
     ## This will be computed differently depending on what is our definition
     ## of a connection
     ## 1. if window_threshold = 0, this is by definition a direct transfer
@@ -323,7 +323,7 @@ edgelist_from_base <- function(base,
     N <- base[, .N]
     data.table::setkeyv(base, c("sID", "Adate"))
 
-    #--- Count only for successive stays -------------------------------------------------
+    #--- Count only for successive stays ---
     ## Condition 1: rows n and n+1 must have same subjectID (C1)
     ## Condition 2: time between discharge of row n and admission of row n+1 needs to be
     ## less than or equal to window_threshold (C2)
@@ -343,7 +343,7 @@ edgelist_from_base <- function(base,
             C3 <- C3a & C3b
         }
 
-        ## --- Compute origins and targets based on conditions ----------------------------
+        ## --- Compute origins and targets based on conditions ---
         if (verbose) cat("Compute origins and targets...\n")
         ## Compute connections only using dates
         if (condition == "dates") {
@@ -377,7 +377,7 @@ edgelist_from_base <- function(base,
         data.table::setkey(el_long, origin, target)
         el_aggr <- el_long[, .N, by = c("origin", "target")]
     } else if (count_option == "all") {
-        #--- Count for all stays ---------------------------------------------------------
+        #--- Count for all stays ---
         ## Compute time between admissions between EACH PAIR of facilities, for one
         ## individual
         ##    1. Sort by admission date
@@ -448,12 +448,12 @@ edgelist_from_base <- function(base,
         el_aggr <- subset(el_aggr, N > 0)
     }
 
-    #--- Aggregate edgelist by node ----------------------------------------------------
+    #--- Aggregate edgelist by node ---
     if (verbose) cat("Compute edgelist...\n")
     data.table::setkey(el_long, origin, target)
     # el_aggr = el_long[, .N, by = c("origin", "target")]
 
-    #--- Deal with loops ---------------------------------------------------------------
+    #--- Deal with direct loops ---
     if (noloops) {
         if (verbose) cat("Removing loops...\n")
         el_long <- subset(el_long, origin != target)

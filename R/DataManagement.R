@@ -112,7 +112,7 @@ checkBase <- function(base,
     report = list()
     report$base = copy(base)
     
-    #--- Check columns names ------------------------------------------------------------------------
+    #--- Check columns names --
     tableCols = colnames(report$base)
     inputCols = c(subjectID, facilityID, admDate, disDate)
     foundCols = intersect(tableCols, inputCols)
@@ -199,17 +199,17 @@ checkFormat <- function(report,
                         verbose = TRUE)
 {
     #assertDataTable(report$base)
-    #--- Check data format -------------------------------------------------------------------------
+    #--- Check data format ---
     if (!"data.frame" %in% class(report$base)) {
         stop("The database must be either a data.frame or a data.table object")
     } else if (!"data.table" %in% class(report$base)) {
         setDT(report$base)
         if (verbose) message("Converting database to a data.table object")
     }
-    #--- Register the original size of the dataset --------------------------------------------------
+    #--- Register the original size of the dataset ---
     report$originalSize = report$base[,.N]
 
-    #--- Check format of "sID" and "fID" columns ----------------------------------------------------
+    #--- Check format of "sID" and "fID" columns ---
     charCols = c("sID", "fID")
     types = sapply(charCols, function(x) typeof(report$base[[x]]))
     wrong = names(types[types != "character"])
@@ -219,7 +219,7 @@ checkFormat <- function(report,
                     fID = as.character(fID))]
     }
 
-    #--- Check dates format  ------------------------------------------------------------------------
+    #--- Check dates format  ---
     dateCols = c("Adate", "Ddate")
     report$failedParse = 0
 
@@ -261,7 +261,7 @@ checkMissingErrors <- function(report,
 {
     cols = c("sID", "fID", "Adate", "Ddate")
 
-    #=== Nested function to delete =======================================================
+    #=== Nested function to delete ===
     delete <- function(base,
                        to_remove,
                        option)
@@ -286,9 +286,8 @@ checkMissingErrors <- function(report,
             stop("Argument ", paste0("delete ", option), " not or incorrectly specified")
         }
     }
-    #=====================================================================================
-
-    #--- Check missing values ------------------------------------------------------------
+    
+    #--- Check missing values ---
     if (verbose) message("Checking for missing values...")
     missingDT = report$base[, lapply(.SD, function(x) {
         trimws(x) %in% c("", "NA", "na", "Na", "N/A",
@@ -324,7 +323,7 @@ checkMissingErrors <- function(report,
         report$removedMissing = 0
     }
 
-    #--- Check errors -------------------------------------------------------------------
+    #--- Check errors ---
     # Check if there are records with discharge before admission,
     # and delete them as given in function options
     wrong_order = report$base[Adate > Ddate, , which = T]
