@@ -299,11 +299,18 @@ HospiNet <- R6::R6Class("HospiNet",
       private$.window_threshold = window_threshold
       private$.nmoves_threshold = nmoves_threshold
       private$.noloops = noloops
+      
+      # add facility specific data when they exist
       if (!is.null(fsummary)){
-        private$.LOSPerHosp = fsummary[,.(node,LOS)]
-        private$.subjectsPerHosp = fsummary[,.(node,subjects)]
-        private$.admissionsPerHosp = fsummary[,.(node,admissions)]
-        private$.facilities = fsummary[,.(node, lat, long, beds)]
+        summary_names = names(fsummary)
+        if("LOS" %in% summary_names)
+          private$.LOSPerHosp = fsummary[,.(node,LOS)]
+        if("subjects" %in% summary_names)
+          private$.subjectsPerHosp = fsummary[,.(node,subjects)]
+        if("admissions" %in% summary_names)
+          private$.admissionsPerHosp = fsummary[,.(node,admissions)]
+        if("lat" %in% summary_names)
+          private$.facilities = fsummary[,.(node, lat, long, beds)]
       }
       if(create_MetricsTable){
         private$.metricsTable=self$metricsTable
