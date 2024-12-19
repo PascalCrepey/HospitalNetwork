@@ -272,15 +272,15 @@ get_clusters <-
 #' Function computing hub scores for each node. If bycluster = TRUE, hub scores are computed by cluster
 #'
 #' @param graph An igraph graph
-#' @param ... other arguments to be passed to igraph function hub_score()
+#' @param ... other arguments to be passed to igraph function hits_scores()
 #' 
-#' @seealso \code{\link[igraph]{hub_score}}
+#' @seealso \code{\link[igraph]{hits_scores}}
 #' 
 get_hubs_global <-
     function(graph, ...)
 {
-    hubs = igraph::hub_score(graph, ...)
-    DT_hubs = as.data.table(hubs$vector, keep.rownames = TRUE)
+    hubs = igraph::hits_scores(graph, ...)
+    DT_hubs = as.data.table(hubs$hub, keep.rownames = TRUE)
     colnames(DT_hubs) = c("node", "hub_score_global")
     setkey(DT_hubs, node)
     return(DT_hubs)
@@ -290,9 +290,9 @@ get_hubs_global <-
 #' 
 #' @param graphs A list of igraph graphs, one for each group within which the hub scores will be computed
 #' @param name [character (1)] The name of grouping variable (used only for naming the column of the DT)
-#' @param ... Optional arguments to be passed to igraph function 'hub_score()'
+#' @param ... Optional arguments to be passed to igraph function 'hits_scores()'
 #' 
-#' @seealso \code{\link[igraph]{hub_score}}
+#' @seealso \code{\link[igraph]{hits_scores}}
 #' 
 get_hubs_bycluster <- function(graphs, name, ...)
 {
@@ -308,11 +308,11 @@ get_hubs_bycluster <- function(graphs, name, ...)
     
     ## Get hub scores for each graph
     hubs = lapply(graphs, function(x) {
-        igraph::hub_score(x, ...)
+        igraph::hits_scores(x, ...)
     })   
     ## Create data tables
     tmp = lapply(hubs, function(x) {
-        as.data.table(x$vector, keep.rownames = TRUE)
+        as.data.table(x$hub, keep.rownames = TRUE)
     })
     ## Add clusters names
     DT_hubs = lapply(1:length(tmp), function(x) {

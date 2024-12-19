@@ -11,11 +11,11 @@ get_hubs_bycluster(graphs, name, ...)
 
 \item{name}{[character (1)] The name of grouping variable (used only for naming the column of the DT)}
 
-\item{...}{Optional arguments to be passed to igraph function 'hub_score()'}
+\item{...}{Optional arguments to be passed to igraph function 'hits_scores()'}
 }
 \description{
 Function computing hub scores of nodes by group
 }
 \seealso{
-\code{\link[igraph]{hub_score}}
+\code{\link[igraph]{hits_scores}}
 }
