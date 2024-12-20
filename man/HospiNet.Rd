@@ -5,10 +5,10 @@
 \alias{HospiNet}
 \title{Class providing the HospiNet object with its methods}
 \format{
-\code{\link{R6Class}} object.
+\code{\link[R6:R6Class]{R6::R6Class}} object.
 }
 \value{
-Object of \code{\link{R6Class}} with methods for accessing facility networks.
+Object of \code{\link[R6:R6Class]{R6::R6Class}} with methods for accessing facility networks.
 }
 \description{
 Class providing the HospiNet object with its methods
@@ -23,7 +23,7 @@ window_threshold,
 nmoves_threshold,
 noloops)}}{This method is used to create an object of this class with \code{edgelist} as the necessary information to create the network.
 The other arguments \code{window_threshold}, \code{nmoves_threshold}, and \code{noloops} are specific to the \code{edgelist} and need to be provided.
-For ease of use, it is preferable to use the function \code{\link{hospinet_from_subject_database}}}
+For ease of use, it is preferable to use the function \code{\link[=hospinet_from_subject_database]{hospinet_from_subject_database()}}.}
   \item{\code{print()}}{This method prints basic information about the object.}
   \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default.
   The argument \code{type} can take the following values:
