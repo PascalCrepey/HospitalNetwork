@@ -107,7 +107,7 @@ create_fake_subjectDB <- function(n_subjects = 100,
     all_s_stays[8, Adate := "Na"]
     all_s_stays[9, Adate := "N/a"]
     all_s_stays[10, Adate := "NaN"]
-    colnames(all_s_stays) <- c("subject", "facility", "admission", "discharge")
+    #colnames(all_s_stays) <- c("subject", "facility", "admission", "discharge")
   }
 
   return(all_s_stays)

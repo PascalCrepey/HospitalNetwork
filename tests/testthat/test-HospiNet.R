@@ -48,6 +48,6 @@ test_that("plotting clustered network", {
 
   vdiffr::expect_doppelganger("ClustMatClust500", plot_clust_net500)
   vdiffr::expect_doppelganger("ClustDeg500", plot_deg_net500)
-  # vdiffr::expect_doppelganger("CircClust500", plot_circular_clust_network500)
+  vdiffr::expect_doppelganger("CircClust500", plot_circular_clust_network500)
   vdiffr::expect_doppelganger("MatClust500", plot_mat_net500)
 })

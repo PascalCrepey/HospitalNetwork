@@ -252,7 +252,7 @@ get_clusters <-
     ## END OF CHECK
     ## MAIN
     if(length(undirected)) {
-      graph = igraph::as.undirected(graph, mode = undirected)
+      graph = igraph::as_undirected(graph, mode = undirected)
     }
     DT_list = list()
     DT_list[algos] = lapply(algos, function(x) {
