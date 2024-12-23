@@ -7,8 +7,8 @@
 #' @import ggraph
 #' @export
 #' @keywords data
-#' @return Object of \code{\link{R6Class}} with methods for accessing facility networks.
-#' @format \code{\link{R6Class}} object.
+#' @return Object of \code{\link[R6:R6Class]{R6::R6Class}} with methods for accessing facility networks.
+#' @format \code{\link[R6:R6Class]{R6::R6Class}} object.
 #' @examples
 #' mydbsmall <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
 #'
@@ -55,7 +55,7 @@
 #' nmoves_threshold,
 #' noloops)}}{This method is used to create an object of this class with \code{edgelist} as the necessary information to create the network.
 #' The other arguments \code{window_threshold}, \code{nmoves_threshold}, and \code{noloops} are specific to the \code{edgelist} and need to be provided.
-#' For ease of use, it is preferable to use the function \code{\link{hospinet_from_subject_database}}}
+#' For ease of use, it is preferable to use the function \code{\link[=hospinet_from_subject_database]{hospinet_from_subject_database()}}.}
 #'   \item{\code{print()}}{This method prints basic information about the object.}
 #'   \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default.
 #'   The argument \code{type} can take the following values:
@@ -126,7 +126,7 @@ HospiNet <- R6::R6Class("HospiNet",
           panel.grid = element_blank()
         )
     },
-    plot_spaghetti = function(plotLinks = 5000, alphaSet = 0.1, edgeColourNode = FALSE, facilityColours = NULL, firstCircleCol = NULL, secondCircleCol = NULL) {
+    plot_spaghetti = function(plotLinks = 5000, alphaSet = 0.1, edgeColourNode = FALSE, facilityColours = NULL) {
 
       # function to average the color of two nodes for the edge colour. Currently takes
       meanColor <- function(col1, col2) {
@@ -184,18 +184,16 @@ HospiNet <- R6::R6Class("HospiNet",
       #  for(ii in 1:length(facilityColours)) lay$nodecol[lay$name %in% facilityColours[[ii]]$facility]<-facilityColours[[ii]]$colour
       # }
       lay$nodecol <- rgb(0, 0, 0)
-      lay$firstCircle <- rgb(0, 0, 0)
-      lay$secondCircle <- rgb(0, 0, 0)
+      # lay$firstCircle <- rgb(0, 0, 0)
+      # lay$secondCircle <- rgb(0, 0, 0)
 
-      if (!is.null(facilityColours)) {
-        for (ii in 1:length(facilityColours)) lay$nodecol[lay$name %in% facilityColours[[ii]]$facility] <- facilityColours[[ii]]$colour
+      node_names <- intersect(lay$name, facilityColours$facility)
+      if (length(node_names) > 0) {
+        lay$nodecol[lay$name %in% node_names] <- facilityColours[facility %in% node_names, colour]
       }
-      if (!is.null(firstCircleCol)) {
-        for (ii in 1:length(firstCircleCol)) lay$firstCircle[lay$name %in% firstCircleCol[[ii]]$facility] <- firstCircleCol[[ii]]$colour
-      }
-      if (!is.null(secondCircleCol)) {
-        for (ii in 1:length(secondCircleCol)) lay$secondCircle[lay$name %in% secondCircleCol[[ii]]$facility] <- secondCircleCol[[ii]]$colour
-      }
+      # if (!is.null(facilityColours)) {
+      #   for (ii in 1:length(facilityColours)) lay$nodecol[lay$name %in% facilityColours[[ii]]$facility] <- facilityColours[[ii]]$colour
+      # }
 
       # create the connections
       # set the minimum number of shared patients for an edge to be plotted
@@ -224,7 +222,7 @@ HospiNet <- R6::R6Class("HospiNet",
         )
       }
 
-      # calculate the coordiantes for the outer rings
+      # calculate the coordinates for the outer rings
       nLeafs <- sum(lay$leaf)
       lay$angle <- atan2(lay$x, lay$y)
       lay$circleIndex <- 0
@@ -246,16 +244,8 @@ HospiNet <- R6::R6Class("HospiNet",
         ggraph::geom_node_point(aes(filter = leaf, x = x * 1.00, y = y * 1.00, color = nodecol), stroke = 0.5, pch = 16, size = 2) +
         ggplot2::scale_colour_manual(limits = unique(lay$nodecol), values = unique(lay$nodecol)) +
         ggplot2::theme_void() +
-        ggplot2::theme(legend.position = "none") +
-        ggplot2::scale_fill_manual(limits = unique(c(lay$firstCircle, lay$secondCircle)), values = unique(c(lay$firstCircle, lay$secondCircle)))
-
-
-      if (!is.null(firstCircleCol)) {
-        spaghetti <- spaghetti + ggforce::geom_arc_bar(aes(x0 = 0, y0 = 0, r = 1.05, r0 = 1.1, start = arcstart, end = arcend, fill = firstCircle), linetype = 0)
-      }
-      if (!is.null(secondCircleCol)) {
-        spaghetti <- spaghetti + ggforce::geom_arc_bar(aes(x0 = 0, y0 = 0, r = 1.11, r0 = 1.16, start = arcstart, end = arcend, fill = secondCircle), linetype = 0)
-      }
+        ggplot2::theme(legend.position = "none") #+
+        #ggplot2::scale_fill_manual(limits = unique(c(lay$firstCircle, lay$secondCircle)), values = unique(c(lay$firstCircle, lay$secondCircle)))
 
       spaghetti
     },
