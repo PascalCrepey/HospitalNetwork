@@ -14,6 +14,7 @@ hospinet_from_subject_database(
   nmoves_threshold = NULL,
   flag_vars = NULL,
   flag_values = NULL,
+  keep_nodes = FALSE,
   create_MetricsTable = TRUE,
   verbose = FALSE,
   shinySession = NULL,
@@ -63,6 +64,9 @@ one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2",
 "value2")). The values in 'origin' and 'target' are the values that flag
 a potential origin of a transfer, or a potential target,
 respectively. See details.}
+
+\item{keep_nodes}{(logical) Should nodes with no connections be kept in the
+edgelist? Defaults to FALSE.}
 
 \item{create_MetricsTable}{(boolean)
 Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.}
