@@ -318,6 +318,10 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.LOSPerHosp <- fsummary[, .(node, LOS)]
         private$.subjectsPerHosp <- fsummary[, .(node, subjects)]
         private$.admissionsPerHosp <- fsummary[, .(node, admissions)]
+      } else {
+        private$.LOSPerHosp <- data.table::data.table(node = unique(edgelist$origin), LOS = NA)
+        private$.subjectsPerHosp <- data.table::data.table(node = unique(edgelist$origin), subjects = NA)
+        private$.admissionsPerHosp <- data.table::data.table(node = unique(edgelist$origin), admissions = NA)
       }
       if (create_MetricsTable) {
         private$.metricsTable <- self$metricsTable
@@ -535,6 +539,8 @@ HospiNet <- R6::R6Class("HospiNet",
             clusters = "cluster_infomap"
           )
           private$.hubs_infomap <- get_hubs_bycluster(graphs = graph_byclust, name = "cluster_infomap")
+          #remove cluster column (already in cluster_infomap)
+          private$.hubs_infomap <- private$.hubs_infomap[, cluster := NULL]
         }
         private$.hubs_infomap
       } else {
@@ -550,6 +556,8 @@ HospiNet <- R6::R6Class("HospiNet",
             clusters = "cluster_fast_greedy"
           )
           private$.hubs_fast_greedy <- get_hubs_bycluster(graphs = graph_byclust, name = "cluster_fast_greedy")
+          #remove cluster column (already in cluster_fast_greedy)
+          private$.hubs_fast_greedy <- private$.hubs_fast_greedy[, cluster := NULL]
         }
         private$.hubs_fast_greedy
       } else {
@@ -572,8 +580,6 @@ HospiNet <- R6::R6Class("HospiNet",
             self$hubs_fast_greedy,
             self$hubs_global
           ))
-          # private$.metricsTable = self$hubs_fast_greedy
-          # private$.metricsTable = get_metrics(self$igraph)
         }
         private$.metricsTable
       } else {
