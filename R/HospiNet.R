@@ -150,30 +150,37 @@ HospiNet <- R6::R6Class("HospiNet",
 
       # Creating underlying hierarchy
       myleaves <- colnames(self$matrix)
-      comms <- split(self$cluster_infomap, by = "cluster_infomap")
-      getComRow <- function(y) {
-        unlist(lapply(1:length(comms), function(x) {
-          sum(self$matrix[(c(comms[[x]][, "node"]))[[1]], (c(comms[[y]][, "node"]))[[1]]])
-        }))
+      ## when n_cluster > 1 (usual case)
+      if(length(levels(self$cluster_infomap$cluster_infomap))>1) {
+        comms <- split(self$cluster_infomap, by = "cluster_infomap")
+        getComRow <- function(y) {
+          unlist(lapply(1:length(comms), function(x) {
+            sum(self$matrix[(c(comms[[x]][, "node"]))[[1]], (c(comms[[y]][, "node"]))[[1]]])
+          }))
+        }
+        absMat <- matrix(unlist(lapply(1:length(comms), getComRow)), nrow = length(comms), ncol = length(comms))
+        
+        newDendro <- hclust(as.dist(1 / (absMat + 0.001)), method = "average")
+        
+        levelData <- data.frame(
+          firstLevel = cutree(newDendro, ceiling(length(newDendro$order) / 4)),
+          secondLevel = cutree(newDendro, ceiling(length(newDendro$order) / 6)),
+          thirdlevel = cutree(newDendro, ceiling(length(newDendro$order) / 12))
+        )
+        hierarchy <- rbind(
+          (data.frame(from = rep("origin", max(levelData[, 3])), to = unique(paste0("level3-", levelData[, 3])))),
+          unique(data.frame(from = paste0("level3-", levelData[, 3]), to = paste0("level2-", levelData[, 2]))),
+          unique(data.frame(from = paste0("level2-", levelData[, 2]), to = paste0("level1-", levelData[, 1]))),
+          data.frame(from = paste0("level1-", levelData[, 1]), to = paste0("comms-", names(comms))),
+          data.frame(from = paste0("comms-", data.frame(self$cluster_infomap)[, "cluster_infomap"]), to = (self$cluster_infomap[, "node"])[[1]])
+        )
+        vertices <- data.frame(name = unique(c(as.character(hierarchy$from), as.character(hierarchy$to))))
+      } else {
+        ## when n_cluster = 1 (special case)
+        hierarchy <- data.frame(from = rep("origin", length(myleaves)), to = myleaves)
+        vertices <- data.frame(name = unique(c(as.character(hierarchy$from), as.character(hierarchy$to))))
       }
-      absMat <- matrix(unlist(lapply(1:length(comms), getComRow)), nrow = length(comms), ncol = length(comms))
-
-      newDendro <- hclust(as.dist(1 / (absMat + 0.001)), method = "average")
-
-      levelData <- data.frame(
-        firstLevel = cutree(newDendro, ceiling(length(newDendro$order) / 4)),
-        secondLevel = cutree(newDendro, ceiling(length(newDendro$order) / 6)),
-        thirdlevel = cutree(newDendro, ceiling(length(newDendro$order) / 12))
-      )
-      hierarchy <- rbind(
-        (data.frame(from = rep("origin", max(levelData[, 3])), to = unique(paste0("level3-", levelData[, 3])))),
-        unique(data.frame(from = paste0("level3-", levelData[, 3]), to = paste0("level2-", levelData[, 2]))),
-        unique(data.frame(from = paste0("level2-", levelData[, 2]), to = paste0("level1-", levelData[, 1]))),
-        data.frame(from = paste0("level1-", levelData[, 1]), to = paste0("comms-", names(comms))),
-        data.frame(from = paste0("comms-", data.frame(self$cluster_infomap)[, "cluster_infomap"]), to = (self$cluster_infomap[, "node"])[[1]])
-      )
-      vertices <- data.frame(name = unique(c(as.character(hierarchy$from), as.character(hierarchy$to))))
-
+      
       # Create the graph and extract the layout
       mygraph <- igraph::graph_from_data_frame(hierarchy, vertices = vertices)
       lay <- ggraph::create_layout(mygraph, layout = "dendrogram", circular = TRUE)
