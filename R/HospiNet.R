@@ -391,7 +391,8 @@ HospiNet <- R6::R6Class("HospiNet",
           private$.igraph <- igraph::graph_from_data_frame(self$edgelist)
           # weighted = TRUE,
           # mode = "directed")
-          igraph::E(private$.igraph)$weight <- as.numeric(unlist(self$edgelist[, "N"]))
+          #ensure we do not have weights with 0 or negative values
+          igraph::E(private$.igraph)$weight <- self$edgelist[, pmax(0.1,N)] 
 
           private$.igraph
         } else {

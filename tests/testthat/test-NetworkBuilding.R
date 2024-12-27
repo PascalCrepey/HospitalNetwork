@@ -218,3 +218,50 @@ test_that("non-integer window threshold gives the same as integer", {
     expect_equal(minteger, mnoninteger)
 })
 
+test_that("hospitals with only admissions or only discharges are not removed", {
+    base = create_fake_subjectDB(n_subjects = 300, n_facilities = 10)
+    
+    edgelist = edgelist_from_base(checkBase(base), noloops = FALSE)
+    
+    hn = HospiNet$new(edgelist = edgelist$el_aggr, 
+                      edgelist_long = edgelist$el_long,
+                      window_threshold = 365,
+                      nmoves_threshold = NULL,
+                      noloops = FALSE
+                      )
+    expect_equal(dim(hn$matrix), c(10, 10))
+    #remove f10 in target
+    el_noadm_aggr = edgelist$el_aggr[target != "f10"]
+    el_noadm_long = edgelist$el_long[target != "f10"]
+    
+    hn_noadm = HospiNet$new(edgelist = el_noadm_aggr, 
+                      edgelist_long = el_noadm_long,
+                      window_threshold = 365,
+                      nmoves_threshold = NULL,
+                      noloops = FALSE)
+    expect_equal(dim(hn_noadm$matrix), c(10, 10))
+    
+    #remove f10 in origin
+    el_notrans_aggr = edgelist$el_aggr[origin != "f10"]
+    el_notrans_long = edgelist$el_long[origin != "f10"]
+    
+    hn_notrans = HospiNet$new(edgelist = el_notrans_aggr, 
+                            edgelist_long = el_notrans_long,
+                            window_threshold = 365,
+                            nmoves_threshold = NULL,
+                            noloops = FALSE)
+    expect_equal(dim(hn_notrans$matrix), c(10, 10))
+    
+    #remove f10 in both origin and target unless origin = target = f10
+    el_noadmtrans_aggr = edgelist$el_aggr[origin != "f10" & target != "f10" | origin == "f10" & target == "f10"]
+    el_noadmtrans_long = edgelist$el_long[origin != "f10" & target != "f10" | origin == "f10" & target == "f10"]
+    
+    hn_noadmtrans = HospiNet$new(edgelist = el_noadmtrans_aggr, 
+                              edgelist_long = el_noadmtrans_long,
+                              window_threshold = 365,
+                              nmoves_threshold = NULL,
+                              noloops = FALSE)
+    expect_equal(dim(hn_noadmtrans$matrix), c(10, 10))
+    
+})
+

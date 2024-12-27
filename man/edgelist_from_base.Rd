@@ -14,6 +14,7 @@ edgelist_from_base(
   nmoves_threshold = NULL,
   flag_vars = NULL,
   flag_values = NULL,
+  keep_nodes = FALSE,
   verbose = FALSE
 )
 }
@@ -71,6 +72,9 @@ one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2",
 "value2")). The values in 'origin' and 'target' are the values that flag
 a potential origin of a transfer, or a potential target,
 respectively. See details.}
+
+\item{keep_nodes}{(logical) Should nodes with no connections be kept in the
+edgelist? Defaults to FALSE.}
 
 \item{verbose}{TRUE to print computation steps}
 }

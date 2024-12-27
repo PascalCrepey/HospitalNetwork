@@ -223,6 +223,8 @@ matrix_from_base <- function(base,
 #'     "value2")). The values in 'origin' and 'target' are the values that flag
 #'     a potential origin of a transfer, or a potential target,
 #'     respectively. See details.
+#' @param keep_nodes (logical) Should nodes with no connections be kept in the
+#'     edgelist? Defaults to FALSE.
 #' @param verbose TRUE to print computation steps
 #'
 #' @return A list of two data.tables, which are the edgelists. One in long
@@ -252,6 +254,7 @@ edgelist_from_base <- function(base,
                                nmoves_threshold = NULL,
                                flag_vars = NULL,
                                flag_values = NULL,
+                               keep_nodes = FALSE,
                                verbose = FALSE) {
     #--- Check arguments ---
     checks <- makeAssertCollection()
@@ -464,6 +467,18 @@ edgelist_from_base <- function(base,
         if (verbose) cat("Removing connections below nmoves_threshold...\n")
         el_aggr <- subset(el_aggr, N >= nmoves_threshold)
     }
+    
+    if (keep_nodes) {
+        if (verbose) cat("Keeping nodes with no connections...\n")
+        curr_nodes <- unique(c(as.character(el_aggr$origin), as.character(el_aggr$target)))
+        exp_nodes <- unique(base$fID)
+        nodes_to_add <- setdiff(exp_nodes, curr_nodes)
+        if(length(nodes_to_add) > 0) {
+            el_aggr <- rbind(el_aggr, 
+                             data.table(origin = nodes_to_add, 
+                                        target = nodes_to_add, N = 0))
+        }
+    }
 
     return(list(
         "el_aggr" = el_aggr,
@@ -510,6 +525,8 @@ edgelist_from_base <- function(base,
 #'     "value2")). The values in 'origin' and 'target' are the values that flag
 #'     a potential origin of a transfer, or a potential target,
 #'     respectively. See details.
+#' @param keep_nodes (logical) Should nodes with no connections be kept in the
+#'     edgelist? Defaults to FALSE.
 #' @param create_MetricsTable (boolean)
 #'     Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.
 #' @param ... Additional parameters to be sent to checkBase in case the database has not been checked yet.
@@ -540,6 +557,7 @@ hospinet_from_subject_database <- function(base,
                                            nmoves_threshold = NULL,
                                            flag_vars = NULL,
                                            flag_values = NULL,
+                                           keep_nodes = FALSE,
                                            create_MetricsTable = TRUE,
                                            verbose = FALSE,
                                            shinySession = NULL,
@@ -565,6 +583,7 @@ hospinet_from_subject_database <- function(base,
         nmoves_threshold = nmoves_threshold,
         flag_vars = flag_vars,
         flag_values = flag_values,
+        keep_nodes = keep_nodes,
         verbose = verbose
     )
     if (!is.null(shinySession)) {
