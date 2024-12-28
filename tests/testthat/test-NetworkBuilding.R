@@ -149,25 +149,25 @@ test_that("edgelist_from_base() computes the right number of connections", {
 ## TEST MATRICES
 test_that("matrix_from_edgelist() computed the right matrix", {
     suppressWarnings({
-        mA = matrix_from_edgelist(elA$el_long, count = NULL, format_long = T)
-        mB = matrix_from_edgelist(elB$el_long, count = NULL, format_long = T)
-        mC = matrix_from_edgelist(elC$el_long, count = NULL, format_long = T)
-        mD = matrix_from_edgelist(elD$el_long, count = NULL, format_long = T)
-        mE = matrix_from_edgelist(elE$el_long, count = NULL, format_long = T)
-        mF = matrix_from_edgelist(elF$el_long, count = NULL, format_long = T)
-        mG = matrix_from_edgelist(elG$el_long, count = NULL, format_long = T)
-        mH = matrix_from_edgelist(elH$el_long, count = NULL, format_long = T)
-        mI = matrix_from_edgelist(elI$el_long, count = NULL, format_long = T)
+        mA = matrix_from_edgelist(elA$el_long, count = NULL, format_long = TRUE)
+        mB = matrix_from_edgelist(elB$el_long, count = NULL, format_long = TRUE)
+        mC = matrix_from_edgelist(elC$el_long, count = NULL, format_long = TRUE)
+        mD = matrix_from_edgelist(elD$el_long, count = NULL, format_long = TRUE)
+        mE = matrix_from_edgelist(elE$el_long, count = NULL, format_long = TRUE)
+        mF = matrix_from_edgelist(elF$el_long, count = NULL, format_long = TRUE)
+        mG = matrix_from_edgelist(elG$el_long, count = NULL, format_long = TRUE)
+        mH = matrix_from_edgelist(elH$el_long, count = NULL, format_long = TRUE)
+        mI = matrix_from_edgelist(elI$el_long, count = NULL, format_long = TRUE)
         ##
-        mA2 = matrix_from_edgelist(elA$el_aggr, count = 'N', format_long = F)
-        mB2 = matrix_from_edgelist(elB$el_aggr, count = 'N', format_long = F)
-        mC2 = matrix_from_edgelist(elC$el_aggr, count = 'N', format_long = F)
-        mD2 = matrix_from_edgelist(elD$el_aggr, count = 'N', format_long = F)
-        mE2 = matrix_from_edgelist(elE$el_aggr, count = 'N', format_long = F)
-        mF2 = matrix_from_edgelist(elF$el_aggr, count = 'N', format_long = F)
-        mG2 = matrix_from_edgelist(elG$el_aggr, count = 'N', format_long = F)
-        mH2 = matrix_from_edgelist(elH$el_aggr, count = 'N', format_long = F)
-        mI2 = matrix_from_edgelist(elI$el_aggr, count = 'N', format_long = F)
+        mA2 = matrix_from_edgelist(elA$el_aggr, count = 'N', format_long = FALSE)
+        mB2 = matrix_from_edgelist(elB$el_aggr, count = 'N', format_long = FALSE)
+        mC2 = matrix_from_edgelist(elC$el_aggr, count = 'N', format_long = FALSE)
+        mD2 = matrix_from_edgelist(elD$el_aggr, count = 'N', format_long = FALSE)
+        mE2 = matrix_from_edgelist(elE$el_aggr, count = 'N', format_long = FALSE)
+        mF2 = matrix_from_edgelist(elF$el_aggr, count = 'N', format_long = FALSE)
+        mG2 = matrix_from_edgelist(elG$el_aggr, count = 'N', format_long = FALSE)
+        mH2 = matrix_from_edgelist(elH$el_aggr, count = 'N', format_long = FALSE)
+        mI2 = matrix_from_edgelist(elI$el_aggr, count = 'N', format_long = FALSE)
     })
     expect_equal(mA["f1", "f2"], 2)
     expect_equal(mB["f1", "f2"], 1)
@@ -216,5 +216,52 @@ test_that("non-integer window threshold gives the same as integer", {
                                    window_threshold = 1.5)
     
     expect_equal(minteger, mnoninteger)
+})
+
+test_that("hospitals with only admissions or only discharges are not removed", {
+    base = create_fake_subjectDB(n_subjects = 300, n_facilities = 10)
+    
+    edgelist = edgelist_from_base(checkBase(base), noloops = FALSE)
+    
+    hn = HospiNet$new(edgelist = edgelist$el_aggr, 
+                      edgelist_long = edgelist$el_long,
+                      window_threshold = 365,
+                      nmoves_threshold = NULL,
+                      noloops = FALSE
+                      )
+    expect_equal(dim(hn$matrix), c(10, 10))
+    #remove f10 in target
+    el_noadm_aggr = edgelist$el_aggr[target != "f10"]
+    el_noadm_long = edgelist$el_long[target != "f10"]
+    
+    hn_noadm = HospiNet$new(edgelist = el_noadm_aggr, 
+                      edgelist_long = el_noadm_long,
+                      window_threshold = 365,
+                      nmoves_threshold = NULL,
+                      noloops = FALSE)
+    expect_equal(dim(hn_noadm$matrix), c(10, 10))
+    
+    #remove f10 in origin
+    el_notrans_aggr = edgelist$el_aggr[origin != "f10"]
+    el_notrans_long = edgelist$el_long[origin != "f10"]
+    
+    hn_notrans = HospiNet$new(edgelist = el_notrans_aggr, 
+                            edgelist_long = el_notrans_long,
+                            window_threshold = 365,
+                            nmoves_threshold = NULL,
+                            noloops = FALSE)
+    expect_equal(dim(hn_notrans$matrix), c(10, 10))
+    
+    #remove f10 in both origin and target unless origin = target = f10
+    el_noadmtrans_aggr = edgelist$el_aggr[origin != "f10" & target != "f10" | origin == "f10" & target == "f10"]
+    el_noadmtrans_long = edgelist$el_long[origin != "f10" & target != "f10" | origin == "f10" & target == "f10"]
+    
+    hn_noadmtrans = HospiNet$new(edgelist = el_noadmtrans_aggr, 
+                              edgelist_long = el_noadmtrans_long,
+                              window_threshold = 365,
+                              nmoves_threshold = NULL,
+                              noloops = FALSE)
+    expect_equal(dim(hn_noadmtrans$matrix), c(10, 10))
+    
 })
 

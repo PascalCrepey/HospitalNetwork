@@ -5,10 +5,10 @@
 \alias{HospiNet}
 \title{Class providing the HospiNet object with its methods}
 \format{
-\code{\link{R6Class}} object.
+\code{\link[R6:R6Class]{R6::R6Class}} object.
 }
 \value{
-Object of \code{\link{R6Class}} with methods for accessing facility networks.
+Object of \code{\link[R6:R6Class]{R6::R6Class}} with methods for accessing facility networks.
 }
 \description{
 Class providing the HospiNet object with its methods
@@ -18,15 +18,15 @@ Class providing the HospiNet object with its methods
 \section{Methods}{
 
 \describe{
-  \item{\code{new(edgelist, 
+  \item{\code{new(edgelist,
 window_threshold,
 nmoves_threshold,
 noloops)}}{This method is used to create an object of this class with \code{edgelist} as the necessary information to create the network.
 The other arguments \code{window_threshold}, \code{nmoves_threshold}, and \code{noloops} are specific to the \code{edgelist} and need to be provided.
-For ease of use, it is preferable to use the function \code{\link{hospinet_from_subject_database}}}
+For ease of use, it is preferable to use the function \code{\link[=hospinet_from_subject_database]{hospinet_from_subject_database()}}.}
   \item{\code{print()}}{This method prints basic information about the object.}
-  \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default. 
-  The argument \code{type} can take the following values: 
+  \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default.
+  The argument \code{type} can take the following values:
   \describe{
   \item{matrix}{plot the network matrix,}
   \item{clustered_matrix}{identify and plot cluster(s) in the matrix using the infomap algorithm (from igraph),}
@@ -38,45 +38,27 @@ For ease of use, it is preferable to use the function \code{\link{hospinet_from_
 }
 
 \examples{
-mydbsmall = create_fake_subjectDB(n_subjects = 1000, n_facilities = 10)
- 
-hn = hospinet_from_subject_database(base = mydbsmall,
-                                    window_threshold = 10,
-                                    count_option = "successive",
-                                    condition = "dates")
+mydbsmall <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+
+hn <- hospinet_from_subject_database(
+  base = checkBase(mydbsmall),
+  window_threshold = 10,
+  count_option = "successive",
+  condition = "dates"
+)
 
 hn
 
 plot(hn)
 plot(hn, type = "clustered_matrix")
-
 }
 \keyword{data}
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{numFacilities}}{the number of facilities in the network (read-only). Same as n_facilities, but with a different source (base instead of igraph), maybe useful as double-check}
-
-\item{\code{TBAmean}}{the mean time between admissions (read-only) (not implemented yet)}
-
-\item{\code{TBAdistribution}}{the distribution of time between admissions (read-only) (not implemented yet)}
-
-\item{\code{LOSmean}}{the mean length of stay (read-only) (not implemented yet)}
-
-\item{\code{LOSdistribution}}{the distribution of length of stay (read-only) (not implemented yet)}
-
-\item{\code{admissions}}{the number of admissions in the entire data base (read-only)}
-
-\item{\code{subjects}}{the number of unique subjects in the data base (read-only)}
-}
-\if{html}{\out{</div>}}
-}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
 \item{\code{edgelist}}{(data.table) the list of edges (origin, target) and their associated number of movements (N) (read-only)}
 
-\item{\code{edgelist_long}}{(data.table) edgelist with additionnal informations (read-only)}
+\item{\code{edgelist_long}}{(data.table) edgelist with additional information (read-only)}
 
 \item{\code{matrix}}{(matrix) the transfer matrix (active binding, read-only)}
 
@@ -94,25 +76,11 @@ plot(hn, type = "clustered_matrix")
 
 \item{\code{hist_degrees}}{histogram data of the number of connections per facility}
 
-\item{\code{numFacilities}}{the number of facilities in the network (read-only). Same as n_facilities, but with a different source (base instead of igraph), maybe useful as double-check}
-
-\item{\code{TBAmean}}{the mean time between admissions (read-only) (not implemented yet)}
-
-\item{\code{TBAdistribution}}{the distribution of time between admissions (read-only) (not implemented yet)}
-
-\item{\code{LOSmean}}{the mean length of stay (read-only) (not implemented yet)}
-
-\item{\code{LOSdistribution}}{the distribution of length of stay (read-only) (not implemented yet)}
-
 \item{\code{LOSPerHosp}}{the mean length of stay for each facility (read-only)}
-
-\item{\code{admissions}}{the number of admissions in the entire data base (read-only)}
 
 \item{\code{admissionsPerHosp}}{the number of admissions to each facility (read-only)}
 
 \item{\code{facilities}}{(data.table) the facilities id with their geolocalisation (read-only)}
-
-\item{\code{subjects}}{the number of unique subjects in the data base (read-only)}
 
 \item{\code{subjectsPerHosp}}{the number of unique subjects admitted to each facility (read-only)}
 
@@ -149,6 +117,7 @@ plot(hn, type = "clustered_matrix")
 \if{html}{\out{<a id="method-HospiNet-new"></a>}}
 \if{latex}{\out{\hypertarget{method-HospiNet-new}{}}}
 \subsection{Method \code{new()}}{
+Create a new HospiNet object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HospiNet$new(
   edgelist,
@@ -162,24 +131,69 @@ plot(hn, type = "clustered_matrix")
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{edgelist}}{Short format edgelist}
+
+\item{\code{edgelist_long}}{Long format edgelist}
+
+\item{\code{window_threshold}}{The window threshold used to compute the network}
+
+\item{\code{nmoves_threshold}}{The nmoves threshold used to compute the network}
+
+\item{\code{noloops}}{TRUE if loops have been removed}
+
+\item{\code{prob_params}}{Currently unused}
+
+\item{\code{fsummary}}{A pre-built data.table with the LOSPerHosp, subjectsPerHosp
+and admissionsPerHosp that don't need to be recomputed.}
+
+\item{\code{create_MetricsTable}}{all of the metrics for each facility}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A new `HospiNet` object
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-HospiNet-print"></a>}}
 \if{latex}{\out{\hypertarget{method-HospiNet-print}{}}}
 \subsection{Method \code{print()}}{
+Prints a basic description of the number of facilities and movements of
+a HospiNet object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HospiNet$print()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+NULL
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-HospiNet-plot"></a>}}
 \if{latex}{\out{\hypertarget{method-HospiNet-plot}{}}}
 \subsection{Method \code{plot()}}{
+Plots various representations of the HospiNet network
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HospiNet$plot(type = "matrix", ...)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{One of "matrix", "degree", "clustered_matrix", "circular network"
+Choose what you would like to plot - the connectivity matrix, degree
+distribution, the clusters, or the network in a circle.}
+
+\item{\code{...}}{Additional arguments to be provided. Only supported for `type == 'circular_network`'.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+a `ggplot2` object
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-HospiNet-clone"></a>}}

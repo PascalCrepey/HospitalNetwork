@@ -31,3 +31,8 @@ a list of summary statistics:
 \description{
 Function that extracts summary statistics from entire database
 }
+\examples{
+mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+myBase <- checkBase(mydb)
+all_admissions_summary(myBase)
+}

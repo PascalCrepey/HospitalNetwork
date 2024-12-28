@@ -36,3 +36,7 @@ a list of two data.tables containing all subjects stays and gps coordinates with
 \description{
 Create a fake subject database
 }
+\examples{
+mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+mydb
+}

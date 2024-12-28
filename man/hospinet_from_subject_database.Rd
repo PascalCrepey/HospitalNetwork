@@ -14,6 +14,7 @@ hospinet_from_subject_database(
   nmoves_threshold = NULL,
   flag_vars = NULL,
   flag_values = NULL,
+  keep_nodes = FALSE,
   create_MetricsTable = TRUE,
   verbose = FALSE,
   shinySession = NULL,
@@ -31,14 +32,14 @@ A threshold for the number of days between discharge and admission to be counted
 
 \item{condition}{(character) TODO. Default is "dates".}
 
-\item{prob_params}{(vector of numeric) Three numerical values to calculate 
-the probability that a movement causes an introduction from hospital A 
-to hospital B. See Donker et al. (PLoS CB 2010) for more details. 
-prob_params[1] is the rate of acquisition in hospital A (related to LOS 
+\item{prob_params}{(vector of numeric) Three numerical values to calculate
+the probability that a movement causes an introduction from hospital A
+to hospital B. See Donker T, Wallinga J, Grundmann H. (2010) <doi:10.1371/journal.pcbi.1000715> for more details.
+prob_params[1] is the rate of acquisition in hospital A (related to LOS
 in hospital A). Default: 0.0036
-prob_params[2] is the rate of loss of colonisation (related to time 
+prob_params[2] is the rate of loss of colonisation (related to time
 between admissions). Default: 1/365
-prob_params[4] is the rate of transmission to other patients in hospital 
+prob_params[4] is the rate of transmission to other patients in hospital
 B (related to LOS in hospital B). Default: 0.128}
 
 \item{noloops}{(boolean).
@@ -64,6 +65,9 @@ one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2",
 a potential origin of a transfer, or a potential target,
 respectively. See details.}
 
+\item{keep_nodes}{(logical) Should nodes with no connections be kept in the
+edgelist? Defaults to FALSE.}
+
 \item{create_MetricsTable}{(boolean)
 Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.}
 
@@ -79,9 +83,18 @@ The function returns a HospiNet object.
 \description{
 This function creates a HospiNet object from the database containing subjects stays.
 }
+\details{
+This function will build a HospiNet object from a line-listed
+subject database. The HospiNet object has all of the functions stored as
+active bindings which can be accessed in the usual way. For more info, see
+\code{\link{HospiNet}}.
+Note that the subject database will need to be run through \code{\link{checkBase}}
+before going into this function.
+}
 \examples{
-#TODO
-
+mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+myBase <- checkBase(mydb)
+hospinet_from_subject_database(myBase)
 }
 \seealso{
 \code{\link{HospiNet}}

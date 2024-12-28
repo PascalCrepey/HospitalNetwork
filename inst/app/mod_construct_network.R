@@ -56,7 +56,7 @@ mod_construct_network_ui <- function(id){
                                                value = "NULL",
                                                width = "100%")),
                            column(7, htmlOutput(ns("cutoffcheck"),
-                                                inline = T))
+                                                inline = TRUE))
                         )),
         actionButton(ns("construct"),
                      "Construct network",
@@ -208,7 +208,7 @@ mod_construct_network_server <- function(input, output, session, base)
                                                        "</br><b>", net()[[1]], "</b>"),
                                                  "</div><br/>"),
                                    type = "error",
-                                   html = T)
+                                   html = TRUE)
             net(NULL)
         }
         else {
@@ -229,7 +229,7 @@ mod_construct_network_server <- function(input, output, session, base)
                                                       paste(savedWar, collapse = "</br>"),
                                                       "</b></p>")),
                                    type = "success",
-                                   html = T)
+                                   html = TRUE)
         }
     })
     return(reactive({ net() }))

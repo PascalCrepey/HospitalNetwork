@@ -57,7 +57,7 @@ get_metrics <-
       checkmate::assertMatrix(network$matrix, nrows = ncol(network$matrix), add = coll) # matrix must be square
     }
     ## Check metrics argument
-    checkmate::assertCharacter(metrics, unique = T)
+    checkmate::assertCharacter(metrics, unique = TRUE)
     ## Check options argument
     checkmate::assertList(options, types = "list", add = coll)
     checkmate::assertNamed(options, type = "unique", add = coll)
@@ -80,11 +80,11 @@ get_metrics <-
     DT_list = list()
     ## transfers
     if (transfers) {
-        subjects_sent<-as.data.table(igraph::strength(graph,mode = "out"), keep.rownames = T)
+        subjects_sent<-as.data.table(igraph::strength(graph,mode = "out"), keep.rownames = TRUE)
         colnames(subjects_sent)<-c("node","subjects_sent")
         setkey(subjects_sent, node)
         
-        subjects_received<-as.data.table(igraph::strength(graph,mode = "in"), keep.rownames = T)
+        subjects_received<-as.data.table(igraph::strength(graph,mode = "in"), keep.rownames = TRUE)
         colnames(subjects_received)<-c("node","subjects_received")
         setkey(subjects_received, node)
         DT_list$transfers = merge(subjects_received, subjects_sent)
@@ -137,20 +137,20 @@ get_degree <-
     ## CHECK ARGUMENTS
     coll = checkmate::makeAssertCollection()
     checkmate::assertClass(graph, classes = "igraph", add = coll)
-    if(!class(modes) %in% c("list", "character")) {
+    if(!inherits(modes, c("list", "character"))) {
         stop("Argument 'modes' must be either a character vector or a list of character elements")
     }
-    if(class(modes) == "list") {
-      checkmate::assertList(modes, types = "character", unique = T, add = coll)
+    if(inherits(modes, "list")) {
+      checkmate::assertList(modes, types = "character", unique = TRUE, add = coll)
     }
-    if(class(modes) == "character") {
-      checkmate::assertCharacter(modes, unique = T, add = coll)
+    if(inherits(modes, "character")) {
+      checkmate::assertCharacter(modes, unique = TRUE, add = coll)
     }
     ## END OF CHECK
     ## MAIN        
     DT_list = list()
     DT_list[modes] = lapply(modes, function(mode) {
-        tmp = as.data.table(igraph::degree(graph, mode = mode), keep.rownames = T)
+        tmp = as.data.table(igraph::degree(graph, mode = mode), keep.rownames = TRUE)
         colnames(tmp) = c("node", paste0("degree_", mode))
         setkey(tmp, node)
         return(tmp)
@@ -178,20 +178,20 @@ get_closeness <-
     ## CHECK ARGUMENTS
     coll = checkmate::makeAssertCollection()
     checkmate::assertClass(graph, classes = "igraph", add = coll)
-    if(!class(modes) %in% c("list", "character")) {
+    if(!inherits(modes, c("list", "character"))) {
         stop("Argument 'modes' must be either a character vector or a list of character elements")
     }
-    if(class(modes) == "list") {
-        checkmate::assertList(modes, types = "character", unique = T, add = coll)
+    if(inherits(modes,"list")) {
+        checkmate::assertList(modes, types = "character", unique = TRUE, add = coll)
     }
-    if(class(modes) == "character") {
-        checkmate::assertCharacter(modes, unique = T, add = coll)
+    if(inherits(modes, "character")) {
+        checkmate::assertCharacter(modes, unique = TRUE, add = coll)
     }
     ## END OF CHECK
     ## MAIN        
     DT_list = list()
     DT_list[modes] = lapply(modes, function(mode) {
-        tmp = as.data.table(igraph::closeness(graph, mode = mode), keep.rownames = T)
+        tmp = as.data.table(igraph::closeness(graph, mode = mode), keep.rownames = TRUE)
         colnames(tmp) = c("node", paste0("closeness_", mode))
         setkey(tmp, node)
         return(tmp)
@@ -215,7 +215,7 @@ get_betweenness <-
     checkmate::assertClass(graph, classes = "igraph", add = coll)
     ## END OF CHECK
     ## MAIN
-    DT = as.data.table(igraph::betweenness(graph), keep.rownames = T)
+    DT = as.data.table(igraph::betweenness(graph), keep.rownames = TRUE)
     colnames(DT) = c("node", "betweenness")
     setkey(DT, node)
     ## END OF MAIN
@@ -240,19 +240,19 @@ get_clusters <-
     ## CHECK ARGUMENTS
     coll = checkmate::makeAssertCollection()
     checkmate::assertClass(graph, classes = "igraph", add = coll)
-    if(!class(algos) %in% c("list", "character")) {
+    if(!inherits(algos, c("list", "character"))) {
       stop("Argument 'algo' must be either a character vector or a list of character elements")
     }
-    if(class(algos) == "list") {
-      checkmate::assertList(algos, types = "character", unique = T, add = coll)
+    if(inherits(algos, "list")) {
+      checkmate::assertList(algos, types = "character", unique = TRUE, add = coll)
     }
-    if(class(algos) == "character") {
-      checkmate::assertCharacter(algos, unique = T, add = coll)
+    if(inherits(algos, "character")) {
+      checkmate::assertCharacter(algos, unique = TRUE, add = coll)
     }
     ## END OF CHECK
     ## MAIN
     if(length(undirected)) {
-      graph = igraph::as.undirected(graph, mode = undirected)
+      graph = igraph::as_undirected(graph, mode = undirected)
     }
     DT_list = list()
     DT_list[algos] = lapply(algos, function(x) {
@@ -272,15 +272,15 @@ get_clusters <-
 #' Function computing hub scores for each node. If bycluster = TRUE, hub scores are computed by cluster
 #'
 #' @param graph An igraph graph
-#' @param ... other arguments to be passed to igraph function hub_score()
+#' @param ... other arguments to be passed to igraph function hits_scores()
 #' 
-#' @seealso \code{\link[igraph]{hub_score}}
+#' @seealso \code{\link[igraph]{hits_scores}}
 #' 
 get_hubs_global <-
     function(graph, ...)
 {
-    hubs = igraph::hub_score(graph, ...)
-    DT_hubs = as.data.table(hubs$vector, keep.rownames = T)
+    hubs = igraph::hits_scores(graph, ...)
+    DT_hubs = as.data.table(hubs$hub, keep.rownames = TRUE)
     colnames(DT_hubs) = c("node", "hub_score_global")
     setkey(DT_hubs, node)
     return(DT_hubs)
@@ -290,9 +290,9 @@ get_hubs_global <-
 #' 
 #' @param graphs A list of igraph graphs, one for each group within which the hub scores will be computed
 #' @param name [character (1)] The name of grouping variable (used only for naming the column of the DT)
-#' @param ... Optional arguments to be passed to igraph function 'hub_score()'
+#' @param ... Optional arguments to be passed to igraph function 'hits_scores()'
 #' 
-#' @seealso \code{\link[igraph]{hub_score}}
+#' @seealso \code{\link[igraph]{hits_scores}}
 #' 
 get_hubs_bycluster <- function(graphs, name, ...)
 {
@@ -308,11 +308,11 @@ get_hubs_bycluster <- function(graphs, name, ...)
     
     ## Get hub scores for each graph
     hubs = lapply(graphs, function(x) {
-        igraph::hub_score(x, ...)
+        igraph::hits_scores(x, ...)
     })   
     ## Create data tables
     tmp = lapply(hubs, function(x) {
-        as.data.table(x$vector, keep.rownames = T)
+        as.data.table(x$hub, keep.rownames = TRUE)
     })
     ## Add clusters names
     DT_hubs = lapply(1:length(tmp), function(x) {

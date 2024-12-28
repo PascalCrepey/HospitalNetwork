@@ -1,50 +1,50 @@
 Package: HospitalNetwork
 Type: Package
-Title: Building networks of hospitals through patients transfers
-Version: 0.9.2
+Title: Building Networks of Hospitals Through Patients Transfers
+Version: 0.9.4.9000
 Authors@R: c(
-  person("Pascal", "Crépey", email = "pascal.crepey@ehesp.fr", role = c("aut", "cre")),
+  person("Pascal", "Crépey", email = "pascal.crepey@ehesp.fr", role = c("aut", "cre", "cph")),
   person("Tjibbe", "Donker", email = "tjibbe.donker@uniklinik-freiburg.de", role = "aut"),
   person("Clément", "Massonnaud", email = "clement.massonnaud@gmail.com", role = "aut"),
-  person("Jonathan", "Roux", email = "jonathan.roux@santepubliquefrance.fr", role = "aut")
+  person("Jonathan", "Roux", email = "jonathan.roux@santepubliquefrance.fr", role = "aut"),
+  person("Michael", "Lydeamore", email="michael.lydeamore@monash.edu", role=c("aut"))
   )
-Description: This R package contains functions to help interested researchers to build 
-      hospital networks from data on hospitalized patients transferred between hospitals. 
+Description: Set of tools to help interested researchers to build hospital networks 
+  from data on hospitalized patients transferred between hospitals. Methods provided 
+  have been used in Donker T, Wallinga J, Grundmann H. (2010) <doi:10.1371/journal.pcbi.1000715>, 
+  and Nekkab N, Crépey P, Astagneau P, Opatowski L, Temime L. (2020) <doi:10.1038/s41598-020-71212-6>.
+URL: https://pascalcrepey.github.io/HospitalNetwork/
+BugReports: https://github.com/PascalCrepey/HospitalNetwork/issues
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
+LazyLoad: true
 Imports: 
     checkmate,
     igraph,
     lubridate,
     R6,
     ggplot2,
-    magrittr,
-    kableExtra,
-    pander,
-    vdiffr,
     ggraph,
-    glue,
-    golem,
-    htmltools,
-    shiny,
+    leaflet,
+    leaflet.extras2,
+    geosphere,
+    shiny
+Depends: 
+  data.table
+RoxygenNote: 7.3.2
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 2.1.0),
     shinyWidgets,
     shinydashboard,
     DT,
     shinyalert,
     shinyjs,
-    leaflet,
-    leaflet.extras2,
-    geosphere
-Depends: 
-    data.table,
-    R (>= 2.10)
-RoxygenNote: 7.2.3
-Suggests:
-    knitr,
-    qpdf,
-    rmarkdown,
-    testthat (>= 2.1.0),
-    shinytest
+    vdiffr,
+    pander,
+    glue,
+    golem,
+    htmltools
 VignetteBuilder: knitr
 Language: en-US

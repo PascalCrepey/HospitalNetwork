@@ -1,9 +1,9 @@
 context("Data management")
-db = create_fake_subjectDB(n_subjects = 100, with_errors = TRUE)
+db = create_fake_subjectDB(n_subjects = 300, with_errors = TRUE)
 
 test_that("errors are raised when needed", {
     expect_error(checkBase(db))
-    expect_error(checkBase(db,
+    expect_warning(checkBase(db,
                            convertDates = TRUE,
                            dateFormat = "ymd",
                            deleteErrors = "record",
@@ -15,10 +15,10 @@ suppressWarnings({base = checkBase(db,
                                   dateFormat = "ymd",
                                   deleteErrors = "record",
                                   deleteMissing = "record",
-                                  subjectID = "subject",
-                                  facilityID = "facility",
-                                  admDate = "admission",
-                                  disDate = "discharge")
+                                  subjectID = "sID",
+                                  facilityID = "fID",
+                                  admDate = "Adate",
+                                  disDate = "Ddate")
 })
 
 test_that("checkFormat has cleaned the database", {
@@ -47,7 +47,6 @@ test_that("no overlapping stays remain", {
     noOverlap = base[, .SD[-1]$Adate - .SD[-nrow(.SD)]$Ddate >= 0, by = sID]$V1
     expect_true(all(noOverlap))
 })
-
 
     
     

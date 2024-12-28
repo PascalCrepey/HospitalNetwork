@@ -6,7 +6,8 @@
 \usage{
 checkBase(
   base,
-  convertDates = F,
+  gps_facilities = NULL,
+  convertDates = FALSE,
   dateFormat = NULL,
   deleteMissing = NULL,
   deleteErrors = NULL,
@@ -24,17 +25,19 @@ checkBase(
 )
 }
 \arguments{
-\item{base}{(list).
+\item{base}{(data.table).
 A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
     sID: patientID (character)
     fID: facilityID (character)
     Adate: admission date (POSIXct, but character can be converted to POSIXct)
-    Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
+    Ddate: discharge date (POSIXct, but character can be converted to POSIXct)}
+
+\item{gps_facilities}{(data.table).
 An optional database with GPS coordinates of facilities and bed capacities. The data.table should have at least the following columns:
-    fID: facilityID (character)
-    lat: latitude of the facility (double)
-    long: longitude of the facility (double)
-    beds: bed capacity in the facility (integer)}
+     fID: facilityID (character)
+     lat: latitude of the facility (double)
+     long: longitude of the facility (double)
+     beds: bed capacity in the facility (integer)}
 
 \item{convertDates}{(boolean) indicating if dates need to be converted to POSIXct if they are not}
 

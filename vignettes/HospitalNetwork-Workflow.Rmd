@@ -23,7 +23,7 @@ Formally, a network is composed of *nodes* which may or may not be connected by 
 In terms of data structure, a common way of representing a network is with a simple $n*n$ matrix (often called adjacency matrix, or contact matrix). The rows and columns contain the nodes (which appear once in each), and each cell contains the information on whether or not the two nodes are connected.
 
 
-```{r adjacency-matrix, echo = F, dev = 'svg', results = 'asis'}
+```{r adjacency-matrix, echo = FALSE, dev = 'svg', results = 'asis'}
 data = c(0,0,602,0,339,687,0,0,0,0,373,1294,0,718,86,296,263,0,0,35,0,598,0,0,0)
 mat = matrix(data, nrow = 5, ncol = 5)
 colnames(mat) = LETTERS[1:5]
@@ -131,10 +131,10 @@ You can use the function ```checkBase()``` to try to correct automatically the i
 * dates: if admission and discharge dates are provided as character strings, you can use ```checkBase()``` to try to parse them to a date-time object, which uses internally the ```lubridate``` functions. To do that, set the argument ```convertDates = TRUE```. You must also specify in what format are the dates ("year-month-day", "day-month-year", etc.) by setting the argument ```dateFormat = c("ymd", "ydm", "dmy", "dym", "mdy", "myd")```.
 
 
-##The *HospiNet* object
+## The *HospiNet* object
 
-*HospiNet* is an S3 object containing the facility matrix as well as specific informations regarding the network. We have developed a *summary* and a *print* method for this object. 
-The informations contained in an *HospiNet* objects are: 
+*HospiNet* is an R6 object containing the facility matrix as well as specific information regarding the network. We have developed a *summary* and a *print* method for this object. 
+The information contained in an *HospiNet* objects are: 
 
 * *n_facilities*, the number of facilities in the network,
 * *n_subjects*, the number of subjects in the network,
@@ -146,23 +146,45 @@ The informations contained in an *HospiNet* objects are:
 
 ## Using the package
 
-```{r setup, eval = F}
+```{r setup, eval = FALSE}
 library(HospitalNetwork)
 
+```
+```{r setup2, eval = TRUE}
 mydbmed = create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
 hn = hospinet_from_subject_database(base = mydbmed, noloops = FALSE)
 hn
+```
+```{r setup3, eval = TRUE}
 plot(hn)
+```
+```{r setup4, eval = TRUE}
 plot(hn, type = "degree")
+```
+```{r setup5, eval = TRUE}
 plot(hn , type = "clustered_matrix")
+```
+```{r setup6, cache = FALSE, eval = TRUE}
 
-
-mydb = create_fake_subjectDB_clustered(n_subjects = 10000, n_facilities = 500, n_clusters = 5)
+mydb = create_fake_subjectDB_clustered(n_subjects = 10000, n_facilities = 100, n_clusters = 5)
 hn = hospinet_from_subject_database(base = mydb, noloops = FALSE)
 hn
+```
+
+```{r setup7, eval = TRUE}
 plot(hn)
+```
+
+```{r setup8, eval = TRUE}
 plot(hn, type = "degree")
+```
+
+```{r setup9, eval = TRUE}
 plot(hn , type = "clustered_matrix")
 ```
 
+```{r setup10, eval = TRUE}
+#this plot may not work on some systems
+#plot(hn , type = "circular_network")
+```
 

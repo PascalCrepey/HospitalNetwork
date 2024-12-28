@@ -6,3 +6,6 @@
 ^docs$
 ^.covrignore$
 ^data-raw$
+^cran-comments\.md$
+^CRAN-SUBMISSION$
+^\.github$

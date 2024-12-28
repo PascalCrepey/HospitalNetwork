@@ -14,6 +14,7 @@ edgelist_from_base(
   nmoves_threshold = NULL,
   flag_vars = NULL,
   flag_values = NULL,
+  keep_nodes = FALSE,
   verbose = FALSE
 )
 }
@@ -30,18 +31,18 @@ at two facilities occurred within this window, this constitutes a
 connection between the two facilities (given that potential other
 conditions are met).}
 
-\item{count_option}{(character) How to count connections. Options are 
+\item{count_option}{(character) How to count connections. Options are
 "successive", "probability" or "all". See details.}
 
-\item{prob_params}{(vector of numeric) Three numerical values to calculate 
-the probability that a movement causes an introduction from hospital A 
-to hospital B. See Donker et al. (PLoS CB 2010) for more details. 
+\item{prob_params}{(vector of numeric) Three numerical values to calculate
+the probability that a movement causes an introduction from hospital A
+to hospital B. See Donker T, Wallinga J, Grundmann H. (2010) <doi:10.1371/journal.pcbi.1000715> for more details.
 For use with count_option="probability".
-prob_params[1] is the rate of acquisition in hospital A (related to LOS 
+prob_params[1] is the rate of acquisition in hospital A (related to LOS
 in hospital A). Default: 0.0036
-prob_params[2] is the rate of loss of colonisation (related to time 
+prob_params[2] is the rate of loss of colonisation (related to time
 between admissions). Default: 1/365
-prob_params[4] is the rate of transmission to other patients in hospital 
+prob_params[4] is the rate of transmission to other patients in hospital
 B (related to LOS in hospital B). Default: 0.128}
 
 \item{condition}{(character) Condition(s) used to decide what constitutes a
@@ -72,6 +73,9 @@ one. Eg: list("origin" = c("value1", "value2"), "target" = c("value2",
 a potential origin of a transfer, or a potential target,
 respectively. See details.}
 
+\item{keep_nodes}{(logical) Should nodes with no connections be kept in the
+edgelist? Defaults to FALSE.}
+
 \item{verbose}{TRUE to print computation steps}
 }
 \value{
@@ -84,7 +88,19 @@ which subjects can be transferred. The edgelist is computed from a database that
 contains the records of the subjects' stays in the facilities.
 }
 \details{
-TODO
+The edgelist contains the information on the connections between
+    nodes of the network, that is the movements of subjects between
+    facilities. The edgelist can be in two different formats: long or
+    aggregated. In long format, each row corresponds to a single movement
+    between two facilities, therefore only two columns are needed, one
+    containing the origin facilities of a movement, the other containing the
+    target facilities. In aggregated format, the edgelist is aggregated by
+    unique pairs of origin-target facilities.
+}
+\examples{
+mydb <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
+myBase <- checkBase(mydb)
+edgelist_from_base(myBase)
 }
 \seealso{
 \code{\link{matrix_from_edgelist}}, \code{\link{matrix_from_base}}

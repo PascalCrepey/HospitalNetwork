@@ -1,6 +1,8 @@
 <!-- badges: start -->
 
-[![travis build status](https://travis-ci.com/PascalCrepey/HospitalNetwork.svg?branch=master)](https://travis-ci.com/PascalCrepey/HospitalNetwork) [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/PascalCrepey/HospitalNetwork?branch=master&svg=true)](https://ci.appveyor.com/project/PascalCrepey/HospitalNetwork) [![codecov](https://codecov.io/gh/PascalCrepey/HospitalNetwork/branch/master/graphs/badge.svg)](https://codecov.io/gh/PascalCrepey/HospitalNetwork)
+[![codecov](https://codecov.io/github/PascalCrepey/HospitalNetwork/branch/master/graph/badge.svg?token=SxcaPZ2JJZ)](https://app.codecov.io/github/PascalCrepey/HospitalNetwork)
+![workflow](https://github.com/PascalCrepey/HospitalNetwork/actions/workflows/check-standard.yaml/badge.svg)
+[![CRAN status](https://www.r-pkg.org/badges/version/HospitalNetwork)](https://CRAN.R-project.org/package=HospitalNetwork)
 
 <!-- badges: end -->
 
@@ -14,7 +16,14 @@ The aim of the project is to provide a common framework to build and analyze hos
 This project is partly supported by the NeWIS (NetWorks to Improve Surveillance) initiative, funded by JPIAMR, and by Sphinx project, funded by ANR.
 
 ### Step 0: Installing the package:
-- To install packages from GitHub, the package “devtools” needs to be installed first
+
+You can install the release version of this package from CRAN as follows:
+```R
+install.packages("HospitalNetwork")
+```
+
+Or you can install the development version from GitHub:
+- The package `devtools` needs to be installed first
 ```R
 install.packages("devtools")
 library(“devtools”)

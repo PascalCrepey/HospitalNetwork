@@ -9,13 +9,14 @@
 #'
 #' Function that performs various checks to ensure the database is correctly formatted, and adjusts overlapping patient records.
 #'
-#' @param base (list).
+#' @param base (data.table).
 #'     A patient discharge database, in the form of a data.table. The data.table should have at least the following columns:
 #'         sID: patientID (character)
 #'         fID: facilityID (character)
 #'         Adate: admission date (POSIXct, but character can be converted to POSIXct)
 #'         Ddate: discharge date (POSIXct, but character can be converted to POSIXct)
-#'     An optional database with GPS coordinates of facilities and bed capacities. The data.table should have at least the following columns:
+#' @param gps_facilities (data.table).
+#'    An optional database with GPS coordinates of facilities and bed capacities. The data.table should have at least the following columns:
 #'         fID: facilityID (character)
 #'         lat: latitude of the facility (double)
 #'         long: longitude of the facility (double)
@@ -101,7 +102,8 @@
 #' @export
 #'
 checkBase <- function(base,
-                      convertDates = F,
+                      gps_facilities = NULL,
+                      convertDates = FALSE,
                       dateFormat = NULL,
                       deleteMissing = NULL,
                       deleteErrors = NULL,
@@ -118,10 +120,10 @@ checkBase <- function(base,
                       ...)
 {
     report = list()
-    report$base = copy(base$all_s_stays)
-    report$gps_base = copy(base$gps_facilities)
+    report$base = copy(base)
     
-    #--- Check columns names for all_s_stays ------------------------------------------------------------------------
+    #--- Check columns names --
+
     tableCols = colnames(report$base)
     inputCols = c(subjectID, facilityID, admDate, disDate)
     foundCols = intersect(tableCols, inputCols)
@@ -152,10 +154,10 @@ checkBase <- function(base,
                                       verbose = verbose,
                                       ...)
     if (verbose) message("Done.")
-    
+
     #--- Check columns names for gps data ------------------------------------------------------------------------
-    if(!is.null(report$gps_base)){ # A datatable with gps coordinates is provided
-      gps_tableCols = colnames(report$gps_base)
+    if(!is.null(gps_facilities)){ # A datatable with gps coordinates is provided
+      gps_tableCols = colnames(gps_facilities)
       gps_inputCols = c(facilityID, facilityLat, facilityLong, facilityBed)
       gps_foundCols = intersect(gps_tableCols, gps_inputCols)
       
@@ -163,6 +165,7 @@ checkBase <- function(base,
         notfound = setdiff(gps_inputCols, gps_foundCols)
         stop("Column(s) ", paste(notfound, collapse = ", "), " provided as argument were not found in the database.")
       }
+      report$gps_base = copy(gps_facilities)
       # Set column names to default
       setnames(report$gps_base,
                old = c(facilityID, facilityLat, facilityLong, facilityBed),
@@ -172,7 +175,7 @@ checkBase <- function(base,
       report = checkFormat_gps(report = report,
                                verbose = verbose)
     } else { # No datatable is provided
-      report$gps_base = data.table(fID = NA_character_,
+      report$gps_base = data.table::data.table(fID = unique(report$base$fID) |> sort(),
                                          lat = NA_real_,
                                          long = NA_real_,
                                          beds = NA_integer_)
@@ -236,17 +239,17 @@ checkFormat <- function(report,
                         verbose = TRUE)
 {
     #assertDataTable(report$base)
-    #--- Check data format -------------------------------------------------------------------------
+    #--- Check data format ---
     if (!"data.frame" %in% class(report$base)) {
         stop("The database must be either a data.frame or a data.table object")
     } else if (!"data.table" %in% class(report$base)) {
         setDT(report$base)
         if (verbose) message("Converting database to a data.table object")
     }
-    #--- Register the original size of the dataset --------------------------------------------------
+    #--- Register the original size of the dataset ---
     report$originalSize = report$base[,.N]
 
-    #--- Check format of "sID" and "fID" columns ----------------------------------------------------
+    #--- Check format of "sID" and "fID" columns ---
     charCols = c("sID", "fID")
     types = sapply(charCols, function(x) typeof(report$base[[x]]))
     wrong = names(types[types != "character"])
@@ -256,7 +259,7 @@ checkFormat <- function(report,
                     fID = as.character(fID))]
     }
 
-    #--- Check dates format  ------------------------------------------------------------------------
+    #--- Check dates format  ---
     dateCols = c("Adate", "Ddate")
     report$failedParse = 0
 
@@ -298,7 +301,7 @@ checkMissingErrors <- function(report,
 {
     cols = c("sID", "fID", "Adate", "Ddate")
 
-    #=== Nested function to delete =======================================================
+    #=== Nested function to delete ===
     delete <- function(base,
                        to_remove,
                        option)
@@ -323,9 +326,8 @@ checkMissingErrors <- function(report,
             stop("Argument ", paste0("delete ", option), " not or incorrectly specified")
         }
     }
-    #=====================================================================================
-
-    #--- Check missing values ------------------------------------------------------------
+    
+    #--- Check missing values ---
     if (verbose) message("Checking for missing values...")
     missingDT = report$base[, lapply(.SD, function(x) {
         trimws(x) %in% c("", "NA", "na", "Na", "N/A",
@@ -361,7 +363,7 @@ checkMissingErrors <- function(report,
         report$removedMissing = 0
     }
 
-    #--- Check errors -------------------------------------------------------------------
+    #--- Check errors ---
     # Check if there are records with discharge before admission,
     # and delete them as given in function options
     wrong_order = report$base[Adate > Ddate, , which = T]
