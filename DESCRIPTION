@@ -30,7 +30,8 @@ Imports:
     geosphere,
     shiny
 Depends: 
-  data.table
+  data.table, 
+  R (>= 4.1)
 RoxygenNote: 7.3.2
 Suggests:
     knitr,

@@ -35,6 +35,9 @@
 #' @param facilityID (character) the columns name containing the facility ID. Default is "fID"
 #' @param admDate (character) the columns name containing the admission date. Default is "Adate"
 #' @param disDate (character) the columns name containing the discharge date. Default is "Ddate"
+#' @param facilityLat (character) the columns name containing the latitude of the facility. Default is "lat"
+#' @param facilityLong (character) the columns name containing the longitude of the facility. Default is "long"
+#' @param facilityBed (character) the columns name containing the bed capacity of the facility. Default is "beds"
 #' @param maxIteration (integer) the maximum number of times the function will try and remove overlapping admissions
 #' @param retainAuxData (boolean) allow retaining additional data provided in the database. Default is TRUE.
 #' @param verbose (boolean) print diagnostic messages. Default is TRUE.
