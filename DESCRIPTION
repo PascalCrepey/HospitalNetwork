@@ -49,3 +49,4 @@ Suggests:
     htmltools
 VignetteBuilder: knitr
 Language: en-US
+LazyData: true
