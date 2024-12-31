@@ -24,11 +24,7 @@ Imports:
     lubridate,
     R6,
     ggplot2,
-    ggraph,
-    leaflet,
-    leaflet.extras2,
-    geosphere,
-    shiny
+    ggraph
 Depends: 
   data.table, 
   R (>= 4.1)
@@ -46,7 +42,11 @@ Suggests:
     pander,
     glue,
     golem,
-    htmltools
+    htmltools,
+    leaflet,
+    leaflet.extras2,
+    geosphere,
+    shiny
 VignetteBuilder: knitr
 Language: en-US
 LazyData: true

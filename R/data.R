@@ -1,0 +1,24 @@
+#' Healthcare services in Europe
+#' 
+#' A subset of the data from the European Commission's GISCO API, which provides
+#' information on healthcare services in Europe. The data is available in CSV,
+#' GeoJSON, and GPKG formats.
+#' API: https://gisco-services.ec.europa.eu/pub/healthcare/<year>/<format>/<geo_code>.<format>
+#' where year is year of the version on 4 digit, format is the encoding format (among 
+#' 'csv', 'geojson', 'gpkg'), and geo_code is the two-letters code of the country, 
+#' or EU to retrieve all data.
+#' 
+#' @format ## `european_healthcare_facilities`
+#' A data.table with 7 columns and 12299 rows. It covers the following european 
+#' countries: AL AT BE BG CH CY CZ DK EE EL ES FI FR HR HU IE IT LT LU LV ME MT NL NO PL PT RO RS SE SI SK
+#' \describe{
+#'  \item{id}{The unique identifier of the healthcare facility.}
+#'  \item{hospital_name}{The name of the healthcare facility.}
+#'  \item{lat}{The latitude of the healthcare facility.}
+#'  \item{lon}{The longitude of the healthcare facility.}
+#'  \item{postcode}{The postcode of the healthcare facility.}
+#'  \item{city}{The city of the healthcare facility.}
+#'  \item{cntr_id}{The country code of the healthcare facility.}
+#' }
+#' @source https://gisco-services.ec.europa.eu/pub/healthcare/2021/csv/EU.csv
+"european_healthcare_facilities"

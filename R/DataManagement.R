@@ -629,13 +629,5 @@ checkFormat_gps <- function(report,
                            long = as.numeric(long))]
   }
   
-  intCols = "beds"
-  types = sapply(intCols, function(x) typeof(report$gps_base[[x]]))
-  wrong = names(types[types != "integer"])
-  if (length(wrong)) {
-    if (verbose) message("Converting column(s) ", paste(wrong, collapse = ", "), " to type integer")
-    report$gps_base[, `:=`(beds = as.integer(beds))]
-  }
-  
   return(report)
 }

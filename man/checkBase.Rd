@@ -61,6 +61,12 @@ NULL (default): do not delete. Stops the function with an error message.
 
 \item{admDate}{(character) the columns name containing the admission date. Default is "Adate"}
 
+\item{facilityLat}{(character) the columns name containing the latitude of the facility. Default is "lat"}
+
+\item{facilityLong}{(character) the columns name containing the longitude of the facility. Default is "long"}
+
+\item{facilityBed}{(character) the columns name containing the bed capacity of the facility. Default is "beds"}
+
 \item{maxIteration}{(integer) the maximum number of times the function will try and remove overlapping admissions}
 
 \item{retainAuxData}{(boolean) allow retaining additional data provided in the database. Default is TRUE.}

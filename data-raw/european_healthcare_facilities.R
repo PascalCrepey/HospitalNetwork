@@ -31,8 +31,10 @@ european_healthcare_facilities[, ':='(site_name = NULL,
                                       pub_date = NULL,
                                       comments = NULL)]
 european_healthcare_facilities[city == "", city := NA]
+european_healthcare_facilities[, city := enc2native(city)]
 european_healthcare_facilities[postcode == "", postcode := NA]
 european_healthcare_facilities[hospital_name == "", hospital_name := NA]
+european_healthcare_facilities[, hospital_name := enc2native(hospital_name)]
 european_healthcare_facilities[, cntr_id := as.factor(cntr_id)]
 #remove hospitals with no coordinates
 european_healthcare_facilities <- european_healthcare_facilities[!is.na(lat) & !is.na(lon)]

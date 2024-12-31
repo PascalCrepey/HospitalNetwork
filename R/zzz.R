@@ -19,5 +19,7 @@ utils::globalVariables(c(
     "..extraCols",
     "LOS",
     "probTr",
-    "incProgress"
+    "incProgress",
+    "lat",
+    "long"
 ))
