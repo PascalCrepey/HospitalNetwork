@@ -4,7 +4,9 @@
 \name{HospiNet}
 \alias{HospiNet}
 \title{Class providing the HospiNet object with its methods}
-\format{\code{\link{R6Class}} object.}
+\format{
+\code{\link{R6Class}} object.
+}
 \value{
 Object of \code{\link{R6Class}} with methods for accessing facility networks.
 }
@@ -135,14 +137,15 @@ plot(hn, type = "clustered_matrix")
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{HospiNet$new()}}
-\item \href{#method-print}{\code{HospiNet$print()}}
-\item \href{#method-plot}{\code{HospiNet$plot()}}
-\item \href{#method-clone}{\code{HospiNet$clone()}}
+\item \href{#method-HospiNet-new}{\code{HospiNet$new()}}
+\item \href{#method-HospiNet-print}{\code{HospiNet$print()}}
+\item \href{#method-HospiNet-plot}{\code{HospiNet$plot()}}
+\item \href{#method-HospiNet-clone}{\code{HospiNet$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
+\if{html}{\out{<a id="method-HospiNet-new"></a>}}
+\if{latex}{\out{\hypertarget{method-HospiNet-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HospiNet$new(
@@ -158,7 +161,8 @@ plot(hn, type = "clustered_matrix")
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-print"></a>}}
+\if{html}{\out{<a id="method-HospiNet-print"></a>}}
+\if{latex}{\out{\hypertarget{method-HospiNet-print}{}}}
 \subsection{Method \code{print()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HospiNet$print()}\if{html}{\out{</div>}}
@@ -166,7 +170,8 @@ plot(hn, type = "clustered_matrix")
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-plot"></a>}}
+\if{html}{\out{<a id="method-HospiNet-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-HospiNet-plot}{}}}
 \subsection{Method \code{plot()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HospiNet$plot(
@@ -179,7 +184,8 @@ plot(hn, type = "clustered_matrix")
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
+\if{html}{\out{<a id="method-HospiNet-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-HospiNet-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

@@ -1,4 +1,3 @@
-
 context("HospiNet building options")
 test_that("No loop option",{
   set.seed(42)
@@ -49,4 +48,7 @@ test_that("plotting clustered network", {
   vdiffr::expect_doppelganger("MatClust500", plot_mat_net500)
   
 })
+
+
+
 

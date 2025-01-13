@@ -15,7 +15,6 @@
 #' @param clusters choose between cluster algorithm: cluster_fast_greedy or cluster_infomap
 #' @param hubs choose between getting hubs from "all_clusters" or "global"
 #' @param options named list of options to be passed to the igraph functions
-#' 
 #' @import igraph
 #' @import checkmate
 #' @export
@@ -28,14 +27,16 @@ get_metrics <-
              metrics = c("degree",
                          "closeness",
                          "clusters",
-                         "betweenness"),
+                         "betweenness",
+                         "reciprocity"),
              clusters = c("cluster_fast_greedy","cluster_infomap"),
             # hubs=NULL,
              hubs = "all_clusters",
              options = list(
                  degree = list(modes = c("in", "out", "total")),
                  closeness = list(modes = "total"),
-                 betweenness = list() ,
+                 betweenness = list(),
+                 reciprocity = list(),
                  cluster_fast_greedy = list(undirected = "collapse"),
                  cluster_infomap = list(undirected = "collapse"),
                  clusters= list(algos=c("cluster_fast_greedy","cluster_infomap"),undirected = "collapse")
@@ -90,13 +91,16 @@ get_metrics <-
         DT_list$transfers = merge(subjects_received, subjects_sent)
     }
     ## metrics   
+    ## metrics
     DT_list[metrics] = lapply(metrics, function(metric) {
-        options[[metric]]$graph = graph
-        DT = do.call(paste0("get_", metric), options[[metric]])
-        setkey(DT, node)
-        return(DT)
+      options[[metric]]$graph = graph
+      DT = do.call(paste0("get_", metric), options[[metric]])
+      setkey(DT, node)
+      return(DT)
     })
-
+    
+    
+    
     ## hubs
     if (!is.null(hubs)) {
         if (hubs == "global") {
@@ -370,6 +374,44 @@ get_graph_bycluster <- function(graph, DT, clusters)
     return(graph_byclust)        
 }
 
+
+#' Compute reciprocity for a directed network
+#'
+#' @param graph an igraph object (directed graph)
+#'
+#' @return a data.table containing reciprocity values for each node
+#'
+#' @seealso \code{\link[igraph]{reciprocity}}
+
+get_reciprocity <-
+  function(graph)
+  {
+    ## CHECK ARGUMENTS
+    coll = checkmate::makeAssertCollection()
+    checkmate::assertClass(graph, classes = "igraph", add = coll)
+    if (!igraph::is.directed(graph)) {
+      stop("Reciprocity can only be calculated for directed graphs.")
+    }
+    ## END OF CHECK
+    
+    ## MAIN
+    reciprocity_scores <- sapply(igraph::V(graph), function(node) {
+      edges_out <- igraph::incident(graph, node, mode = "out")
+      edges_in <- igraph::incident(graph, node, mode = "in")
+      mutual_edges <- sum(igraph::ends(graph, edges_out)[, 2] %in% igraph::ends(graph, edges_in)[, 1])
+      total_edges <- length(edges_out) + length(edges_in)
+      if (total_edges == 0) return(NA)
+      mutual_edges / total_edges
+    })
+    
+    DT = data.table(
+      node = igraph::V(graph)$name,
+      reciprocity = reciprocity_scores
+    )
+    setkey(DT, node)
+    ## END OF MAIN
+    return(DT)
+  }
 
 # getAuthorities <-
 #     function()

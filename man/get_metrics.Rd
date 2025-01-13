@@ -9,13 +9,14 @@ get_metrics(
   mode = "directed",
   weighted = TRUE,
   transfers = TRUE,
-  metrics = c("degree", "closeness", "clusters", "betweenness"),
+  metrics = c("degree", "closeness", "clusters", "betweenness", "reciprocity"),
   clusters = c("cluster_fast_greedy", "cluster_infomap"),
   hubs = "all_clusters",
-  options = list(degree = list(modes = c("in", "out", "total")), closeness = list(modes
-    = "total"), betweenness = list(), cluster_fast_greedy = list(undirected = "collapse"),
-    cluster_infomap = list(undirected = "collapse"), clusters = list(algos =
-    c("cluster_fast_greedy", "cluster_infomap"), undirected = "collapse"))
+  options = list(degree = list(modes = c("in", "out", "total")), closeness = list(modes =
+    "total"), betweenness = list(), reciprocity = list(), cluster_fast_greedy =
+    list(undirected = "collapse"), cluster_infomap = list(undirected = "collapse"),
+    clusters = list(algos = c("cluster_fast_greedy", "cluster_infomap"), undirected =
+    "collapse"))
 )
 }
 \arguments{

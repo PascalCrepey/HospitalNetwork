@@ -97,6 +97,7 @@ HospiNet <- R6::R6Class("HospiNet",
     .hubs_global=NULL,
     .hubs_infomap=NULL,
     .hubs_fast_greedy=NULL,
+    .reciprocity= NULL,
 
     plot_hist_degree = function(){
       hd_long = melt(self$hist_degrees, id.vars = "degree")
@@ -444,6 +445,17 @@ HospiNet <- R6::R6Class("HospiNet",
        stop("`$hubs_fast_greedy` is read only", call. = FALSE)
      }
    },
+   reciprocity = function(value) {
+     if (missing(value)) {
+       if (is.null(private$.reciprocity)) {
+         private$.reciprocity <- calculate_reciprocity(self$igraph)
+       }
+       private$.reciprocity
+     } else {
+       stop("`$reciprocity` is read only", call. = FALSE)
+     }
+   }
+  ,
    metricsTable = function(value) {
      if (missing(value)) {
        if (is.null(private$.metricsTable)){
@@ -458,8 +470,9 @@ HospiNet <- R6::R6Class("HospiNet",
            self$cluster_infomap,
            self$hubs_infomap,
            self$hubs_fast_greedy,
-           self$hubs_global
-         ))
+           self$hubs_global,
+           self$reciprocity
+           ))
          #private$.metricsTable = self$hubs_fast_greedy
          #private$.metricsTable = get_metrics(self$igraph)
        }
@@ -486,3 +499,4 @@ HospiNet <- R6::R6Class("HospiNet",
     }
   )
 )
+

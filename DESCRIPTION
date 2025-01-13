@@ -31,10 +31,12 @@ Imports:
     shinydashboard,
     DT,
     shinyalert,
-    shinyjs
+    shinyjs,
+    usethis
 Depends: 
-  data.table
-RoxygenNote: 7.0.1
+    data.table,
+    R (>= 3.5)
+RoxygenNote: 7.3.2
 Suggests:
     knitr,
     qpdf,
