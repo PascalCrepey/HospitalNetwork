@@ -448,7 +448,7 @@ HospiNet <- R6::R6Class("HospiNet",
    reciprocity = function(value) {
      if (missing(value)) {
        if (is.null(private$.reciprocity)) {
-         private$.reciprocity <- calculate_reciprocity(self$igraph)
+         private$.reciprocity <- get_reciprocity(self$igraph)
        }
        private$.reciprocity
      } else {
@@ -471,7 +471,7 @@ HospiNet <- R6::R6Class("HospiNet",
            self$hubs_infomap,
            self$hubs_fast_greedy,
            self$hubs_global,
-           self$reciprocity
+           self$reciprocity,
            ))
          #private$.metricsTable = self$hubs_fast_greedy
          #private$.metricsTable = get_metrics(self$igraph)

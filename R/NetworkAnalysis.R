@@ -90,8 +90,9 @@ get_metrics <-
         setkey(subjects_received, node)
         DT_list$transfers = merge(subjects_received, subjects_sent)
     }
-    ## metrics   
-    ## metrics
+
+    
+        ## metrics
     DT_list[metrics] = lapply(metrics, function(metric) {
       options[[metric]]$graph = graph
       DT = do.call(paste0("get_", metric), options[[metric]])
@@ -374,44 +375,47 @@ get_graph_bycluster <- function(graph, DT, clusters)
     return(graph_byclust)        
 }
 
-
-#' Compute reciprocity for a directed network
+#' Compute the reciprocity
 #'
-#' @param graph an igraph object (directed graph)
+#' @param graph An igraph object (directed graph).
 #'
-#' @return a data.table containing reciprocity values for each node
+#' @return A data.table containing reciprocity for each node.
+#' @export
 #'
-#' @seealso \code{\link[igraph]{reciprocity}}
-
-get_reciprocity <-
-  function(graph)
-  {
-    ## CHECK ARGUMENTS
-    coll = checkmate::makeAssertCollection()
-    checkmate::assertClass(graph, classes = "igraph", add = coll)
-    if (!igraph::is.directed(graph)) {
-      stop("Reciprocity can only be calculated for directed graphs.")
-    }
-    ## END OF CHECK
-    
-    ## MAIN
-    reciprocity_scores <- sapply(igraph::V(graph), function(node) {
-      edges_out <- igraph::incident(graph, node, mode = "out")
-      edges_in <- igraph::incident(graph, node, mode = "in")
-      mutual_edges <- sum(igraph::ends(graph, edges_out)[, 2] %in% igraph::ends(graph, edges_in)[, 1])
-      total_edges <- length(edges_out) + length(edges_in)
-      if (total_edges == 0) return(NA)
-      mutual_edges / total_edges
-    })
-    
-    DT = data.table(
-      node = igraph::V(graph)$name,
-      reciprocity = reciprocity_scores
-    )
-    setkey(DT, node)
-    ## END OF MAIN
-    return(DT)
+get_reciprocity <- function(graph) {
+  ## CHECK ARGUMENTS
+  coll = checkmate::makeAssertCollection()
+  checkmate::assertClass(graph, classes = "igraph", add = coll)
+  if (!igraph::is.directed(graph)) {
+    stop("Reciprocity can only be calculated for directed graphs.")
   }
+  checkmate::reportAssertions(coll)
+  
+  ## MAIN
+  reciprocity_scores <- igraph::reciprocity(graph, mode = "ratio")  # Get global reciprocity score
+  
+  node_reciprocity <- sapply(igraph::V(graph), function(node) {
+    edges_out <- igraph::incident(graph, node, mode = "out")
+    edges_in <- igraph::incident(graph, node, mode = "in")
+    mutual_edges <- sum(igraph::ends(graph, edges_out)[, 2] %in% igraph::ends(graph, edges_in)[, 1])
+    total_edges <- length(edges_out) + length(edges_in)
+    if (total_edges == 0) return(NA)
+    mutual_edges / total_edges
+  })
+  
+  result <- data.table(
+    node = igraph::V(graph)$name,
+    reciprocity = node_reciprocity,
+    global_reciprocity = reciprocity_scores  # Add global reciprocity as context
+  )
+  setkey(result, node)
+  
+  ## END OF MAIN
+  return(result)
+}
+
+
+
 
 # getAuthorities <-
 #     function()
