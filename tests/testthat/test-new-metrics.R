@@ -29,3 +29,56 @@ test_that("Reciprocity calculates", {
 
 
 
+
+
+
+
+
+test_that("Eigenvector centrality calculates", {
+  # Create a sample edgelist
+  edgelist <- data.table(
+    origin = c("A", "B", "A", "D", "B", "D"), 
+    target = c("B", "A", "C", "A", "D", "B"), 
+    N = c(1, 1, 1, 1, 1, 1)
+  )
+  
+  # Initialize the HospiNet object
+  hn <- HospiNet$new(
+    edgelist = edgelist, 
+    edgelist_long = edgelist, 
+    window_threshold = 365, 
+    nmoves_threshold = NULL, 
+    noloops = TRUE
+  )
+  
+  # Check if igraph is correctly initialized
+  expect_true(inherits(hn$igraph, "igraph"), "Graph object is not initialized properly.")
+  
+  # Get the eigenvector centrality from HospiNet
+  eigenvector_centrality_result <- hn$eigenvector_centrality
+  
+  # Create an igraph object from the above edgelist
+  g <- igraph::graph_from_data_frame(edgelist, directed = TRUE)
+  
+  # Calculate expected eigenvector centrality directly using igraph
+  expected <- data.table(
+    node = igraph::V(g)$name,
+    eigenvector_centrality = igraph::eigen_centrality(g, directed = TRUE)$vector
+  )
+  
+  # Set keys for both tables
+  setkey(eigenvector_centrality_result, node)
+  setkey(expected, node)
+  
+  # Compare the calculated and expected results
+  expect_equal(eigenvector_centrality_result, expected)
+})
+
+
+
+
+
+
+
+
+

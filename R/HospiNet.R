@@ -98,6 +98,7 @@ HospiNet <- R6::R6Class("HospiNet",
     .hubs_infomap=NULL,
     .hubs_fast_greedy=NULL,
     .reciprocity= NULL,
+    .eigenvector_centrality=NULL,
 
     plot_hist_degree = function(){
       hd_long = melt(self$hist_degrees, id.vars = "degree")
@@ -454,6 +455,16 @@ HospiNet <- R6::R6Class("HospiNet",
      } else {
        stop("`$reciprocity` is read only", call. = FALSE)
      }
+   },
+   eigenvector_centrality = function(value) {
+     if (missing(value)) {
+       if (is.null(private$.eigenvector_centrality)) {
+         private$.eigenvector_centrality <- get_eigenvector_centrality(private$.igraph)
+       }
+       private$.eigenvector_centrality
+     } else {
+       stop("`$eigenvector_centrality` is read-only", call. = FALSE)
+     }
    }
   ,
    metricsTable = function(value) {
@@ -472,6 +483,7 @@ HospiNet <- R6::R6Class("HospiNet",
            self$hubs_fast_greedy,
            self$hubs_global,
            self$reciprocity,
+           self$eigenvector_centrality
            ))
          #private$.metricsTable = self$hubs_fast_greedy
          #private$.metricsTable = get_metrics(self$igraph)

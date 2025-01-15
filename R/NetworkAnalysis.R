@@ -28,7 +28,8 @@ get_metrics <-
                          "closeness",
                          "clusters",
                          "betweenness",
-                         "reciprocity"),
+                         "reciprocity",
+                         "eigenvector_centrality"),
              clusters = c("cluster_fast_greedy","cluster_infomap"),
             # hubs=NULL,
              hubs = "all_clusters",
@@ -37,6 +38,7 @@ get_metrics <-
                  closeness = list(modes = "total"),
                  betweenness = list(),
                  reciprocity = list(),
+                 eigenvector_centrality = list(),
                  cluster_fast_greedy = list(undirected = "collapse"),
                  cluster_infomap = list(undirected = "collapse"),
                  clusters= list(algos=c("cluster_fast_greedy","cluster_infomap"),undirected = "collapse")
@@ -133,7 +135,7 @@ get_metrics <-
 #'
 #' @param graph an igraph object
 #' @param modes the type of degree: "in", "out", "total"
-#'
+#' 
 #' @return a data.table of nodes degree
 #'
 get_degree <-
@@ -380,7 +382,7 @@ get_graph_bycluster <- function(graph, DT, clusters)
 #' @param graph An igraph object (directed graph).
 #'
 #' @return A data.table containing reciprocity for each node.
-#' @export
+#' @seealso \code{\link[igraph]{reciprocity}}
 #'
 get_reciprocity <- function(graph) {
   ## CHECK ARGUMENTS
@@ -413,6 +415,33 @@ get_reciprocity <- function(graph) {
   ## END OF MAIN
   return(result)
 }
+
+#' Compute the eigenvector centrality
+#'
+#' @param graph An igraph object.
+#'
+#' @return A data.table containing eigenvector centrality for each node.
+#' @seealso \code{\link[igraph]{eigen_centrality}}
+#'
+get_eigenvector_centrality <- function(graph) {
+  ## CHECK ARGUMENTS
+  coll = checkmate::makeAssertCollection()
+  checkmate::assertClass(graph, classes = "igraph", add = coll)
+  checkmate::reportAssertions(coll)
+  
+  ## MAIN
+  eigen_centrality <- igraph::eigen_centrality(graph, directed = TRUE)
+  
+  result <- data.table(
+    node = igraph::V(graph)$name,
+    eigenvector_centrality = eigen_centrality$vector
+  )
+  setkey(result, node)
+  
+  ## END OF MAIN
+  return(result)
+}
+
 
 
 

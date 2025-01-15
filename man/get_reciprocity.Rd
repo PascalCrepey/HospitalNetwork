@@ -2,18 +2,18 @@
 % Please edit documentation in R/NetworkAnalysis.R
 \name{get_reciprocity}
 \alias{get_reciprocity}
-\title{Compute reciprocity for a directed network}
+\title{Compute the reciprocity}
 \usage{
 get_reciprocity(graph)
 }
 \arguments{
-\item{graph}{an igraph object (directed graph)}
+\item{graph}{An igraph object (directed graph).}
 }
 \value{
-a data.table containing reciprocity values for each node
+A data.table containing reciprocity for each node.
 }
 \description{
-Compute reciprocity for a directed network
+Compute the reciprocity
 }
 \seealso{
 \code{\link[igraph]{reciprocity}}
