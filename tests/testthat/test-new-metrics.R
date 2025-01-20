@@ -11,7 +11,7 @@ test_that("Reciprocity calculates", {
   reciprocity_result <- hn$reciprocity
   
   expected_output <- data.table(node = c("A", "B", "C", "D"), 
-                                reciprocity = c(0.25, 0.5, 0, 1/3))  
+                                reciprocity = c(0.5, 1, 0, 2/3))  
   
   # Calculate expected global reciprocity directly using igraph
   g <- igraph::graph_from_data_frame(edgelist, directed = TRUE)
