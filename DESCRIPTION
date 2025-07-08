@@ -23,9 +23,8 @@ Imports:
     lubridate,
     R6,
     ggplot2,
-    ggraph
-Depends: 
-  data.table
+    ggraph,
+    data.table
 RoxygenNote: 7.3.2
 Suggests:
     knitr,
