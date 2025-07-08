@@ -603,7 +603,7 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.hist_degrees <- merge(private$.hist_degrees, d_t, by.x = "degree", by.y = "degree_total", all.x = TRUE)
         private$.hist_degrees <- merge(private$.hist_degrees, d_i, by.x = "degree", by.y = "degree_in", all.x = TRUE)
         private$.hist_degrees <- merge(private$.hist_degrees, d_o, by.x = "degree", by.y = "degree_out", all.x = TRUE)
-        setnames(private$.hist_degrees, 2:4, c("total_degree", "in_degree", "out_degree"))
+        data.table::setnames(private$.hist_degrees, 2:4, c("total_degree", "in_degree", "out_degree"))
         private$.hist_degrees
       } else {
         stop("`$hist_degrees` is read only", call. = FALSE)
