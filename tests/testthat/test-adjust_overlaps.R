@@ -205,9 +205,9 @@ baseCorrDis[, `:=`(adm = as.Date(adm),
                 dis = as.Date(dis))]
 setkey(baseCorrDis, sID, adm)
 
-setnames(baseCorrDis, c("adm", "dis"), c("Adate", "Ddate"))
-setnames(baseOver, c("adm", "dis"), c("Adate", "Ddate"))
-setnames(baseCorrAdm, c("adm", "dis"), c("Adate", "Ddate"))
+data.table::setnames(baseCorrDis, c("adm", "dis"), c("Adate", "Ddate"))
+data.table::setnames(baseOver, c("adm", "dis"), c("Adate", "Ddate"))
+data.table::setnames(baseCorrAdm, c("adm", "dis"), c("Adate", "Ddate"))
 
 #=== TESTS ==========================================================
 report = list()

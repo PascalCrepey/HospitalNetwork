@@ -1,7 +1,7 @@
 Package: HospitalNetwork
 Type: Package
 Title: Building Networks of Hospitals Through Patients Transfers
-Version: 0.9.3
+Version: 0.9.4.9000
 Authors@R: c(
   person("Pascal", "Crépey", email = "pascal.crepey@ehesp.fr", role = c("aut", "cre", "cph")),
   person("Tjibbe", "Donker", email = "tjibbe.donker@uniklinik-freiburg.de", role = "aut"),
@@ -23,10 +23,9 @@ Imports:
     lubridate,
     R6,
     ggplot2,
-    ggraph
-Depends: 
-  data.table
-RoxygenNote: 7.2.3
+    ggraph,
+    data.table
+RoxygenNote: 7.3.2
 Suggests:
     knitr,
     rmarkdown,

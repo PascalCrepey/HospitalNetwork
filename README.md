@@ -1,6 +1,9 @@
 <!-- badges: start -->
-[![codecov](https://codecov.io/github/PascalCrepey/HospitalNetwork/branch/master/graph/badge.svg?token=SxcaPZ2JJZ)](https://codecov.io/github/PascalCrepey/HospitalNetwork)
+
+[![codecov](https://codecov.io/github/PascalCrepey/HospitalNetwork/branch/master/graph/badge.svg?token=SxcaPZ2JJZ)](https://app.codecov.io/github/PascalCrepey/HospitalNetwork)
 ![workflow](https://github.com/PascalCrepey/HospitalNetwork/actions/workflows/check-standard.yaml/badge.svg)
+[![CRAN status](https://www.r-pkg.org/badges/version/HospitalNetwork)](https://CRAN.R-project.org/package=HospitalNetwork)
+
 <!-- badges: end -->
 
 # HospitalNetwork

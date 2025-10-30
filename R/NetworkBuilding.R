@@ -44,7 +44,7 @@ matrix_from_edgelist <- function(edgelist,
                                  target_name = "target",
                                  count,
                                  format_long = FALSE) {
-    #--- Check arguments -----------------------------------------------------------
+    #--- Check arguments ---
     checks <- makeAssertCollection()
     cols <- colnames(edgelist)
     assertDataFrame(edgelist, add = checks)
@@ -66,9 +66,9 @@ matrix_from_edgelist <- function(edgelist,
         edgelist <- edgelist[, .N, by = c(origin_name, target_name)] # group identical couples
     }
     if (!format_long) {
-        setnames(edgelist, old = count, new = "N")
+        data.table::setnames(edgelist, old = count, new = "N")
     }
-    setnames(edgelist,
+    data.table::setnames(edgelist,
         old = c(origin_name, target_name),
         new = c("origin", "target")
     )
@@ -223,6 +223,8 @@ matrix_from_base <- function(base,
 #'     "value2")). The values in 'origin' and 'target' are the values that flag
 #'     a potential origin of a transfer, or a potential target,
 #'     respectively. See details.
+#' @param keep_nodes (logical) Should nodes with no connections be kept in the
+#'     edgelist? Defaults to FALSE.
 #' @param verbose TRUE to print computation steps
 #'
 #' @return A list of two data.tables, which are the edgelists. One in long
@@ -252,8 +254,9 @@ edgelist_from_base <- function(base,
                                nmoves_threshold = NULL,
                                flag_vars = NULL,
                                flag_values = NULL,
+                               keep_nodes = FALSE,
                                verbose = FALSE) {
-    #--- Check arguments ---------------------------------------------------------------
+    #--- Check arguments ---
     checks <- makeAssertCollection()
     assertDataFrame(base, add = checks)
     assertTRUE(ncol(base) >= 4, add = checks)
@@ -310,7 +313,7 @@ edgelist_from_base <- function(base,
 
 
 
-    # === GET MOVEMENTS OF SUBJECTS =====================================================
+    # === GET MOVEMENTS OF SUBJECTS ===
     ## This will be computed differently depending on what is our definition
     ## of a connection
     ## 1. if window_threshold = 0, this is by definition a direct transfer
@@ -323,7 +326,7 @@ edgelist_from_base <- function(base,
     N <- base[, .N]
     data.table::setkeyv(base, c("sID", "Adate"))
 
-    #--- Count only for successive stays -------------------------------------------------
+    #--- Count only for successive stays ---
     ## Condition 1: rows n and n+1 must have same subjectID (C1)
     ## Condition 2: time between discharge of row n and admission of row n+1 needs to be
     ## less than or equal to window_threshold (C2)
@@ -343,7 +346,7 @@ edgelist_from_base <- function(base,
             C3 <- C3a & C3b
         }
 
-        ## --- Compute origins and targets based on conditions ----------------------------
+        ## --- Compute origins and targets based on conditions ---
         if (verbose) cat("Compute origins and targets...\n")
         ## Compute connections only using dates
         if (condition == "dates") {
@@ -377,7 +380,7 @@ edgelist_from_base <- function(base,
         data.table::setkey(el_long, origin, target)
         el_aggr <- el_long[, .N, by = c("origin", "target")]
     } else if (count_option == "all") {
-        #--- Count for all stays ---------------------------------------------------------
+        #--- Count for all stays ---
         ## Compute time between admissions between EACH PAIR of facilities, for one
         ## individual
         ##    1. Sort by admission date
@@ -448,12 +451,12 @@ edgelist_from_base <- function(base,
         el_aggr <- subset(el_aggr, N > 0)
     }
 
-    #--- Aggregate edgelist by node ----------------------------------------------------
+    #--- Aggregate edgelist by node ---
     if (verbose) cat("Compute edgelist...\n")
     data.table::setkey(el_long, origin, target)
     # el_aggr = el_long[, .N, by = c("origin", "target")]
 
-    #--- Deal with loops ---------------------------------------------------------------
+    #--- Deal with direct loops ---
     if (noloops) {
         if (verbose) cat("Removing loops...\n")
         el_long <- subset(el_long, origin != target)
@@ -463,6 +466,18 @@ edgelist_from_base <- function(base,
     if (!is.null(nmoves_threshold)) {
         if (verbose) cat("Removing connections below nmoves_threshold...\n")
         el_aggr <- subset(el_aggr, N >= nmoves_threshold)
+    }
+    
+    if (keep_nodes) {
+        if (verbose) cat("Keeping nodes with no connections...\n")
+        curr_nodes <- unique(c(as.character(el_aggr$origin), as.character(el_aggr$target)))
+        exp_nodes <- unique(base$fID)
+        nodes_to_add <- setdiff(exp_nodes, curr_nodes)
+        if(length(nodes_to_add) > 0) {
+            el_aggr <- rbind(el_aggr, 
+                             data.table(origin = nodes_to_add, 
+                                        target = nodes_to_add, N = 0))
+        }
     }
 
     return(list(
@@ -510,6 +525,8 @@ edgelist_from_base <- function(base,
 #'     "value2")). The values in 'origin' and 'target' are the values that flag
 #'     a potential origin of a transfer, or a potential target,
 #'     respectively. See details.
+#' @param keep_nodes (logical) Should nodes with no connections be kept in the
+#'     edgelist? Defaults to FALSE.
 #' @param create_MetricsTable (boolean)
 #'     Should the metrics table be created along with the network. Setting to FALSE will speed up the results. Default is TRUE.
 #' @param ... Additional parameters to be sent to checkBase in case the database has not been checked yet.
@@ -540,6 +557,7 @@ hospinet_from_subject_database <- function(base,
                                            nmoves_threshold = NULL,
                                            flag_vars = NULL,
                                            flag_values = NULL,
+                                           keep_nodes = FALSE,
                                            create_MetricsTable = TRUE,
                                            verbose = FALSE,
                                            shinySession = NULL,
@@ -565,6 +583,7 @@ hospinet_from_subject_database <- function(base,
         nmoves_threshold = nmoves_threshold,
         flag_vars = flag_vars,
         flag_values = flag_values,
+        keep_nodes = keep_nodes,
         verbose = verbose
     )
     if (!is.null(shinySession)) {

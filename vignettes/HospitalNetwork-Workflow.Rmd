@@ -184,6 +184,7 @@ plot(hn , type = "clustered_matrix")
 ```
 
 ```{r setup10, eval = TRUE}
-plot(hn , type = "circular_network")
+#this plot may not work on some systems
+#plot(hn , type = "circular_network")
 ```
 

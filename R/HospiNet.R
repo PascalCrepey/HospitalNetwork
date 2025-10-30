@@ -7,8 +7,8 @@
 #' @import ggraph
 #' @export
 #' @keywords data
-#' @return Object of \code{\link{R6Class}} with methods for accessing facility networks.
-#' @format \code{\link{R6Class}} object.
+#' @return Object of \code{\link[R6:R6Class]{R6::R6Class}} with methods for accessing facility networks.
+#' @format \code{\link[R6:R6Class]{R6::R6Class}} object.
 #' @examples
 #' mydbsmall <- create_fake_subjectDB(n_subjects = 100, n_facilities = 10)
 #'
@@ -55,7 +55,7 @@
 #' nmoves_threshold,
 #' noloops)}}{This method is used to create an object of this class with \code{edgelist} as the necessary information to create the network.
 #' The other arguments \code{window_threshold}, \code{nmoves_threshold}, and \code{noloops} are specific to the \code{edgelist} and need to be provided.
-#' For ease of use, it is preferable to use the function \code{\link{hospinet_from_subject_database}}}
+#' For ease of use, it is preferable to use the function \code{\link[=hospinet_from_subject_database]{hospinet_from_subject_database()}}.}
 #'   \item{\code{print()}}{This method prints basic information about the object.}
 #'   \item{\code{plot(type = "matrix")}}{This method plots the network matrix by default.
 #'   The argument \code{type} can take the following values:
@@ -149,6 +149,10 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.LOSPerHosp <- fsummary[, .(node, LOS)]
         private$.subjectsPerHosp <- fsummary[, .(node, subjects)]
         private$.admissionsPerHosp <- fsummary[, .(node, admissions)]
+      } else {
+        private$.LOSPerHosp <- data.table::data.table(node = unique(edgelist$origin), LOS = NA)
+        private$.subjectsPerHosp <- data.table::data.table(node = unique(edgelist$origin), subjects = NA)
+        private$.admissionsPerHosp <- data.table::data.table(node = unique(edgelist$origin), admissions = NA)
       }
       if (create_MetricsTable) {
         private$.metricsTable <- self$metricsTable
@@ -209,7 +213,8 @@ HospiNet <- R6::R6Class("HospiNet",
           private$.igraph <- igraph::graph_from_data_frame(self$edgelist)
           # weighted = TRUE,
           # mode = "directed")
-          igraph::E(private$.igraph)$weight <- as.numeric(unlist(self$edgelist[, "N"]))
+          #ensure we do not have weights with 0 or negative values
+          igraph::E(private$.igraph)$weight <- self$edgelist[, pmax(0.1,N)] 
 
           private$.igraph
         } else {
@@ -259,6 +264,8 @@ HospiNet <- R6::R6Class("HospiNet",
             clusters = "cluster_infomap"
           )
           private$.hubs_infomap <- get_hubs_bycluster(graphs = graph_byclust, name = "cluster_infomap")
+          #remove cluster column (already in cluster_infomap)
+          private$.hubs_infomap <- private$.hubs_infomap[, cluster := NULL]
         }
         private$.hubs_infomap
       } else {
@@ -274,6 +281,8 @@ HospiNet <- R6::R6Class("HospiNet",
             clusters = "cluster_fast_greedy"
           )
           private$.hubs_fast_greedy <- get_hubs_bycluster(graphs = graph_byclust, name = "cluster_fast_greedy")
+          #remove cluster column (already in cluster_fast_greedy)
+          private$.hubs_fast_greedy <- private$.hubs_fast_greedy[, cluster := NULL]
         }
         private$.hubs_fast_greedy
       } else {
@@ -291,7 +300,7 @@ HospiNet <- R6::R6Class("HospiNet",
         private$.hist_degrees <- merge(private$.hist_degrees, d_t, by.x = "degree", by.y = "degree_total", all.x = TRUE)
         private$.hist_degrees <- merge(private$.hist_degrees, d_i, by.x = "degree", by.y = "degree_in", all.x = TRUE)
         private$.hist_degrees <- merge(private$.hist_degrees, d_o, by.x = "degree", by.y = "degree_out", all.x = TRUE)
-        setnames(private$.hist_degrees, 2:4, c("total_degree", "in_degree", "out_degree"))
+        data.table::setnames(private$.hist_degrees, 2:4, c("total_degree", "in_degree", "out_degree"))
         private$.hist_degrees
       } else {
         stop("`$hist_degrees` is read only", call. = FALSE)

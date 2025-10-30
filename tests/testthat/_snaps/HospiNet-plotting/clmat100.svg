@@ -73,10 +73,10 @@
 <text transform='translate(629.49,552.37) rotate(-90)' text-anchor='middle' style='font-size: 8.00px; fill: #4D4D4D; font-family: sans;' textLength='11.12px' lengthAdjust='spacingAndGlyphs'>f10</text>
 <text x='349.54' y='568.24' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='29.34px' lengthAdjust='spacingAndGlyphs'>Origin</text>
 <text transform='translate(13.05,281.79) rotate(-90)' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='31.79px' lengthAdjust='spacingAndGlyphs'>Target</text>
-<rect x='675.91' y='264.93' width='38.61' height='33.72' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<rect x='681.39' y='275.89' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<rect x='681.39' y='275.89' width='17.28' height='17.28' style='stroke-width: 0.75; stroke: none; fill: #BEBEBE;' />
-<text x='704.15' y='287.56' style='font-size: 8.80px; font-family: sans;' textLength='4.89px' lengthAdjust='spacingAndGlyphs'>1</text>
+<rect x='675.91' y='267.67' width='38.61' height='28.24' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<rect x='681.39' y='273.15' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<rect x='681.39' y='273.15' width='17.28' height='17.28' style='stroke-width: 0.75; stroke: none; fill: #BEBEBE;' />
+<text x='704.15' y='284.82' style='font-size: 8.80px; font-family: sans;' textLength='4.89px' lengthAdjust='spacingAndGlyphs'>1</text>
 <text x='34.13' y='13.74' style='font-size: 12.00px; font-family: sans;' textLength='87.37px' lengthAdjust='spacingAndGlyphs'>Clustered matrix</text>
 </g>
 </svg>

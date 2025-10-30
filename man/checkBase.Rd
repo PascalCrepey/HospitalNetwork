@@ -67,7 +67,8 @@ Function that performs various checks to ensure the database is correctly format
 \examples{
 ## create a "fake and custom" data base
 mydb = create_fake_subjectDB(n_subjects = 100, n_facilities = 100)
-setnames(mydb, 1:4, c("myPatientId", "myHealthCareCenterID", "DateOfAdmission", "DateOfDischarge"))
+data.table::setnames(mydb, 1:4, 
+     c("myPatientId", "myHealthCareCenterID", "DateOfAdmission", "DateOfDischarge"))
 mydb[,DateOfAdmission:= as.character(DateOfAdmission)]
 mydb[,DateOfDischarge:= as.character(DateOfDischarge)]
 
