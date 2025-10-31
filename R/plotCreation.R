@@ -35,9 +35,10 @@ plot_matrix_fnct <- function(n_facilities, edgelist) {
         )
 }
 
-
+#' @importFrom stats as.dist cutree hclust
+#' @importFrom ggforce geom_arc_bar
+#' @importFrom stringr str_pad str_sub
 plot_spaghetti_fnct <- function(matrix, cluster_infomap, plotLinks = 5000, alphaSet = 0.1, edgeColourNode = FALSE, facilityColours = NULL, firstCircleCol = NULL, secondCircleCol = NULL) {
-
 
       # function to average the color of two nodes for the edge colour. Currently takes
       meanColor <- function(col1, col2) {
@@ -65,11 +66,11 @@ plot_spaghetti_fnct <- function(matrix, cluster_infomap, plotLinks = 5000, alpha
       if(length(levels(cluster_infomap$cluster_infomap))>1) {
         comms <- split(cluster_infomap, by = "cluster_infomap")
         getComRow <- function(y) {
-          unlist(lapply(1:length(comms), function(x) {
+          unlist(lapply(seq_along(comms), function(x) {
             sum(matrix[(c(comms[[x]][, "node"]))[[1]], (c(comms[[y]][, "node"]))[[1]]])
           }))
         }
-        absMat <- matrix(unlist(lapply(1:length(comms), getComRow)), nrow = length(comms), ncol = length(comms))
+        absMat <- matrix(unlist(lapply(seq_along(comms), getComRow)), nrow = length(comms), ncol = length(comms))
 
         newDendro <- hclust(as.dist(1 / (absMat + 0.001)), method = "average")
 
@@ -106,13 +107,13 @@ plot_spaghetti_fnct <- function(matrix, cluster_infomap, plotLinks = 5000, alpha
       lay$secondCircle <- rgb(0, 0, 0)
 
       if (!is.null(facilityColours)) {
-        for (ii in 1:length(facilityColours)) lay$nodecol[lay$name %in% facilityColours[[ii]]$facility] <- facilityColours[[ii]]$colour
+        for (ii in seq_along(facilityColours)) lay$nodecol[lay$name %in% facilityColours[[ii]]$facility] <- facilityColours[[ii]]$colour
       }
       if (!is.null(firstCircleCol)) {
-        for (ii in 1:length(firstCircleCol)) lay$firstCircle[lay$name %in% firstCircleCol[[ii]]$facility] <- firstCircleCol[[ii]]$colour
+        for (ii in seq_along(firstCircleCol)) lay$firstCircle[lay$name %in% firstCircleCol[[ii]]$facility] <- firstCircleCol[[ii]]$colour
       }
       if (!is.null(secondCircleCol)) {
-        for (ii in 1:length(secondCircleCol)) lay$secondCircle[lay$name %in% secondCircleCol[[ii]]$facility] <- secondCircleCol[[ii]]$colour
+        for (ii in seq_along(secondCircleCol)) lay$secondCircle[lay$name %in% secondCircleCol[[ii]]$facility] <- secondCircleCol[[ii]]$colour
       }
 
       # create the connections
@@ -178,7 +179,9 @@ plot_spaghetti_fnct <- function(matrix, cluster_infomap, plotLinks = 5000, alpha
       spaghetti
 }
 
-
+#' @importFrom grDevices rainbow rgb
+#' @import ggplot2
+#' @import ggraph
 plot_clustered_matrix_fnct = function(igraph, edgelist, n_facilities) {
       # get the clustering
       cl <- cluster_infomap(igraph, modularity = FALSE)

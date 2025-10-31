@@ -24,7 +24,9 @@ Imports:
     R6,
     ggplot2,
     ggraph,
-    data.table
+    data.table, 
+    ggforce,
+    stringr
 RoxygenNote: 7.3.2
 Suggests:
     knitr,

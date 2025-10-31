@@ -19,5 +19,21 @@ utils::globalVariables(c(
     "..extraCols",
     "LOS",
     "probTr",
-    "incProgress"
+    "incProgress",
+    "origin_c",
+    "target_c",
+    "V2",
+    "value",
+    "variable",
+    "valueF", 
+    "N", 
+    "leaf", 
+    "x", 
+    "y", 
+    "nodecol", 
+    "arcstart", 
+    "arcend", 
+    "firstCircle", 
+    "secondCircle"
+
 ))
