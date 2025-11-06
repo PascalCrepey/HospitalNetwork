@@ -93,206 +93,30 @@ HospiNet <- R6::R6Class("HospiNet",
     .hubs_infomap = NULL,
     .hubs_fast_greedy = NULL,
     plot_hist_degree = function() {
-      hd_long <- melt(self$hist_degrees, id.vars = "degree")
-      p <- ggplot(hd_long[!is.na(value)], aes(x = degree, y = value, fill = variable)) +
-        geom_col(position = "dodge") +
-        scale_fill_discrete(name = NULL) +
-        scale_x_continuous(name = "Degree", limits = c(min(self$degrees[, -1]) - 1, NA)) +
-        scale_y_continuous(name = "Number of facilities") +
-        theme_bw() +
-        theme(legend.position = "bottom")
-      p
+      plot_hist_degree_fnct(self$hist_degrees, self$degrees)
     },
     plot_matrix = function() {
-      n_h <- self$n_facilities
-      ggplot(self$edgelist, aes(x = target, y = origin)) +
-        geom_raster(aes(fill = N)) +
-        scale_fill_gradient(low = "grey90", high = "red") +
-        scale_x_discrete(
-          name = "Target",
-          # take the breaks from origin to get the same order
-          breaks = self$edgelist[, unique(origin)][seq(1, n_h, length.out = 10)]
-        ) +
-        scale_y_discrete(
-          name = "Origin",
-          breaks = self$edgelist[, unique(origin)][seq(1, n_h, length.out = 10)]
-        ) +
-        labs(x = "Origin", y = "Target", title = "Matrix") +
-        theme_bw() +
-        theme(
-          axis.text.x = element_text(size = 8, angle = 90, vjust = 0.3),
-          axis.text.y = element_text(size = 8),
-          plot.title = element_text(size = 12),
-          panel.grid = element_blank()
-        )
+      plot_matrix_fnct(self$n_facilities, self$edgelist)
     },
-    plot_spaghetti = function(plotLinks = 5000, alphaSet = 0.1, edgeColourNode = FALSE, facilityColours = NULL) {
-
-      # function to average the color of two nodes for the edge colour. Currently takes
-      meanColor <- function(col1, col2) {
-        paste0(
-          "#",
-          stringr::str_pad(sprintf("%x", floor((as.integer(as.hexmode(stringr::str_sub(col1, 2, 3))) +
-            as.integer(as.hexmode(stringr::str_sub(col2, 2, 3)))) / 2)), 2, side = "left", pad = "0"),
-          stringr::str_pad(sprintf("%x", floor((as.integer(as.hexmode(stringr::str_sub(col1, 4, 5))) +
-            as.integer(as.hexmode(stringr::str_sub(col2, 4, 5)))) / 2)), 2, side = "left", pad = "0"),
-          stringr::str_pad(sprintf("%x", floor((as.integer(as.hexmode(stringr::str_sub(col1, 6, 7))) +
-            as.integer(as.hexmode(stringr::str_sub(col2, 6, 7)))) / 2)), 2, side = "left", pad = "0")
-        )
-      }
-
-      # checking the parameters
-      if (alphaSet > 1 || alphaSet < 0) {
-        warning("alphaSet should be between 0 and 1, set to 1.0")
-        alphaSet <- 1
-      }
-      if (plotLinks > length(self$matrix)) plotLinks <- length(self$matrix)
-
-      # Creating underlying hierarchy
-      myleaves <- colnames(self$matrix)
-      ## when n_cluster > 1 (usual case)
-      if(length(levels(self$cluster_infomap$cluster_infomap))>1) {
-        comms <- split(self$cluster_infomap, by = "cluster_infomap")
-        getComRow <- function(y) {
-          unlist(lapply(1:length(comms), function(x) {
-            sum(self$matrix[(c(comms[[x]][, "node"]))[[1]], (c(comms[[y]][, "node"]))[[1]]])
-          }))
-        }
-        absMat <- matrix(unlist(lapply(1:length(comms), getComRow)), nrow = length(comms), ncol = length(comms))
-        
-        newDendro <- hclust(as.dist(1 / (absMat + 0.001)), method = "average")
-        
-        levelData <- data.frame(
-          firstLevel = cutree(newDendro, ceiling(length(newDendro$order) / 4)),
-          secondLevel = cutree(newDendro, ceiling(length(newDendro$order) / 6)),
-          thirdlevel = cutree(newDendro, ceiling(length(newDendro$order) / 12))
-        )
-        hierarchy <- rbind(
-          (data.frame(from = rep("origin", max(levelData[, 3])), to = unique(paste0("level3-", levelData[, 3])))),
-          unique(data.frame(from = paste0("level3-", levelData[, 3]), to = paste0("level2-", levelData[, 2]))),
-          unique(data.frame(from = paste0("level2-", levelData[, 2]), to = paste0("level1-", levelData[, 1]))),
-          data.frame(from = paste0("level1-", levelData[, 1]), to = paste0("comms-", names(comms))),
-          data.frame(from = paste0("comms-", data.frame(self$cluster_infomap)[, "cluster_infomap"]), to = (self$cluster_infomap[, "node"])[[1]])
-        )
-        vertices <- data.frame(name = unique(c(as.character(hierarchy$from), as.character(hierarchy$to))))
-      } else {
-        ## when n_cluster = 1 (special case)
-        hierarchy <- data.frame(from = rep("origin", length(myleaves)), to = myleaves)
-        vertices <- data.frame(name = unique(c(as.character(hierarchy$from), as.character(hierarchy$to))))
-      }
-      
-      # Create the graph and extract the layout
-      mygraph <- igraph::graph_from_data_frame(hierarchy, vertices = vertices)
-      lay <- ggraph::create_layout(mygraph, layout = "dendrogram", circular = TRUE)
-
-      # Set the node colours, standard node colour is black
-      # lay$nodecol=rgb(0,0,0)
-      # if(!is.null(facilityColours)){
-      #  for(ii in 1:length(facilityColours)) lay$nodecol[lay$name %in% facilityColours[[ii]]$facility]<-facilityColours[[ii]]$colour
-      # }
-      lay$nodecol <- rgb(0, 0, 0)
-      # lay$firstCircle <- rgb(0, 0, 0)
-      # lay$secondCircle <- rgb(0, 0, 0)
-
-      node_names <- intersect(lay$name, facilityColours$facility)
-      if (length(node_names) > 0) {
-        lay$nodecol[lay$name %in% node_names] <- facilityColours[facility %in% node_names, colour]
-      }
-      # if (!is.null(facilityColours)) {
-      #   for (ii in 1:length(facilityColours)) lay$nodecol[lay$name %in% facilityColours[[ii]]$facility] <- facilityColours[[ii]]$colour
-      # }
-
-      # create the connections
-      # set the minimum number of shared patients for an edge to be plotted
-      minShares <- self$matrix[order(-self$matrix)][plotLinks]
-      strongConnections <- data.frame(
-        to = myleaves[which(self$matrix > minShares, arr.ind = TRUE)[, 1]],
-        from = myleaves[which(self$matrix > minShares, arr.ind = TRUE)[, 2]],
-        weight = (self$matrix[self$matrix > minShares])
-      )
-
-      # artificially duplicate strong connections so that they appear darker on the plot
-      # strongConnections<-do.call("rbind", lapply(seq(minStr,maxStr,by=steps),function(x){data.frame(from=myleaves[which(self$matrix>x,arr.ind = TRUE)[,1]],to=myleaves[which(self$matrix>x,arr.ind = TRUE)[,2]])}))
-      fromVert <- match(strongConnections$from, vertices$name)
-      toVert <- match(strongConnections$to, vertices$name)
-      weights <- strongConnections$weight
-      # Create the edge colouring, which is a combination of bnode colours and alpha for number of shares.
-      if (edgeColourNode) {
-        strWeights <- paste0(
-          meanColor(lay[toVert, ]$nodecol, lay[fromVert, ]$nodecol),
-          stringr::str_pad(as.hexmode(floor(255.0 * alphaSet * weights / max(weights))), 2, side = "left", pad = "0")
-        )
-      } else {
-        strWeights <- paste0(
-          "#000000",
-          stringr::str_pad(as.hexmode(floor(255.0 * alphaSet * weights / max(weights))), 2, side = "left", pad = "0")
-        )
-      }
-
-      # calculate the coordinates for the outer rings
-      nLeafs <- sum(lay$leaf)
-      lay$angle <- atan2(lay$x, lay$y)
-      lay$circleIndex <- 0
-      lay$arcstart <- 0
-      lay$arcend <- 0
-      lay[lay$leaf == TRUE, ]$circleIndex <- order(order(lay[lay$leaf == TRUE, ]$angle))
-      lay[lay$leaf == TRUE, ]$arcstart <- ((2 * pi * (lay[lay$leaf == TRUE, ]$circleIndex - 1.25)) / nLeafs) + pi
-      lay[lay$leaf == TRUE, ]$arcend <- ((2 * pi * (lay[lay$leaf == TRUE, ]$circleIndex - 0.25)) / nLeafs) + pi
-
-      # Create the full plot
-      spaghetti <-
-        ggraph::ggraph(lay) +
-        ggraph::geom_conn_bundle(
-          data = ggraph::get_con(to = toVert, from = fromVert, valueF = strWeights),
-          aes(color = valueF),
-          tension = 0.80, n = 50
-        ) +
-        ggraph::scale_edge_color_manual(limits = strWeights, values = strWeights) +
-        ggraph::geom_node_point(aes(filter = leaf, x = x * 1.00, y = y * 1.00, color = nodecol), stroke = 0.5, pch = 16, size = 2) +
-        ggplot2::scale_colour_manual(limits = unique(lay$nodecol), values = unique(lay$nodecol)) +
-        ggplot2::theme_void() +
-        ggplot2::theme(legend.position = "none") #+
-        #ggplot2::scale_fill_manual(limits = unique(c(lay$firstCircle, lay$secondCircle)), values = unique(c(lay$firstCircle, lay$secondCircle)))
-
-      spaghetti
+    plot_spaghetti = function() {
+      plot_spaghetti_fnct(self$matrix, self$cluster_infomap, plotLinks = 5000, alphaSet = 0.1, edgeColourNode = FALSE, facilityColours = NULL, firstCircleCol = NULL, secondCircleCol = NULL)
     },
     plot_clustered_matrix = function() {
-      # get the clustering
-      cl <- cluster_infomap(self$igraph, modularity = FALSE)
-
-      dt_cl <- data.table(cl$names, cl$membership)
-      # put it in a copy of the edgelist
-      el <- copy(self$edgelist)
-      el[dt_cl, origin_c := V2, on = c("origin" = "V1")]
-      el[dt_cl, target_c := V2, on = c("target" = "V1")]
-      el[, col := ifelse(origin_c == target_c, origin_c, 0)]
-      el[, col := factor(col)]
-
-      # reorder the axis to make the cluster appear
-      el$origin <- factor(el$origin, levels = unique(el[order(origin_c), origin]))
-      el$target <- factor(el$target, levels = unique(el[order(target_c), target]))
-
-      n_h <- self$n_facilities
-      # plot it
-      ggplot(el, aes(x = origin, y = target)) +
-        geom_raster(aes(fill = col)) +
-        scale_fill_manual(name = NULL, values = c("grey", rainbow(max(el$origin_c)))) +
-        scale_x_discrete(
-          name = "Origin",
-          breaks = levels(el$origin)[round(seq(1, n_h, length.out = 10), 0)]
-        ) +
-        scale_y_discrete(
-          name = "Target",
-          breaks = levels(el$target)[round(seq(1, n_h, length.out = 10), 0)]
-        ) +
-        labs(x = "Origin", y = "Target", title = "Clustered matrix") +
-        theme_bw() +
-        theme(
-          axis.text.x = element_text(size = 8, angle = 90, vjust = 0.3),
-          axis.text.y = element_text(size = 8),
-          plot.title = element_text(size = 12),
-          panel.grid = element_blank()
-        )
+      plot_clustered_matrix_fnct(self$igraph, self$edgelist, self$n_facilities)
+    },
+    create_readonly_active = function(value, field_name, function_point = NULL, args = list()) {
+        if (missing(value)) {
+          if (is.null(function_point)) {
+            private[[field_name]]
+          } else {
+            if (is.null(private[[field_name]])) {
+              private[[field_name]] <- do.call(function_point, args)
+            }
+            private[[field_name]]
+          }
+        } else {
+          stop(sprintf("`$%s` is read only", field_name), call. = FALSE)
+        }
     }
   ),
   public = list(
@@ -382,20 +206,7 @@ HospiNet <- R6::R6Class("HospiNet",
         stop("`$matrix` is read only", call. = FALSE)
       }
     },
-    edgelist = function(value) {
-      if (missing(value)) {
-        private$.edgelist
-      } else {
-        stop("`$edgelist` is read only", call. = FALSE)
-      }
-    },
-    edgelist_long = function(value) {
-      if (missing(value)) {
-        private$.edgelist_long
-      } else {
-        stop("`$edgelist_long` is read only", call. = FALSE)
-      }
-    },
+
     igraph = function(value) {
       if (missing(value)) {
         if (is.null(private$.igraph)) {
@@ -413,130 +224,37 @@ HospiNet <- R6::R6Class("HospiNet",
         stop("`$igraph` is read only", call. = FALSE)
       }
     },
-    window_threshold = function(value) {
-      if (missing(value)) {
-        private$.window_threshold
-      } else {
-        stop("`$window_threshold` is read only", call. = FALSE)
-      }
-    },
-    nmoves_threshold = function(value) {
-      if (missing(value)) {
-        private$.nmoves_threshold
-      } else {
-        stop("`$nmoves_threshold` is read only", call. = FALSE)
-      }
-    },
-    noloops = function(value) {
-      if (missing(value)) {
-        private$.noloops
-      } else {
-        stop("`$noloops` is read only", call. = FALSE)
-      }
-    },
-    LOSPerHosp = function(value) {
-      if (missing(value)) {
-        private$.LOSPerHosp
-      } else {
-        stop("`$LOSPerHosp` is read only", call. = FALSE)
-      }
-    },
-    subjectsPerHosp = function(value) {
-      if (missing(value)) {
-        private$.subjectsPerHosp
-      } else {
-        stop("`$subjectsPerHosp` is read only", call. = FALSE)
-      }
-    },
-    admissionsPerHosp = function(value) {
-      if (missing(value)) {
-        private$.admissionsPerHosp
-      } else {
-        stop("`$admissionsPerHosp` is read only", call. = FALSE)
-      }
-    },
-    n_facilities = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.n_facilities)) {
-          private$.n_facilities <- vcount(self$igraph)
-        } else {
-          private$.n_facilities
-        }
-      } else {
-        stop("`$n_facilities` is read only", call. = FALSE)
-      }
-    },
-    n_movements = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.n_movements)) {
-          private$.n_movements <- sum(igraph::strength(self$igraph, mode = "in"))
-        } else {
-          private$.n_movements
-        }
-      } else {
-        stop("`$n_movements` is read only", call. = FALSE)
-      }
-    },
-    degrees = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.degrees)) {
-          private$.degrees <- get_degree(self$igraph, modes = c("total", "in", "out"))
-        }
-        private$.degrees
-      } else {
-        stop("`$noloops` is read only", call. = FALSE)
-      }
-    },
-    closenesss = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.closenesss)) {
-          private$.closenesss <- get_closeness(self$igraph, modes = "total")
-        }
-        private$.closenesss
-      } else {
-        stop("`$noloops` is read only", call. = FALSE)
-      }
-    },
-    betweennesss = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.betweennesss)) {
-          private$.betweennesss <- get_betweenness(self$igraph)
-        }
-        private$.betweennesss
-      } else {
-        stop("`$betweennesss` is read only", call. = FALSE)
-      }
-    },
-    cluster_infomap = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.cluster_infomap)) {
-          private$.cluster_infomap <- get_clusters(self$igraph, "cluster_infomap", undirected = "collapse")
-        }
-        private$.cluster_infomap
-      } else {
-        stop("`$cluster_infomap` is read only", call. = FALSE)
-      }
-    },
-    cluster_fast_greedy = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.cluster_fast_greedy)) {
-          private$.cluster_fast_greedy <- get_clusters(self$igraph, "cluster_fast_greedy", undirected = "collapse")
-        }
-        private$.cluster_fast_greedy
-      } else {
-        stop("`$cluster_fast_greedy` is read only", call. = FALSE)
-      }
-    },
-    hubs_global = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.hubs_global)) {
-          private$.hubs_global <- get_hubs_global(self$igraph)
-        }
-        private$.hubs_global
-      } else {
-        stop("`$hubs_global` is read only", call. = FALSE)
-      }
-    },
+
+    edgelist = function(value) private$create_readonly_active(value, ".edgelist"),
+    edgelist_long = function(value) private$create_readonly_active(value, ".edgelist_long"),
+    window_threshold = function(value) private$create_readonly_active(value, ".window_threshold"),
+    nmoves_threshold = function(value) private$create_readonly_active(value, ".nmoves_threshold"),
+    noloops = function(value) private$create_readonly_active(value, ".noloops"),
+    LOSPerHosp = function(value) private$create_readonly_active(value, ".LOSPerHosp"),
+    subjectsPerHosp = function(value) private$create_readonly_active(value, ".subjectsPerHosp"),
+    admissionsPerHosp = function(value) private$create_readonly_active(value, ".admissionsPerHosp"),
+    n_facilities = function(value) private$create_readonly_active(value, ".n_facilities", vcount, list(self$igraph)),
+    n_movements = function(value) private$create_readonly_active(value, ".n_movements", sum, list(igraph::strength(self$igraph, mode = "in"))),
+    degrees = function(value)  private$create_readonly_active(value, ".degrees", get_degree, list(self$igraph, modes = c("total", "in", "out"))),
+    closenesss = function(value)private$create_readonly_active(value, ".closenesss", get_closeness, list(self$igraph, modes = "total")),
+    betweennesss = function(value)private$create_readonly_active(value, ".betweennesss", get_betweenness, list(self$igraph)),
+    cluster_infomap = function(value)private$create_readonly_active(value, ".cluster_infomap", get_clusters, list(self$igraph, "cluster_infomap", undirected = "collapse")),
+    cluster_fast_greedy = function(value)private$create_readonly_active(value, ".cluster_fast_greedy", get_clusters, list(self$igraph, "cluster_fast_greedy", undirected = "collapse")),
+    hubs_global = function(value)private$create_readonly_active(value, ".hubs_global", get_hubs_global, list(self$igraph)),
+    metricsTable = function(value)private$create_readonly_active(value, ".metricsTable", Reduce, list(function(x, y) merge(x = x, y = y, all = TRUE), list(
+            self$subjectsPerHosp,
+            self$admissionsPerHosp,
+            self$LOSPerHosp,
+            self$degrees,
+            self$betweennesss,
+            self$closenesss,
+            self$cluster_fast_greedy,
+            self$cluster_infomap,
+            self$hubs_infomap,
+            self$hubs_fast_greedy,
+            self$hubs_global
+          ))),
+
     hubs_infomap = function(value) {
       if (missing(value)) {
         if (is.null(private$.hubs_infomap)) {
@@ -571,28 +289,7 @@ HospiNet <- R6::R6Class("HospiNet",
         stop("`$hubs_fast_greedy` is read only", call. = FALSE)
       }
     },
-    metricsTable = function(value) {
-      if (missing(value)) {
-        if (is.null(private$.metricsTable)) {
-          private$.metricsTable <- Reduce(function(x, y) merge(x = x, y = y, all = TRUE), list(
-            self$subjectsPerHosp,
-            self$admissionsPerHosp,
-            self$LOSPerHosp,
-            self$degrees,
-            self$betweennesss,
-            self$closenesss,
-            self$cluster_fast_greedy,
-            self$cluster_infomap,
-            self$hubs_infomap,
-            self$hubs_fast_greedy,
-            self$hubs_global
-          ))
-        }
-        private$.metricsTable
-      } else {
-        stop("`$metricsTable` is read only", call. = FALSE)
-      }
-    },
+    
     hist_degrees = function(value) {
       if (missing(value)) {
         d_t <- self$degrees[, .N, by = degree_total]
