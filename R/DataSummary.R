@@ -98,15 +98,15 @@ per_facility_summary <- function(base,
   losPerHosp <- (base[, .(mean(difftime(Ddate, Adate, units = "days"))), by = fID])
   # losPerHosp<-as.numeric(losPerHosp,units="days")
 
-  setnames(losPerHosp, c("node", "LOS"))
+  data.table::setnames(losPerHosp, c("node", "LOS"))
   data.table::setkey(losPerHosp, node)
 
   subjectsPerHosp <- base[, uniqueN(.SD), .SDcols = "sID", by = fID]
-  setnames(subjectsPerHosp, c("node", "subjects"))
+  data.table::setnames(subjectsPerHosp, c("node", "subjects"))
   data.table::setkey(subjectsPerHosp, node)
 
   admissionsPerHosp <- (base[, .N, by = fID])
-  setnames(admissionsPerHosp, c("node", "admissions"))
+  data.table::setnames(admissionsPerHosp, c("node", "admissions"))
   data.table::setkey(admissionsPerHosp, node)
 
   sumStats <- Reduce(

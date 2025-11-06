@@ -69,7 +69,7 @@ mod_database_server <- function(input, output, session, base)
     byfacil = reactive({
         tmp = HospitalNetwork::per_facility_summary(base()) 
         tmp[, LOS := as.difftime(tim = round(LOS, digits = 2), units = "days")]
-        setnames(tmp,
+        data.table::setnames(tmp,
                  old = c("node", "LOS", "admissions", "subjects"),
                  new = c("Facility ID", "Mean LOS", "Total number of admissions", "Distinct subjects admitted")
                  )

@@ -49,7 +49,8 @@
 #' @examples
 #' ## create a "fake and custom" data base
 #' mydb = create_fake_subjectDB(n_subjects = 100, n_facilities = 100)
-#' setnames(mydb, 1:4, c("myPatientId", "myHealthCareCenterID", "DateOfAdmission", "DateOfDischarge"))
+#' data.table::setnames(mydb, 1:4, 
+#'      c("myPatientId", "myHealthCareCenterID", "DateOfAdmission", "DateOfDischarge"))
 #' mydb[,DateOfAdmission:= as.character(DateOfAdmission)]
 #' mydb[,DateOfDischarge:= as.character(DateOfDischarge)]
 #' 
@@ -136,7 +137,7 @@ checkBase <- function(base,
       stop("Column(s) ", paste(notfound, collapse = ", "), " provided as argument were not found in the database.")
     }
     # Set column names to default
-    setnames(report$base,
+    data.table::setnames(report$base,
              old = c(subjectID, facilityID, admDate, disDate),
              new = c("sID", "fID", "Adate", "Ddate"))
     
@@ -498,7 +499,7 @@ adjust_overlapping_stays = function(report,
                    probBase[Nprob,..extraCols])
       b=b[(b[, Adate] < b[, Ddate]),]
       probBase=rbind(a,b,c,d)
-      setnames(probBase,c("sID","fID","Adate","Ddate",extraCols)) #might not be needed here
+      data.table::setnames(probBase,c("sID","fID","Adate","Ddate",extraCols)) #might not be needed here
     }else{
       a=data.table(sID=probBase[-Nprob][(C1&C2), sID],fID=probBase[-Nprob][(C1&C2), fID],Adate=probBase[-Nprob][(C1&C2), Adate],Ddate=probBase[-1][(C1&C2), Adate])
       b=data.table(sID=probBase[-Nprob][(C1&C2), sID],fID=probBase[-Nprob][(C1&C2), fID],Adate=probBase[-1][(C1&C2), Ddate],Ddate=probBase[-Nprob][(C1&C2), Ddate])
@@ -506,7 +507,7 @@ adjust_overlapping_stays = function(report,
       d=data.table(sID=probBase[Nprob, sID],fID=probBase[Nprob, fID],Adate=probBase[Nprob, Adate],Ddate=probBase[Nprob, Ddate])
       b=b[(b[, Adate] < b[, Ddate]),]
       probBase=rbind(a,b,c,d)
-      setnames(probBase,c("sID","fID","Adate","Ddate")) #might not be needed here
+      data.table::setnames(probBase,c("sID","fID","Adate","Ddate")) #might not be needed here
     }
     if (verbose) message("Combining and sorting")
 

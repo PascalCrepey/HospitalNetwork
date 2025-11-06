@@ -66,9 +66,9 @@ matrix_from_edgelist <- function(edgelist,
         edgelist <- edgelist[, .N, by = c(origin_name, target_name)] # group identical couples
     }
     if (!format_long) {
-        setnames(edgelist, old = count, new = "N")
+        data.table::setnames(edgelist, old = count, new = "N")
     }
-    setnames(edgelist,
+    data.table::setnames(edgelist,
         old = c(origin_name, target_name),
         new = c("origin", "target")
     )
