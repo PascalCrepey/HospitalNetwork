@@ -78,6 +78,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
 
     output$fd_country_filterUI <- renderUI({
 
+    
     if (!input$fd_with_gps) return(NULL)
 
       # Charger les données
@@ -105,6 +106,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
             db = create_fake_subjectDB_clustered(n_subjects = input$fd_n_subjects, 
                                                 n_facilities = input$fd_n_facilities,
                                                 n_clusters = input$fd_n_clusters,
+                                                country_code = input$fd_country_filter,
                                                 gps = TRUE)
             incProgress(amount = 0.5, detail = "GPS-clustered data generated")
          } else if (input$fd_with_gps && input$fd_n_clusters == 1){
@@ -112,6 +114,7 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
             db = create_fake_subjectDB(n_subjects = input$fd_n_subjects,
                                       n_facilities = input$fd_n_facilities,
                                       gps = TRUE,
+                                      country_code = input$fd_country_filter,
                                       with_errors = FALSE)
           incProgress(amount = 0.5, detail = "GPS data generated")
          } else if (!(input$fd_with_gps) && input$fd_n_clusters == 1){
