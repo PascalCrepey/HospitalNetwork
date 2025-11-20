@@ -36,6 +36,7 @@ mod_loadNcheck_ui <- function(id) {
                uiOutput(ns("fd_n_clustersUI")),
 
                checkboxInput(ns("fd_with_gps"), HTML("<b>Add GPS coordinates</b>"), value = FALSE),
+               uiOutput(ns("fd_country_filterUI")),
                div(style = "display: inline-block;vertical-align:top;",
                    actionButton(ns("buildFD"),
                                 "Build base",
@@ -73,6 +74,27 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     
     output$intro_md <- renderUI({
       includeMarkdown("inst/intro.md")
+    })
+
+    output$fd_country_filterUI <- renderUI({
+
+    if (!input$fd_with_gps) return(NULL)
+
+      # Charger les données
+      data("european_healthcare_facilities", package = "HospitalNetwork")
+
+      countries <- sort(unique(as.character(european_healthcare_facilities$cntr_id)))
+      countries[countries == "EL"] <- "GR"
+      labels <- countrycode::countrycode(countries, "iso2c", "country.name")
+      choices_list <- c("European Union" = "EU", setNames(countries, labels))
+
+      selectInput(
+        ns("fd_country_filter"),
+        label = "Filter by country",
+        choices = choices_list,
+        selected = "EU"
+      )
+
     })
 
     # Generate the fake data ----
