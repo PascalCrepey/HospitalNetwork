@@ -34,10 +34,12 @@ mod_loadNcheck_ui <- function(id) {
                sliderInput(ns("fd_n_facilities"), "Number of facilities",
                            min = 2, max = 1000, value = 10),
                uiOutput(ns("fd_n_clustersUI")),
+
+               checkboxInput(ns("fd_with_gps"), HTML("<b>Add GPS coordinates</b>"), value = FALSE),
                div(style = "display: inline-block;vertical-align:top;",
                    actionButton(ns("buildFD"),
                                 "Build base",
-                                icon = icon("data-base"),
+                                icon = icon("database"),
                                 style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                )
       )
@@ -76,22 +78,47 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
     # Generate the fake data ----
     observeEvent(input$buildFD, {
       withProgress(message = "Building fake data...",{
-        if (input$fd_n_clusters == 1){
-          print("build fake data with single cluster")
-          db = create_fake_subjectDB(n_subjects = input$fd_n_subjects,
-                                     n_facilities = input$fd_n_facilities,
-                                     with_errors = FALSE)
-          incProgress(amount = 0.5, detail = "data generated")
-        }else{
-          print("build fake data with multiple clusters")
-          db = create_fake_subjectDB_clustered(n_subjects = input$fd_n_subjects, 
-                                               n_facilities = input$fd_n_facilities,
-                                               n_clusters = input$fd_n_clusters)
+         if (input$fd_with_gps && input$fd_n_clusters > 1) {
+            print("build clustered fake data with gps coordinate")
+            db = create_fake_subjectDB_clustered(n_subjects = input$fd_n_subjects, 
+                                                n_facilities = input$fd_n_facilities,
+                                                n_clusters = input$fd_n_clusters,
+                                                gps = TRUE)
+            incProgress(amount = 0.5, detail = "GPS-clustered data generated")
+         } else if (input$fd_with_gps && input$fd_n_clusters == 1){
+            print("build fake data with gps coordinate")
+            db = create_fake_subjectDB(n_subjects = input$fd_n_subjects,
+                                      n_facilities = input$fd_n_facilities,
+                                      gps = TRUE,
+                                      with_errors = FALSE)
+          incProgress(amount = 0.5, detail = "GPS data generated")
+         } else if (!(input$fd_with_gps) && input$fd_n_clusters == 1){
+            print("build fake data with single cluster")
+            db = create_fake_subjectDB(n_subjects = input$fd_n_subjects,
+                                      n_facilities = input$fd_n_facilities,
+                                      with_errors = FALSE)
+            incProgress(amount = 0.5, detail = "data generated")
+        }else if (!input$fd_with_gps && input$fd_n_clusters > 1){
+            print("build fake data with multiple clusters")
+            db = create_fake_subjectDB_clustered(n_subjects = input$fd_n_subjects, 
+                                                n_facilities = input$fd_n_facilities,
+                                                n_clusters = input$fd_n_clusters)
           incProgress(amount = 0.5, detail = "clustered data generated")
+        } else {
+          
         }
-        #output the two bases
-        base(HospitalNetwork::checkBase(base = db))
-        
+        if (is.list(db) && all(c("all_s_stays", "gps_facilities") %in% names(db))) {
+          print("checking base with gps facilities")
+          base(HospitalNetwork::checkBase(
+            base = db$all_s_stays,
+            gps_facilities = db$gps_facilities,
+            verbose = FALSE
+          ))        
+        } else {
+          print("checking base without gps facilities")
+          base(HospitalNetwork::checkBase(base = db, verbose = FALSE))
+        }
+  
         incProgress(amount = 0.5, detail = "data checked")
       })
       #update message board

@@ -572,6 +572,10 @@ hospinet_from_subject_database <- function(base,
         )
     }
 
+    if (is.list(base) && all(c("all_s_stays", "gps_facilities") %in% names(base))) {
+            gps_facilities = base$gps_facilities
+            base = base$all_s_stays
+        }
     ## Compute the edgelists (long and aggregated format)
     edgelists <- edgelist_from_base(
         base = base,
@@ -605,7 +609,8 @@ hospinet_from_subject_database <- function(base,
                                 by.y = "fID",
                                 all.x = TRUE)
     }
-
+    print(facilitySummary)
+    
     if (!is.null(shinySession)) {
         incProgress(session = shinySession, amount = 0.3)
     }

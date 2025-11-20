@@ -23,6 +23,7 @@ create_fake_subjectDB <- function(n_subjects = 100,
                                   length_of_stay = NULL,
                                   start_id_subjects = 1,
                                   start_id_facilities = 1,
+                                  gps = FALSE,
                                   with_errors = FALSE) {
 
   # create subjects IDs
@@ -112,18 +113,28 @@ create_fake_subjectDB <- function(n_subjects = 100,
     all_s_stays[10, Adate := "NaN"]
     #colnames(all_s_stays) <- c("subject", "facility", "admission", "discharge")
   }
-  
-    ## Generate GPS coordinates and beds capacities ##
-    # Random selection in data from dataset_europe #
-    # gps_facilities = cbind(all_s_stays[, .(fID = unique(fID))],
-    #                        dataset_europe[sample(1:dataset_europe[,.N], 
-    #                                              n_facilities),])
-    # 
-    # return(list(all_s_stays = all_s_stays,
-    #             gps_facilities = gps_facilities))
-    
-  return(all_s_stays)
 
+    if (gps) {
+      data("european_healthcare_facilities", package = "HospitalNetwork")
+      if (n_facilities > nrow(european_healthcare_facilities)) {
+          stop("Not enough real facilities in the dataset to sample from.")
+      }
+      selected <- european_healthcare_facilities[
+          sample(.N, n_facilities)
+      ]
+      gps_facilities <- data.table(
+        fID  = fIDs,
+        lat  = selected$lat,
+        long = selected$lon,
+        beds = if ("cap_beds" %in% names(selected)) selected$cap_beds else sample(20:300, n_facilities, TRUE)
+      )
+      return(list(
+        all_s_stays = all_s_stays,
+        gps_facilities = gps_facilities
+      ))
+  } else {
+      return(all_s_stays)
+  }
 }
 
 #' Create a fake subject database with clustering
@@ -146,6 +157,7 @@ create_fake_subjectDB_clustered <- function(n_subjects = 50,
                                             avg_n_stays = 3,
                                             days_since_discharge = NULL,
                                             length_of_stay = NULL,
+                                            gps = FALSE,
                                             n_clusters = 3) {
   # create sub subjectDB
   n_subjects_cl <- round(n_subjects / n_clusters, 0)
@@ -195,7 +207,27 @@ create_fake_subjectDB_clustered <- function(n_subjects = 50,
   trFID[, new_fid := sample(curr_fid, .N, replace = FALSE)]
   all_s_stays[trFID, fID := new_fid, on = c("fID" = "curr_fid")]
 
-  return(all_s_stays)
+  if (gps) {
+      data("european_healthcare_facilities", package = "HospitalNetwork")
+      if (n_facilities > nrow(european_healthcare_facilities)) {
+          stop("Not enough real facilities in the dataset to sample from.")
+      }
+      selected <- european_healthcare_facilities[
+          sample(.N, n_facilities)
+      ]
+      gps_facilities <- data.table(
+        fID  = fIDs,
+        lat  = selected$lat,
+        long = selected$lon,
+        beds = if ("cap_beds" %in% names(selected)) selected$cap_beds else sample(20:300, n_facilities, TRUE)
+      )
+      return(list(
+        all_s_stays = all_s_stays,
+        gps_facilities = gps_facilities
+      ))
+  } else {
+      return(all_s_stays)
+  }
 }
 
 #' Create a fake subject stay
