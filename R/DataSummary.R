@@ -118,5 +118,21 @@ per_facility_summary <- function(base,
     )
   )
 
+  report_attr <- attr(base, "report")
+
+  if (!is.null(report_attr) && "gps" %in% names(report_attr)) {
+    gps_data <- copy(report_attr$gps)
+
+    if ("fID" %in% names(gps_data)) {
+      setnames(gps_data, "fID", "node")
+    }
+    if ("node" %in% names(gps_data)) {
+      setkey(gps_data, node)
+      sumStats <- merge(sumStats, gps_data, by = "node", all.x = TRUE)
+    } else {
+      warning("gps found but cannot be merged: missing 'fID' or 'node' column")
+    }
+  }
+  print(sumStats)
   return(sumStats)
 }
