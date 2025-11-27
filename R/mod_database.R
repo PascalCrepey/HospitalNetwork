@@ -67,15 +67,25 @@ mod_database_server <- function(input, output, session, base)
                           options = list(scrollY = "400px"))
 
     byfacil = reactive({
-        tmp = HospitalNetwork::per_facility_summary(base()) 
-        tmp[, LOS := as.difftime(tim = round(LOS, digits = 2), units = "days")]
-        data.table::setnames(tmp,
-                 old = c("node", "LOS", "admissions", "subjects"),
-                 new = c("Facility ID", "Mean LOS", "Total number of admissions", "Distinct subjects admitted")
-                 )
+        tmp = HospitalNetwork::per_facility_summary(base())
+
+        tmp[, LOS := as.difftime(tim = round(LOS, 2), units = "days")]
+
+        # rename main columns
+        rename_old = c("node", "LOS", "admissions", "subjects")
+        rename_new = c("Facility ID", "Mean LOS", "Total number of admissions", "Distinct subjects admitted")
+        rename_present = rename_old %in% names(tmp)
+        setnames(tmp, old = rename_old[rename_present], new = rename_new[rename_present])
+
+        # --- Replace lat+long with a single clean GPS column ---
+        if ("lat" %in% names(tmp) && "long" %in% names(tmp)) {
+            tmp[, `GPS coordinates` := sprintf("(%.1f, %.1f)", lat, long)]
+            tmp[, c("lat", "long") := NULL]
+        }
+
         return(tmp)
     })
-    
+
     stats_base = reactive({
         out = HospitalNetwork::all_admissions_summary(base())
         vals = list()
