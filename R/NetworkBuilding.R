@@ -609,7 +609,6 @@ hospinet_from_subject_database <- function(base,
                                 by.y = "fID",
                                 all.x = TRUE)
     }
-    print(facilitySummary)
     
     if (!is.null(shinySession)) {
         incProgress(session = shinySession, amount = 0.3)
