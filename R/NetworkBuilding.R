@@ -600,15 +600,7 @@ hospinet_from_subject_database <- function(base,
     }
     
     facilitySummary <- per_facility_summary(base)
-#browser()
-    ## Adding geolocalisation and capacities data ##
-    if(!is.null(attr(base, "report")$gps)) {
-        facilitySummary <- merge(facilitySummary,
-                                attr(base, "report")$gps,
-                                by.x = "node",
-                                by.y = "fID",
-                                all.x = TRUE)
-    }
+
     
     if (!is.null(shinySession)) {
         incProgress(session = shinySession, amount = 0.3)
