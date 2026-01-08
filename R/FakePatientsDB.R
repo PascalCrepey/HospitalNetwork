@@ -115,29 +115,11 @@ create_fake_subjectDB <- function(n_subjects = 100,
     #colnames(all_s_stays) <- c("subject", "facility", "admission", "discharge")
   }
 
-    if (gps) {
-        data("european_healthcare_facilities", package = "HospitalNetwork")
-        if (!is.null(country_code) && country_code == "GR") country_code <- "EL"
-          facilities_df <- european_healthcare_facilities
-        if (!is.null(country_code)) {
-          facilities_df <- facilities_df[cntr_id == country_code]
-        }
-        if (country_code == "EU") {
-          facilities_df <- european_healthcare_facilities
-        }
-        if (n_facilities > nrow(facilities_df)) {
-            stop("Not enough facilities available after filtering by country.")
-        }
-        selected <- facilities_df[sample(.N, n_facilities)]
-        gps_facilities <- data.table(
-          fID  = fIDs,
-          lat  = selected$lat,
-          long = selected$lon,
-          beds = if ("cap_beds" %in% names(selected)) selected$cap_beds else sample(20:300, n_facilities, TRUE)
-        )
-        return(list(all_s_stays = all_s_stays, gps_facilities = gps_facilities))
-    } else {
-      return(all_s_stays)
+  if (gps) {
+    gps_facilities <- create_gps_coordinates(fIDs, n_facilities, country_code)
+    return(list(all_s_stays = all_s_stays, gps_facilities = gps_facilities))
+  } else {
+    return(all_s_stays)
   }
 }
 
@@ -212,29 +194,15 @@ create_fake_subjectDB_clustered <- function(n_subjects = 50,
   trFID[, new_fid := sample(curr_fid, .N, replace = FALSE)]
   all_s_stays[trFID, fID := new_fid, on = c("fID" = "curr_fid")]
 
-    if (gps) {
-        data("european_healthcare_facilities", package = "HospitalNetwork")
-        if (!is.null(country_code) && country_code == "GR") country_code <- "EL"
-          facilities_df <- european_healthcare_facilities
-        if (!is.null(country_code)) {
-          facilities_df <- facilities_df[cntr_id == country_code]
-        }
-        if (country_code == "EU") {
-          facilities_df <- european_healthcare_facilities
-        }
-        if (n_facilities > nrow(facilities_df)) {
-            stop("Not enough facilities available after filtering by country.")
-        }
-        selected <- facilities_df[sample(.N, n_facilities)]
-        gps_facilities <- data.table(
-          fID  = unique(all_s_stays$fID)[1:n_facilities],
-          lat  = selected$lat,
-          long = selected$lon,
-          beds = if ("cap_beds" %in% names(selected)) selected$cap_beds else sample(20:300, n_facilities, TRUE)
-        )
-        return(list(all_s_stays = all_s_stays, gps_facilities = gps_facilities))
-    } else {
-      return(all_s_stays)
+  if (gps) {
+    gps_facilities <- create_gps_coordinates(
+      unique(all_s_stays$fID)[1:n_facilities], 
+      n_facilities, 
+      country_code
+    )
+    return(list(all_s_stays = all_s_stays, gps_facilities = gps_facilities))
+  } else {
+    return(all_s_stays)
   }
 }
 
@@ -274,4 +242,45 @@ create_subject_stay <- function(sID, fID,
     Adate = Adate,
     Ddate = Adate + length_of_stay
   )
+}
+
+#' Create GPS coordinates for facilities
+#'
+#' @param fIDs vector of facility IDs
+#' @param n_facilities the number of facilities
+#' @param country_code ISO country code (use "EU" for all European facilities, "GR" will be converted to "EL")
+#'
+#' @return a data.table with fID, lat, long, and beds columns
+#' @export
+create_gps_coordinates <- function(fIDs, n_facilities, country_code = NULL) {
+  data("european_healthcare_facilities", package = "HospitalNetwork")
+  
+  # Handle Greece country code conversion
+  if (!is.null(country_code) && country_code == "GR") {
+    country_code <- "EL"
+  }
+  
+  # Filter facilities based on country code
+  facilities_df <- european_healthcare_facilities
+  if (!is.null(country_code) && country_code != "EU") {
+    facilities_df <- facilities_df[cntr_id == country_code]
+  }
+  
+  # Check if enough facilities are available
+  if (n_facilities > nrow(facilities_df)) {
+    stop("Not enough facilities available after filtering by country.")
+  }
+  
+  # Select random facilities
+  selected <- facilities_df[sample(.N, n_facilities)]
+  
+  # Create GPS facilities data.table
+  gps_facilities <- data.table(
+    fID  = fIDs,
+    lat  = selected$lat,
+    long = selected$lon,
+    beds = if ("cap_beds" %in% names(selected)) selected$cap_beds else sample(20:300, n_facilities, TRUE)
+  )
+  
+  return(gps_facilities)
 }
