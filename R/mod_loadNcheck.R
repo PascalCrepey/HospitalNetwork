@@ -98,6 +98,53 @@ mod_loadNcheck_server <- function(input, output, session, parent, mainData){
 
     })
 
+    # --- Dynamically adjust fd_n_facilities max when country filter changes ----
+    observeEvent(
+      list(input$fd_with_gps, input$fd_country_filter),
+      {
+        req(input$fd_with_gps)
+
+        data("european_healthcare_facilities", package = "HospitalNetwork")
+        df <- european_healthcare_facilities
+
+        df$cntr_id <- as.character(df$cntr_id)
+        df$cntr_id[df$cntr_id == "EL"] <- "GR"
+
+        sel <- input$fd_country_filter %||% "EU"
+
+        n_avail <- if (sel == "EU") {
+          nrow(df)
+        } else {
+          sum(df$cntr_id == sel, na.rm = TRUE)
+        }
+
+        n_avail <- max(1L, as.integer(n_avail))
+        new_min <- if (n_avail >= 2) 2L else 1L
+        new_max <- n_avail
+
+        cur_val <- input$fd_n_facilities
+        if (is.null(cur_val)) {
+          new_value <- min(10L, new_max)
+        } else if (cur_val > new_max) {
+          new_value <- new_max
+        } else if (cur_val < new_min) {
+          new_value <- new_min
+        } else {
+          new_value <- cur_val
+        }
+
+        updateSliderInput(
+          session,
+          "fd_n_facilities",
+          min = new_min,
+          max = new_max,
+          value = new_value
+        )
+      },
+      ignoreInit = FALSE
+    )
+
+
     # Generate the fake data ----
     observeEvent(input$buildFD, {
       withProgress(message = "Building fake data...",{
