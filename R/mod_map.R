@@ -38,6 +38,7 @@ mod_map_ui <- function(id){
 #' @import leaflet
 #' @importFrom leaflet.extras2 addArrowhead
 #' @importFrom geosphere gcIntermediate
+#' @importFrom sp CRS
 mod_map_server <- function(input, output, session, net){
     ns <- session$ns
 
@@ -60,9 +61,13 @@ mod_map_server <- function(input, output, session, net){
       req(input$min_flow)
       data_flow = data_flow[N >= input$min_flow,]
       
-      flows <- gcIntermediate(data_flow[, .(long_origin, lat_origin)], 
-                              data_flow[, .(long_target, lat_target)], 
-                              sp = TRUE, addStartEnd = TRUE)
+    flows <- gcIntermediate(data_flow[, .(long_origin, lat_origin)], 
+                        data_flow[, .(long_target, lat_target)], 
+                        sp = TRUE, addStartEnd = TRUE)
+
+    # Transformer correctement le CRS
+      flows <- sp::spTransform(flows, sp::CRS("+proj=longlat +datum=WGS84"))
+      
       flows$counts <- data_flow$N
       flows$origins <- data_flow$origin
       flows$destinations <- data_flow$target
